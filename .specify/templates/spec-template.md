@@ -75,6 +75,20 @@
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
 
+## System Boundaries & Contracts *(mandatory)*
+
+### Affected Modules
+
+- **Module**: [frontend/backend/shared area or NEEDS CLARIFICATION]
+- **Responsibility**: [what this module owns]
+- **Public Interface**: [API/component/hook/event exposed to other modules]
+
+### Validation & Error Handling
+
+- **Input Contract**: [request fields, payload shape, form fields, event schema]
+- **Validation Rules**: [required fields, formats, permissions, limits]
+- **Error Outcomes**: [deterministic error codes/messages/states and where they surface]
+
 ## Requirements *(mandatory)*
 
 <!--
@@ -99,6 +113,12 @@
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]
 - **[Entity 2]**: [What it represents, relationships to other entities]
+
+## UX Consistency Impact *(mandatory)*
+
+- **Existing Pattern Referenced**: [component/page/pattern or NEEDS CLARIFICATION]
+- **States Covered**: [loading, empty, success, error]
+- **Accessibility/Copy Notes**: [labels, focus, announcements, tone]
 
 ## Success Criteria *(mandatory)*
 

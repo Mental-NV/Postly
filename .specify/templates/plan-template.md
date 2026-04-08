@@ -21,8 +21,11 @@
 **Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
 **Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]  
 **Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
+**Interfaces/Contracts**: [e.g., REST endpoints, form actions, background jobs or NEEDS CLARIFICATION]  
+**Error Handling Strategy**: [e.g., typed domain errors, HTTP problem details, inline validation or NEEDS CLARIFICATION]  
+**UX Surfaces**: [e.g., compose flow, feed, settings page or NEEDS CLARIFICATION]  
 **Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
 **Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
@@ -31,7 +34,16 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] Clear module boundaries are documented, including ownership and allowed
+      dependency direction.
+- [ ] All affected contracts, validation rules, and predictable error outcomes
+      are specified.
+- [ ] Automated tests are planned at the lowest useful level plus any impacted
+      integration or contract boundaries.
+- [ ] UX impact is documented, including loading, empty, success, and error
+      states plus any intended pattern deviations.
+- [ ] The design is the simplest viable approach, and any breaking change
+      includes migration or rollback notes.
 
 ## Project Structure
 
