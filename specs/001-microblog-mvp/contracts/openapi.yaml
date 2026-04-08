@@ -1,0 +1,545 @@
+openapi: 3.1.0
+info:
+  title: Postly MVP API
+  version: 0.1.0
+  summary: Contracts for the approved Postly microblog MVP
+servers:
+  - url: /api
+security:
+  - cookieAuth: []
+paths:
+  /auth/signup:
+    post:
+      summary: Create an account and start a signed-in session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          description: Account created and session established
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '409':
+          $ref: '#/components/responses/Problem'
+  /auth/signin:
+    post:
+      summary: Sign in with username and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SigninRequest'
+      responses:
+        '200':
+          description: Session established
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Problem'
+  /auth/signout:
+    post:
+      summary: Revoke the current session
+      responses:
+        '204':
+          description: Session revoked
+        '401':
+          $ref: '#/components/responses/Problem'
+  /auth/session:
+    get:
+      summary: Get the current signed-in user context
+      responses:
+        '200':
+          description: Active session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+  /timeline:
+    get:
+      summary: Get the signed-in user's home timeline
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Paginated newest-first timeline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPage'
+        '401':
+          $ref: '#/components/responses/Problem'
+  /posts:
+    post:
+      summary: Create a post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+      responses:
+        '201':
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Problem'
+  /posts/{postId}:
+    get:
+      summary: Get a single post for direct post view
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '200':
+          description: Direct-post payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    patch:
+      summary: Edit a post owned by the signed-in user
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequest'
+      responses:
+        '200':
+          description: Post updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    delete:
+      summary: Delete a post owned by the signed-in user
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '204':
+          description: Post deleted
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /posts/{postId}/like:
+    post:
+      summary: Like a visible post
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '200':
+          description: Like state updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostInteractionState'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    delete:
+      summary: Unlike a visible post
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '200':
+          description: Like state updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostInteractionState'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /profiles/{username}:
+    get:
+      summary: Get a profile summary
+      parameters:
+        - $ref: '#/components/parameters/Username'
+      responses:
+        '200':
+          description: Profile summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /profiles/{username}/posts:
+    get:
+      summary: Get paginated posts for a profile
+      parameters:
+        - $ref: '#/components/parameters/Username'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Paginated newest-first profile posts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPage'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /profiles/{username}/follow:
+    post:
+      summary: Follow another user
+      parameters:
+        - $ref: '#/components/parameters/Username'
+      responses:
+        '200':
+          description: Relationship updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileRelationshipState'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+    delete:
+      summary: Unfollow another user
+      parameters:
+        - $ref: '#/components/parameters/Username'
+      responses:
+        '200':
+          description: Relationship updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileRelationshipState'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: postly_session
+  parameters:
+    PostId:
+      name: postId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    Username:
+      name: username
+      in: path
+      required: true
+      schema:
+        type: string
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque cursor for newest-first pagination
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+  responses:
+    Problem:
+      description: ProblemDetails-style error response
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    ValidationProblem:
+      description: ProblemDetails-style validation error response
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ValidationProblemDetails'
+  schemas:
+    SignupRequest:
+      type: object
+      required: [username, displayName, password]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        bio:
+          type: string
+          maxLength: 160
+        password:
+          type: string
+          minLength: 8
+          maxLength: 64
+    SigninRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    SessionResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: '#/components/schemas/Viewer'
+    Viewer:
+      type: object
+      required: [id, username, displayName]
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        displayName:
+          type: string
+    CreatePostRequest:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 280
+    UpdatePostRequest:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 280
+    PostPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostSummary'
+        nextCursor:
+          type: string
+          nullable: true
+    PostSummary:
+      type: object
+      required:
+        - id
+        - body
+        - createdAtUtc
+        - isEdited
+        - likeCount
+        - likedByViewer
+        - canEdit
+        - canDelete
+        - author
+      properties:
+        id:
+          type: integer
+          format: int64
+        body:
+          type: string
+        createdAtUtc:
+          type: string
+          format: date-time
+        editedAtUtc:
+          type: string
+          format: date-time
+          nullable: true
+        isEdited:
+          type: boolean
+        likeCount:
+          type: integer
+          minimum: 0
+        likedByViewer:
+          type: boolean
+        canEdit:
+          type: boolean
+        canDelete:
+          type: boolean
+        author:
+          $ref: '#/components/schemas/AuthorSummary'
+    PostDetail:
+      allOf:
+        - $ref: '#/components/schemas/PostSummary'
+        - type: object
+          required: [notAvailableBackLink]
+          properties:
+            notAvailableBackLink:
+              type: string
+              nullable: true
+    AuthorSummary:
+      type: object
+      required: [id, username, displayName, avatar]
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        displayName:
+          type: string
+        avatar:
+          $ref: '#/components/schemas/DefaultAvatar'
+    DefaultAvatar:
+      type: object
+      required: [initials, styleKey]
+      properties:
+        initials:
+          type: string
+        styleKey:
+          type: string
+    PostInteractionState:
+      type: object
+      required: [postId, likeCount, likedByViewer]
+      properties:
+        postId:
+          type: integer
+          format: int64
+        likeCount:
+          type: integer
+          minimum: 0
+        likedByViewer:
+          type: boolean
+    ProfileResponse:
+      type: object
+      required:
+        - user
+        - followerCount
+        - followingCount
+        - isSelf
+        - isFollowedByViewer
+        - canFollow
+      properties:
+        user:
+          $ref: '#/components/schemas/ProfileUser'
+        followerCount:
+          type: integer
+          minimum: 0
+        followingCount:
+          type: integer
+          minimum: 0
+        isSelf:
+          type: boolean
+        isFollowedByViewer:
+          type: boolean
+        canFollow:
+          type: boolean
+    ProfileUser:
+      type: object
+      required: [id, username, displayName, avatar]
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        displayName:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        avatar:
+          $ref: '#/components/schemas/DefaultAvatar'
+    ProfileRelationshipState:
+      type: object
+      required: [username, isFollowedByViewer, followerCount, followingCount]
+      properties:
+        username:
+          type: string
+        isFollowedByViewer:
+          type: boolean
+        followerCount:
+          type: integer
+          minimum: 0
+        followingCount:
+          type: integer
+          minimum: 0
+    ProblemDetails:
+      type: object
+      required: [type, title, status, traceId]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        errorCode:
+          type: string
+        traceId:
+          type: string
+    ValidationProblemDetails:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
