@@ -85,3 +85,43 @@ on feature context and requirements.
   requirement renumbering for traceability.
 - This checklist evaluates requirement quality only; it does not test product
   behavior or implementation correctness.
+
+## Acceptance Criteria Quality
+
+- [ ] CHK017 Are acceptance scenarios defined for all clarified auth flows,
+      including invalid signup, invalid sign-in, protected-route return after
+      sign-in, and post-sign-out destination behavior? [Gap, Spec §User Story
+      1, Spec §User Story 3, Spec §FR-005-§FR-007]
+- [ ] CHK018 Are acceptance scenarios defined for direct post view when the
+      target post is missing, deleted, or no longer accessible, not only when
+      the view loads successfully? [Gap, Spec §User Story 3, Spec §Edge Cases,
+      Spec §FR-008-§FR-009]
+- [ ] CHK019 Are pending and success state requirements for create, edit,
+      delete, follow, unfollow, like, and unlike flows backed by equally
+      explicit acceptance criteria, rather than only edge-case bullets and
+      outcome summaries? [Coverage, Spec §Edge Cases, Spec §Success Outcomes,
+      Spec §FR-019, Spec §FR-023]
+
+## Dependencies & Assumptions
+
+- [ ] CHK020 Is the path for reaching another user’s profile explicit enough
+      for MVP planning without implying search, recommendations, or other
+      non-MVP discovery features? [Gap, Spec §User Story 2, Spec §FR-020-§FR-021,
+      Spec §FR-025]
+- [ ] CHK021 Are password requirements intentionally unspecified or missing,
+      including minimum length and basic validity constraints? [Gap, Spec §FR-002,
+      Spec §Validation & Error Handling]
+- [ ] CHK022 Are display name and bio constraints defined if they matter for
+      profile rendering, accessibility, or layout stability? [Gap, Spec §FR-002,
+      Spec §FR-020, Spec §FR-024]
+
+## Ambiguities & Conflicts
+
+- [ ] CHK023 Are author-only edit/delete controls and like/follow controls
+      explicitly consistent across timeline, profile, and direct-post surfaces?
+      [Consistency, Spec §User Stories, Spec §FR-009, Spec §FR-012-§FR-015,
+      Spec §Success Outcomes]
+- [ ] CHK024 Is post-sign-out behavior explicit enough to prevent stale
+      protected content through refresh or browser navigation, rather than only
+      stating that content becomes inaccessible? [Gap, Spec §User Story 1,
+      Spec §FR-005-§FR-007, Spec §Error Outcomes]

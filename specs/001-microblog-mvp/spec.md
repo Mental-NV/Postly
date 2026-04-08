@@ -21,6 +21,20 @@
   submit actions fail? → A: Preserve any loaded content or draft, show an
   inline error, and offer retry; if nothing has loaded yet, show a dedicated
   error state with retry.
+- Q: What are the username rules? → A: Usernames are trimmed before validation,
+  MUST be 3 to 20 characters long, MUST use only letters, digits, and
+  underscores, and MUST be unique case-insensitively.
+- Q: What happens on invalid sign-in? → A: Failed sign-in shows the same
+  generic inline error for unknown username or incorrect password, preserves the
+  entered username, clears the password field, and keeps the user on the sign-in
+  screen.
+- Q: What does "default avatar" mean in the MVP? → A: Every account receives a
+  system-generated default avatar based on the account's display name initials
+  and a deterministic visual style.
+- Q: What is a direct post view in the MVP? → A: Direct post view is in scope
+  only as a deep-link destination. It shows the single target post, the author
+  identity, edited status, aggregate like count, and actions allowed to the
+  current signed-in user. Threaded conversation context is out of scope.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -55,6 +69,17 @@ their account still exists.
    action is rejected with a clear error if attempted directly.
 6. **Given** a signed-in user, **When** they sign out, **Then** their session
    ends and protected content is no longer accessible until they sign in again.
+7. **Given** a visitor submits signup with one or more missing or invalid
+   required fields, **When** validation runs, **Then** the screen shows
+   field-level errors for each invalid field, preserves all entered non-password
+   values, and does not create an account.
+8. **Given** a visitor attempts sign-in with an unknown username or incorrect
+   password, **When** sign-in fails, **Then** the screen shows the same generic
+   inline error, preserves the entered username, clears the password field, and
+   leaves the user on the sign-in screen.
+9. **Given** a visitor submits valid signup data, **When** the account is
+   created, **Then** the user lands signed in on the home timeline without
+   needing a separate sign-in step.
 
 ---
 
@@ -126,21 +151,39 @@ signed-out visitors are redirected to sign in before protected content is shown.
    or a direct post view, **When** the page loads, **Then** the visitor is
    redirected to sign-in with a clear message and, after successful sign-in,
    returned to the originally requested page.
+5. **Given** a signed-in user opens a direct post URL, **When** the page loads
+   successfully, **Then** the page shows the single target post, its author
+   identity, edited status if applicable, the aggregate like count, and only the
+   actions allowed to that signed-in user.
 
 ### Edge Cases
 
+- A signup attempt with one or more missing required fields MUST fail with
+  field-level guidance for each invalid field, preserve all entered non-password
+  values, and create no account.
 - A signup attempt with a username already in use MUST fail with a clear,
   field-specific message and preserve the user’s other entered values.
+- A signup attempt with a username that violates length, allowed-character,
+  trimming, or case-insensitive uniqueness rules MUST fail with field-level
+  guidance.
+- A failed sign-in attempt MUST show the same generic inline error whether the
+  username is unknown or the password is incorrect, MUST preserve the entered
+  username, and MUST clear the password field.
 - An empty post or a post longer than 280 characters MUST be rejected before it
   is published, with clear guidance on the allowed limit.
-- A user with zero posts MUST see a clear empty state on their profile; other
-  signed-in users viewing that profile MUST see the same "no posts yet" outcome.
+- A signed-in user viewing their own profile with zero posts MUST see an empty
+  state that explicitly prompts them to create their first post.
+- A signed-in user viewing another user's profile with zero posts MUST see a
+  clear "no posts yet" outcome for that profile.
 - If a user follows no one and has no posts, the home timeline MUST show an
   empty onboarding state rather than a blank feed.
 - If a user follows no one but has posted, the home timeline MUST still show
   their own posts in newest-first order.
-- If a post is deleted, stale attempts to reopen it MUST show a not-available
-  state instead of broken or misleading content.
+- If the user deletes the last remaining post visible on the current home
+  timeline, the home timeline MUST immediately transition to the correct empty
+  or reduced-content state without requiring manual refresh.
+- If a post is deleted, stale attempts to reopen, edit, or delete it again MUST
+  leave data unchanged and MUST show a not-available state.
 - Repeated like or unlike actions on the same post MUST not create duplicate
   likes or negative counts.
 - Repeated follow or unfollow actions against the same user MUST not create
@@ -150,9 +193,14 @@ signed-out visitors are redirected to sign in before protected content is shown.
   action are shown.
 - If timeline or profile loading fails before any content is shown, the screen
   MUST display a dedicated error state with a retry action.
-- If post creation, post editing, follow, unfollow, like, or unlike submission
-  fails, the current screen state MUST remain visible, any unsaved composer text
-  MUST be preserved, and the error MUST be explained inline with a retry path.
+- If signup, sign-in, post creation, post editing, post deletion, follow,
+  unfollow, like, or unlike submission is in progress, the initiating control
+  MUST show a pending state and MUST prevent duplicate resubmission until the
+  outcome is known.
+- If post creation, post editing, post deletion, follow, unfollow, like, or
+  unlike submission fails, the current screen state MUST remain visible, any
+  unsaved composer text MUST be preserved, and the error MUST be explained
+  inline with a retry path.
 
 ## System Boundaries & Contracts *(mandatory)*
 
@@ -178,20 +226,43 @@ signed-out visitors are redirected to sign in before protected content is shown.
 
 ### Validation & Error Handling
 
-- **Input Contract**: Account creation accepts a unique username, display name,
-  optional bio, and password. Sign-in accepts username and password only. Post
-  creation and post editing accept non-empty text up to 280 characters. Follow,
-  unfollow, like, and unlike actions require a signed-in user and a valid
-  target user or post.
-- **Validation Rules**: Usernames MUST be unique. Users MUST be signed in to
-  view app content. Only the author of a post MAY edit or delete it. Users MUST
-  NOT be able to follow themselves. Duplicate follow or like actions MUST
-  resolve to a single current state.
-- **Error Outcomes**: Invalid form input MUST return clear field-level guidance.
-  Forbidden actions MUST return a clear message without changing data. Missing
-  or deleted content MUST show a not-available state. Signed-out access to
-  protected content MUST redirect to sign-in with a clear message and, after
-  successful sign-in, return the user to the originally requested page.
+- **Input Contract**: Account creation accepts username, display name, optional
+  bio, and password. Sign-in accepts username and password only. Direct post
+  view accepts a valid post destination. Post creation and post editing accept
+  non-empty text up to 280 characters. Follow, unfollow, like, and unlike
+  actions require a signed-in user and a valid target user or post.
+- **Validation Rules**:
+  - Usernames MUST be trimmed before validation.
+  - Usernames MUST be 3 to 20 characters long.
+  - Usernames MUST use only letters, digits, and underscores.
+  - Usernames MUST be unique case-insensitively.
+  - Users MUST be signed in to view timeline, profile, and direct post content.
+  - Only the author of a post MAY edit or delete that post.
+  - Any signed-in user MAY like or unlike a visible post.
+  - Any signed-in user MAY follow or unfollow another user, except themselves.
+  - Duplicate follow or like actions MUST resolve to a single current state.
+- **Error Outcomes**:
+  - Invalid form input MUST return field-level guidance for each invalid field.
+  - Failed sign-in MUST return the same generic inline error for unknown
+    username and incorrect password.
+  - Forbidden actions MUST return a clear message without changing data.
+  - Missing or deleted content MUST show a not-available state.
+  - Signed-out access to protected content MUST redirect to sign-in with a
+    clear message and, after successful sign-in, return the user to the
+    originally requested page.
+- **Success Outcomes**:
+  - Successful signup MUST create the account and land the user signed in on
+    the home timeline.
+  - Successful sign-in MUST open the originally requested protected destination
+    when one exists, otherwise the home timeline.
+  - Successful compose MUST show the new post immediately in the user’s home
+    timeline and profile.
+  - Successful follow or unfollow MUST update the relationship state and
+    visible counts immediately.
+  - Successful like or unlike MUST update the current-user liked state and
+    aggregate like count immediately.
+  - Successful edit or delete MUST update or remove the post without requiring
+    a manual refresh.
 
 ## Requirements *(mandatory)*
 
@@ -199,93 +270,139 @@ signed-out visitors are redirected to sign in before protected content is shown.
 
 - **FR-001**: The system MUST allow any new regular user to create an account
   through open signup.
-- **FR-002**: Account creation MUST require a unique username, display name,
+- **FR-002**: Account creation MUST require a username, display name, and
   password, and MAY accept an optional bio.
-- **FR-003**: The system MUST assign every new account a default avatar so every
-  profile displays an avatar in the MVP without requiring media upload.
-- **FR-004**: The system MUST allow registered users to sign in with username
+- **FR-003**: Usernames MUST be trimmed before validation, MUST be 3 to 20
+  characters long, MUST use only letters, digits, and underscores, and MUST be
+  unique case-insensitively.
+- **FR-004**: The system MUST assign every new account a system-generated
+  default avatar based on the account's display name initials and a
+  deterministic visual style, so every profile displays an avatar in the MVP
+  without requiring media upload.
+- **FR-005**: The system MUST allow registered users to sign in with username
   and password only, and to sign out.
-- **FR-005**: The system MUST restrict the home timeline, profile pages, and
+- **FR-006**: Failed sign-in MUST show the same generic inline error for
+  unknown username and incorrect password, MUST preserve the entered username,
+  and MUST clear the password field.
+- **FR-007**: The system MUST restrict the home timeline, profile pages, and
   direct post views to signed-in users.
-- **FR-006**: The system MUST allow signed-in users to create text-only posts.
-- **FR-007**: A post MUST contain between 1 and 280 characters inclusive.
-- **FR-008**: The system MUST allow users to edit only their own posts after
+- **FR-008**: The system MUST support direct post view as a deep-link
+  destination for a single post.
+- **FR-009**: Direct post view MUST show the target post, author identity,
+  edited status if applicable, aggregate like count, and only the actions
+  allowed to the current signed-in user.
+- **FR-010**: The system MUST allow signed-in users to create text-only posts.
+- **FR-011**: A post MUST contain between 1 and 280 characters inclusive.
+- **FR-012**: The system MUST allow users to edit only their own posts after
   publishing, with no time-window or edit-count restriction in the MVP.
-- **FR-009**: Edited posts MUST continue to obey the 280-character limit, MUST
+- **FR-013**: Edited posts MUST continue to obey the 280-character limit, MUST
   show that they were edited, and MUST keep their original publish time for
   newest-first ordering.
-- **FR-010**: The system MUST allow users to delete only their own posts.
-- **FR-011**: The system MUST prevent any user from editing or deleting another
+- **FR-014**: The system MUST allow users to delete only their own posts.
+- **FR-015**: The system MUST prevent any user from editing or deleting another
   user’s post, even if the action is attempted outside normal UI controls.
-- **FR-012**: The home timeline MUST show the signed-in user’s own posts and the
-  posts of users they follow, ordered newest first by original publish time.
-- **FR-013**: If a signed-in user follows no one and has no posts, the home
-  timeline MUST show an empty state with clear next steps to create a post or
-  follow users.
-- **FR-014**: If a signed-in user follows no one but has posts, the home
+- **FR-016**: The home timeline MUST show the signed-in user’s own posts and
+  the posts of users they follow, ordered newest first by original publish
+  time.
+- **FR-017**: If a signed-in user follows no one and has no posts, the home
+  timeline MUST show an empty state with explicit next steps to create a post
+  or follow users.
+- **FR-018**: If a signed-in user follows no one but has posts, the home
   timeline MUST show the user’s own posts and guidance that following people
   adds more content to the feed.
-- **FR-015**: Profile pages MUST show bio, avatar, follower count, following
+- **FR-019**: If the user deletes the last remaining visible post from the
+  current home timeline, the screen MUST immediately transition to the correct
+  empty or reduced-content state without requiring manual refresh.
+- **FR-020**: Profile pages MUST show bio, avatar, follower count, following
   count, and the profile owner’s posts.
-- **FR-016**: Profile pages MUST clearly distinguish the signed-in user’s own
+- **FR-021**: Profile pages MUST clearly distinguish the signed-in user’s own
   profile from another user’s profile.
-- **FR-017**: The system MUST allow signed-in users to follow and unfollow other
-  users.
-- **FR-018**: The system MUST prevent users from following themselves.
-- **FR-019**: The system MUST allow signed-in users to like and unlike posts.
-- **FR-020**: Like counts MUST be visible on posts to signed-in users, while the
-  list of individual likers remains out of scope for the MVP.
-- **FR-021**: Profiles and posts MUST be visible only to signed-in users.
-- **FR-026**: When a signed-out visitor requests a protected timeline, profile,
-  or post URL, the system MUST redirect them to sign-in, explain that sign-in
-  is required, and return them to the originally requested page after
+- **FR-022**: A signed-in user viewing their own profile with zero posts MUST
+  see an empty state that prompts them to create their first post.
+- **FR-023**: A signed-in user viewing another user's profile with zero posts
+  MUST see a clear "no posts yet" outcome for that profile.
+- **FR-024**: The system MUST allow signed-in users to follow and unfollow
+  other users.
+- **FR-025**: The system MUST prevent users from following themselves.
+- **FR-026**: The system MUST allow signed-in users to like and unlike posts.
+- **FR-027**: Posts MUST show an aggregate like count to signed-in users and
+  MUST indicate whether the current signed-in user has liked the post.
+- **FR-028**: The identity of other likers MUST not be shown anywhere in the
+  MVP.
+- **FR-029**: Profiles and posts MUST be visible only to signed-in users.
+- **FR-030**: When a signed-out visitor requests a protected timeline,
+  profile, or post URL, the system MUST redirect them to sign-in, explain that
+  sign-in is required, and return them to the originally requested page after
   successful sign-in.
-- **FR-027**: If timeline or profile loading fails after content was previously
-  loaded, the system MUST keep that content visible, show an inline error
-  message, and provide a retry action.
-- **FR-028**: If timeline or profile loading fails before any content is
+- **FR-031**: The UI MUST present explicit loading, empty, success, and error
+  states for signup, sign-in, timeline, profiles, compose, edit post, delete
+  post, follow, unfollow, like, and unlike flows.
+- **FR-032**: During signup, sign-in, compose, edit, delete, follow, unfollow,
+  like, and unlike submission, the initiating control MUST show a pending state
+  and MUST prevent duplicate resubmission until the outcome is known.
+- **FR-033**: If timeline or profile loading fails after content was
+  previously loaded, the system MUST keep that content visible, show an inline
+  error message, and provide a retry action.
+- **FR-034**: If timeline or profile loading fails before any content is
   available, the system MUST show a dedicated error state with a retry action.
-- **FR-022**: The UI MUST present clear loading, empty, success, and error
-  states for signup, sign-in, timeline, profiles, compose, follow, and like
-  flows.
-- **FR-029**: If a compose or interaction submission fails, the system MUST
+- **FR-035**: If a compose or interaction submission fails, the system MUST
   preserve the user’s current draft or visible content state, explain the
   failure inline, and provide a retry path without forcing the user to start
   over.
-- **FR-023**: The MVP experience MUST work on both desktop and mobile web
-  without removing any core user flow.
-- **FR-024**: Accessibility basics MUST be treated as required behavior,
+- **FR-036**: Successful signup MUST land the user signed in on the home
+  timeline.
+- **FR-037**: Successful sign-in MUST open the originally requested protected
+  destination when one exists, otherwise the home timeline.
+- **FR-038**: Successful compose, edit, delete, follow, unfollow, like, and
+  unlike actions MUST update the visible state immediately without requiring
+  manual refresh.
+- **FR-039**: The MVP experience MUST support all core flows on narrow mobile
+  web and desktop web, with no horizontal scrolling required for primary
+  content or actions.
+- **FR-040**: Accessibility basics MUST be treated as required behavior,
   including keyboard access, visible focus, descriptive labels, readable
   feedback, and non-color-only status communication.
-- **FR-025**: The MVP MUST exclude direct messages, reposts, hashtags, trending
-  topics, media upload, notifications, and any admin or moderation console.
+- **FR-041**: Signup and sign-in errors MUST be readable and clearly
+  associated with the relevant fields or form.
+- **FR-042**: Compose and edit flows MUST expose remaining or violated
+  post-length limits in readable text.
+- **FR-043**: Follow, unfollow, like, and unlike state changes MUST be
+  perceivable without color alone.
+- **FR-044**: Redirect, error, empty, and not-available states MUST expose
+  clear headings and actionable controls.
+- **FR-045**: The MVP MUST exclude direct messages, reposts, replies or
+  comments, hashtags, trending topics, search, media upload, notifications,
+  admin or moderation tools, anonymous browsing, and profile editing after
+  signup.
 
 ### Key Entities *(include if feature involves data)*
 
 - **User Account**: A registered person with sign-in credentials, a unique
-  username, a display name, an optional bio, and a default avatar.
+  case-insensitive username, a display name, an optional bio, and a
+  system-generated default avatar.
 - **Session**: The current signed-in state that determines whether protected
   content and actions are available.
 - **Post**: A short text publication created by a user, with author ownership,
-  original publish time, current text, and edited status.
-- **Profile**: The public-facing signed-in view of a user account, including bio,
-  avatar, follower count, following count, and authored posts.
-- **Follow Relationship**: A directional connection where one user subscribes to
-  another user’s posts for home timeline inclusion.
+  original publish time, current text, edited status, and a direct deep-link
+  destination.
+- **Profile**: The public-facing signed-in view of a user account, including
+  bio, avatar, follower count, following count, and authored posts.
+- **Follow Relationship**: A directional connection where one user subscribes
+  to another user’s posts for home timeline inclusion.
 - **Like**: A user’s positive reaction to a specific post, represented in the
-  MVP by current user state and a visible aggregate count.
+  MVP by current-user liked state and a visible aggregate count.
 
 ## UX Consistency Impact *(mandatory)*
 
 - **Existing Pattern Referenced**: Postly MVP MUST establish one consistent web
-  pattern for account entry, one shared signed-in shell, one reusable post card,
-  and one reusable profile layout that are applied across timeline and profile
-  views.
+  pattern for account entry, one shared signed-in shell, one reusable post
+  card, and one reusable profile layout that are applied across timeline and
+  profile views.
 - **States Covered**: Signup, sign-in, sign-out, compose, edit post, delete
   post, timeline loading, timeline empty, protected-access redirect messages,
-  profile loading, profile empty, follow/unfollow feedback, like/unlike feedback,
-  dedicated first-load error states, and inline retry states after partial
-  content or draft data already exists.
+  profile loading, profile empty, follow/unfollow feedback, like/unlike
+  feedback, dedicated first-load error states, and inline retry states after
+  partial content or draft data already exists.
 - **Accessibility/Copy Notes**: User-facing copy MUST use plain language and
   identify the current outcome and next action. Interactive elements MUST be
   keyboard reachable, focus states MUST be visible, and feedback MUST not rely
@@ -316,14 +433,20 @@ signed-out visitors are redirected to sign in before protected content is shown.
 - Email-based sign-in, email verification, and password recovery are out of
   scope for the MVP.
 - All readable product content in the MVP is private to signed-in users; there
-  is no anonymous browsing experience for profiles, posts, or the home timeline.
+  is no anonymous browsing experience for profiles, posts, or the home
+  timeline.
 - Signed-out attempts to open protected URLs return users through the sign-in
   flow and then back to the originally requested destination.
 - Profile editing beyond the initial display name and optional bio entered at
   signup is out of scope for the MVP.
-- The avatar requirement is satisfied in the MVP by a system-provided default
-  avatar for every account rather than user-uploaded media.
+- Every account receives a system-generated default avatar rather than
+  user-uploaded media.
 - Users can edit only their own posts, with no edit history, and edits do not
   move posts to the top of the timeline.
-- Likes are visible to others only as an aggregate count on each post, not as a
-  browsable list of who liked the post.
+- Likes are visible only as an aggregate count plus current-user liked state;
+  there is no browsable list of who liked a post.
+- Direct post view is supported only for a single target post and does not
+  include threaded conversation context.
+- Replies, comments, direct messages, reposts, hashtags, trending topics,
+  search, notifications, moderation tools, anonymous browsing, and profile
+  editing after signup are out of scope for the MVP.
