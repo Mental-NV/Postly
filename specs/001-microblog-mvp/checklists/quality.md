@@ -11,92 +11,91 @@ on feature context and requirements.
 
 ## Requirement Completeness
 
-- [ ] CHK001 Are username requirements fully specified beyond uniqueness,
+- [x] CHK001 Are username requirements fully specified beyond uniqueness,
       including allowed characters, length, normalization, and case
       sensitivity? [Gap, Spec §FR-001, Spec §FR-002, Spec §Validation & Error Handling]
-- [ ] CHK002 Are invalid sign-in requirements explicitly documented, including
+- [x] CHK002 Are invalid sign-in requirements explicitly documented, including
       user feedback and whether the entered username is preserved after failure?
       [Gap, Spec §User Story 1, Spec §FR-004, Spec §FR-022]
-- [ ] CHK003 Are sign-up validation requirements complete for required-field
+- [x] CHK003 Are sign-up validation requirements complete for required-field
       failures and duplicate usernames, not only successful registration?
       [Completeness, Spec §User Story 1, Spec §Edge Cases, Spec §FR-001, Spec §FR-002]
-- [ ] CHK004 Is the existence and purpose of a direct post view explicitly
+- [x] CHK004 Is the existence and purpose of a direct post view explicitly
       specified, rather than only referenced in access-control rules? [Gap,
       Spec §User Story 3, Spec §FR-005, Spec §FR-026]
 
 ## Requirement Clarity
 
-- [ ] CHK005 Is the "default avatar" requirement defined precisely enough to
+- [x] CHK005 Is the "default avatar" requirement defined precisely enough to
       avoid divergent interpretations of what the MVP must show? [Ambiguity,
       Spec §FR-003, Spec §Assumptions]
-- [ ] CHK006 Are phrases such as "clear message" and "clear next steps"
+- [x] CHK006 Are phrases such as "clear message" and "clear next steps"
       concrete enough to be reviewed objectively for empty and protected-access
       states? [Ambiguity, Spec §FR-013, Spec §FR-014, Spec §FR-026]
-- [ ] CHK007 Is the desktop/mobile web requirement specific enough to be
+- [x] CHK007 Is the desktop/mobile web requirement specific enough to be
       reviewable without implementation assumptions, such as minimum supported
       viewport behavior or equivalent layout expectations? [Gap, Spec §FR-023]
 
 ## Requirement Consistency
 
-- [ ] CHK008 Do auth, authorization, visibility, and ownership rules align
+- [x] CHK008 Do auth, authorization, visibility, and ownership rules align
       consistently across user stories, edge cases, validation rules, and
       functional requirements? [Consistency, Spec §User Stories, Spec §Edge
       Cases, Spec §Validation & Error Handling, Spec §FR-004-§FR-021]
-- [ ] CHK009 Are likes-visibility requirements consistent between "aggregate
+- [x] CHK009 Are likes-visibility requirements consistent between "aggregate
       count only" and the "liked by current user" state, with no implied liker
       list or public exposure? [Consistency, Spec §User Story 3, Spec §FR-020,
       Spec §Assumptions]
-- [ ] CHK010 Is the current FR numbering and cross-reference order suitable for
+- [x] CHK010 Is the current FR numbering and cross-reference order suitable for
       planning traceability, or should requirements be renumbered before plan
       and task artifacts are created? [Traceability, Spec §Functional
       Requirements]
 
 ## Scenario & State Coverage
 
-- [ ] CHK011 Are success-state requirements defined as explicitly as loading,
+- [x] CHK011 Are success-state requirements defined as explicitly as loading,
       empty, and error states for sign-in, compose, follow/unfollow, and
       like/unlike flows? [Gap, Spec §FR-022, Spec §FR-029]
-- [ ] CHK012 Are loading-state requirements defined for mutation flows, or are
+- [x] CHK012 Are loading-state requirements defined for mutation flows, or are
       loading states currently specified only for timeline and profile
       retrieval? [Gap, Spec §FR-022, Spec §Edge Cases]
-- [ ] CHK013 Are zero-state requirements complete for own profile, another
+- [x] CHK013 Are zero-state requirements complete for own profile, another
       user's empty profile, the empty home timeline, and the home timeline
       after deleting the last remaining post? [Coverage, Spec §User Story 2,
       Spec §Edge Cases, Spec §FR-013-§FR-015]
-- [ ] CHK014 Are ownership and idempotency requirements equally explicit for
+- [x] CHK014 Are ownership and idempotency requirements equally explicit for
       repeated delete attempts and stale edit/delete actions, not just
       follow/unfollow and like/unlike actions? [Gap, Spec §FR-008-§FR-011,
       Spec §Edge Cases]
-- [ ] CHK015 Are accessibility requirements defined per critical flow and state,
+- [x] CHK015 Are accessibility requirements defined per critical flow and state,
       rather than only as a global principle? [Gap, Spec §FR-022, Spec §FR-024]
 
 ## Scope Discipline
 
-- [ ] CHK016 Are out-of-scope exclusions consistent with all user stories,
+- [x] CHK016 Are out-of-scope exclusions consistent with all user stories,
       acceptance criteria, and assumptions, with no implied messaging,
       notification, moderation, public-browsing, or other non-MVP features?
       [Consistency, Spec §User Stories, Spec §FR-025, Spec §Assumptions]
 
 ## Notes
 
-- Current likely pre-plan gaps: username normalization/rules, invalid sign-in
-  behavior, direct-post-view scope, success/loading requirements for mutation
-  flows, mobile-web specificity, flow-specific accessibility coverage, and
-  requirement renumbering for traceability.
+- Revalidated against the tightened spec on 2026-04-09; the previously flagged
+  pre-plan gaps are now explicitly covered in requirements, acceptance
+  scenarios, edge cases, assumptions, and UX state definitions.
 - This checklist evaluates requirement quality only; it does not test product
   behavior or implementation correctness.
 
 ## Acceptance Criteria Quality
 
-- [ ] CHK017 Are acceptance scenarios defined for all clarified auth flows,
+- [x] CHK017 Are acceptance scenarios defined for all clarified auth flows,
       including invalid signup, invalid sign-in, protected-route return after
       sign-in, and post-sign-out destination behavior? [Gap, Spec §User Story
       1, Spec §User Story 3, Spec §FR-005-§FR-007]
-- [ ] CHK018 Are acceptance scenarios defined for direct post view when the
+- [x] CHK018 Are acceptance scenarios defined for direct post view when the
       target post is missing, deleted, or no longer accessible, not only when
       the view loads successfully? [Gap, Spec §User Story 3, Spec §Edge Cases,
       Spec §FR-008-§FR-009]
-- [ ] CHK019 Are pending and success state requirements for create, edit,
+- [x] CHK019 Are pending and success state requirements for create, edit,
       delete, follow, unfollow, like, and unlike flows backed by equally
       explicit acceptance criteria, rather than only edge-case bullets and
       outcome summaries? [Coverage, Spec §Edge Cases, Spec §Success Outcomes,
@@ -104,24 +103,24 @@ on feature context and requirements.
 
 ## Dependencies & Assumptions
 
-- [ ] CHK020 Is the path for reaching another user’s profile explicit enough
+- [x] CHK020 Is the path for reaching another user’s profile explicit enough
       for MVP planning without implying search, recommendations, or other
       non-MVP discovery features? [Gap, Spec §User Story 2, Spec §FR-020-§FR-021,
       Spec §FR-025]
-- [ ] CHK021 Are password requirements intentionally unspecified or missing,
+- [x] CHK021 Are password requirements intentionally unspecified or missing,
       including minimum length and basic validity constraints? [Gap, Spec §FR-002,
       Spec §Validation & Error Handling]
-- [ ] CHK022 Are display name and bio constraints defined if they matter for
+- [x] CHK022 Are display name and bio constraints defined if they matter for
       profile rendering, accessibility, or layout stability? [Gap, Spec §FR-002,
       Spec §FR-020, Spec §FR-024]
 
 ## Ambiguities & Conflicts
 
-- [ ] CHK023 Are author-only edit/delete controls and like/follow controls
+- [x] CHK023 Are author-only edit/delete controls and like/follow controls
       explicitly consistent across timeline, profile, and direct-post surfaces?
       [Consistency, Spec §User Stories, Spec §FR-009, Spec §FR-012-§FR-015,
       Spec §Success Outcomes]
-- [ ] CHK024 Is post-sign-out behavior explicit enough to prevent stale
+- [x] CHK024 Is post-sign-out behavior explicit enough to prevent stale
       protected content through refresh or browser navigation, rather than only
       stating that content becomes inaccessible? [Gap, Spec §User Story 1,
       Spec §FR-005-§FR-007, Spec §Error Outcomes]
