@@ -5,6 +5,23 @@
 **Status**: Draft  
 **Input**: User description: "Define the MVP for Postly, a microblogging social web app similar in spirit to Twitter/X with account access, short text posts, profiles, follows, likes, a home timeline, and responsive accessible web UX."
 
+## Clarifications
+
+### Session 2026-04-09
+
+- Q: Which credentials are used for signup and sign-in? → A: Signup uses
+  username, display name, optional bio, and password; sign-in uses username and
+  password only.
+- Q: How long can an author edit their own post after publishing? → A: Authors
+  can edit their own posts any time, with no edit-count limit.
+- Q: What happens when a signed-out visitor opens a protected timeline, profile,
+  or post URL? → A: Redirect to sign-in with a clear message and return to the
+  requested page after successful sign-in.
+- Q: How should timeline, profile, and composer flows behave when loading or
+  submit actions fail? → A: Preserve any loaded content or draft, show an
+  inline error, and offer retry; if nothing has loaded yet, show a dedicated
+  error state with retry.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Join and Publish (Priority: P1)
@@ -91,7 +108,7 @@ access rules keep the MVP predictable and secure.
 
 **Independent Test**: A signed-in user can like and unlike posts from the
 timeline or a profile, see visible like counts update, and confirm that
-signed-out visitors are prompted to sign in before protected content is shown.
+signed-out visitors are redirected to sign in before protected content is shown.
 
 **Acceptance Scenarios**:
 
@@ -107,7 +124,8 @@ signed-out visitors are prompted to sign in before protected content is shown.
    to the signed-in user or another person.
 4. **Given** a signed-out visitor requests the home timeline, a profile page,
    or a direct post view, **When** the page loads, **Then** the visitor is
-   prompted to sign in and protected content is not displayed.
+   redirected to sign-in with a clear message and, after successful sign-in,
+   returned to the originally requested page.
 
 ### Edge Cases
 
@@ -127,6 +145,14 @@ signed-out visitors are prompted to sign in before protected content is shown.
   likes or negative counts.
 - Repeated follow or unfollow actions against the same user MUST not create
   duplicate relationships or inaccurate follower counts.
+- If timeline or profile loading fails after content has already been shown, the
+  previously loaded content MUST remain visible while an inline error and retry
+  action are shown.
+- If timeline or profile loading fails before any content is shown, the screen
+  MUST display a dedicated error state with a retry action.
+- If post creation, post editing, follow, unfollow, like, or unlike submission
+  fails, the current screen state MUST remain visible, any unsaved composer text
+  MUST be preserved, and the error MUST be explained inline with a retry path.
 
 ## System Boundaries & Contracts *(mandatory)*
 
@@ -153,9 +179,10 @@ signed-out visitors are prompted to sign in before protected content is shown.
 ### Validation & Error Handling
 
 - **Input Contract**: Account creation accepts a unique username, display name,
-  optional bio, and password. Post creation and post editing accept non-empty
-  text up to 280 characters. Follow, unfollow, like, and unlike actions require
-  a signed-in user and a valid target user or post.
+  optional bio, and password. Sign-in accepts username and password only. Post
+  creation and post editing accept non-empty text up to 280 characters. Follow,
+  unfollow, like, and unlike actions require a signed-in user and a valid
+  target user or post.
 - **Validation Rules**: Usernames MUST be unique. Users MUST be signed in to
   view app content. Only the author of a post MAY edit or delete it. Users MUST
   NOT be able to follow themselves. Duplicate follow or like actions MUST
@@ -163,7 +190,8 @@ signed-out visitors are prompted to sign in before protected content is shown.
 - **Error Outcomes**: Invalid form input MUST return clear field-level guidance.
   Forbidden actions MUST return a clear message without changing data. Missing
   or deleted content MUST show a not-available state. Signed-out access to
-  protected content MUST redirect or prompt the user to sign in.
+  protected content MUST redirect to sign-in with a clear message and, after
+  successful sign-in, return the user to the originally requested page.
 
 ## Requirements *(mandatory)*
 
@@ -175,13 +203,14 @@ signed-out visitors are prompted to sign in before protected content is shown.
   password, and MAY accept an optional bio.
 - **FR-003**: The system MUST assign every new account a default avatar so every
   profile displays an avatar in the MVP without requiring media upload.
-- **FR-004**: The system MUST allow registered users to sign in and sign out.
+- **FR-004**: The system MUST allow registered users to sign in with username
+  and password only, and to sign out.
 - **FR-005**: The system MUST restrict the home timeline, profile pages, and
   direct post views to signed-in users.
 - **FR-006**: The system MUST allow signed-in users to create text-only posts.
 - **FR-007**: A post MUST contain between 1 and 280 characters inclusive.
 - **FR-008**: The system MUST allow users to edit only their own posts after
-  publishing.
+  publishing, with no time-window or edit-count restriction in the MVP.
 - **FR-009**: Edited posts MUST continue to obey the 280-character limit, MUST
   show that they were edited, and MUST keep their original publish time for
   newest-first ordering.
@@ -207,9 +236,22 @@ signed-out visitors are prompted to sign in before protected content is shown.
 - **FR-020**: Like counts MUST be visible on posts to signed-in users, while the
   list of individual likers remains out of scope for the MVP.
 - **FR-021**: Profiles and posts MUST be visible only to signed-in users.
+- **FR-026**: When a signed-out visitor requests a protected timeline, profile,
+  or post URL, the system MUST redirect them to sign-in, explain that sign-in
+  is required, and return them to the originally requested page after
+  successful sign-in.
+- **FR-027**: If timeline or profile loading fails after content was previously
+  loaded, the system MUST keep that content visible, show an inline error
+  message, and provide a retry action.
+- **FR-028**: If timeline or profile loading fails before any content is
+  available, the system MUST show a dedicated error state with a retry action.
 - **FR-022**: The UI MUST present clear loading, empty, success, and error
   states for signup, sign-in, timeline, profiles, compose, follow, and like
   flows.
+- **FR-029**: If a compose or interaction submission fails, the system MUST
+  preserve the user’s current draft or visible content state, explain the
+  failure inline, and provide a retry path without forcing the user to start
+  over.
 - **FR-023**: The MVP experience MUST work on both desktop and mobile web
   without removing any core user flow.
 - **FR-024**: Accessibility basics MUST be treated as required behavior,
@@ -240,8 +282,10 @@ signed-out visitors are prompted to sign in before protected content is shown.
   and one reusable profile layout that are applied across timeline and profile
   views.
 - **States Covered**: Signup, sign-in, sign-out, compose, edit post, delete
-  post, timeline loading, timeline empty, protected-access prompts, profile
-  loading, profile empty, follow/unfollow feedback, and like/unlike feedback.
+  post, timeline loading, timeline empty, protected-access redirect messages,
+  profile loading, profile empty, follow/unfollow feedback, like/unlike feedback,
+  dedicated first-load error states, and inline retry states after partial
+  content or draft data already exists.
 - **Accessibility/Copy Notes**: User-facing copy MUST use plain language and
   identify the current outcome and next action. Interactive elements MUST be
   keyboard reachable, focus states MUST be visible, and feedback MUST not rely
@@ -269,8 +313,12 @@ signed-out visitors are prompted to sign in before protected content is shown.
 ## Assumptions
 
 - Signup is open to any regular user who is not already registered.
+- Email-based sign-in, email verification, and password recovery are out of
+  scope for the MVP.
 - All readable product content in the MVP is private to signed-in users; there
   is no anonymous browsing experience for profiles, posts, or the home timeline.
+- Signed-out attempts to open protected URLs return users through the sign-in
+  flow and then back to the originally requested destination.
 - Profile editing beyond the initial display name and optional bio entered at
   signup is out of scope for the MVP.
 - The avatar requirement is satisfied in the MVP by a system-provided default
