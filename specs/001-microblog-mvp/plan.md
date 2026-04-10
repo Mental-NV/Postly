@@ -1,41 +1,38 @@
 # Implementation Plan: Postly Microblog MVP
 
-**Branch**: `001-microblog-mvp` | **Date**: 2026-04-09 | **Spec**: [spec.md](./spec.md)
+**Branch**: `001-microblog-mvp` | **Date**: 2026-04-10 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/001-microblog-mvp/spec.md`
-
-**Note**: This plan covers Phase 0 research and Phase 1 design artifacts for the
-approved MVP only.
 
 ## Summary
 
 Build Postly as a same-repo full-stack web application with an ASP.NET Core
-Minimal API backend and a React + TypeScript + Vite frontend. The smallest
-end-to-end slice proves the core architecture by delivering open signup,
-username/password sign-in, protected routing, the authenticated home shell, and
-create/read-own-post flow on SQLite with EF Core migrations, consistent
-ProblemDetails-style errors, a typed frontend API client, and the full testing
-and quality-gate baseline.
+Minimal API backend and a React + TypeScript + Vite frontend. The backend is
+the runtime entry point: it serves the built SPA from `wwwroot`, applies
+SQLite migrations/startup preparation, and is the single target for local runs
+and Playwright end-to-end execution through
+`dotnet run --project backend/src/Postly.Api`.
 
-Subsequent MVP slices add profile viewing plus follow/unfollow and timeline
-composition, then likes and direct-post view, while keeping the architecture
-simple, feature-oriented, and aligned with the constitution's requirements for
-module boundaries, explicit contracts, automated tests, UX consistency, and
-safe evolution.
+The smallest architecture-proving slice delivers signup, sign-in, protected
+routing, backend-hosted frontend assets, deterministic `DataSeed`, and the
+create/read-own-post flow with ProblemDetails-style errors, consistent route
+states, and the baseline testing/tooling gates. Later slices add profiles,
+follow/unfollow, timeline composition, likes, and direct-post view while
+keeping boundaries explicit and avoiding speculative abstraction.
 
 ## Technical Context
 
 **Language/Version**: C# on .NET 10 (backend), TypeScript in strict mode (frontend)  
 **Primary Dependencies**: ASP.NET Core Minimal APIs, EF Core with SQLite provider and migrations, ASP.NET Core authentication/cookie middleware, ASP.NET Core Identity password hasher, React, React Router, Vite, Vitest, React Testing Library, Playwright  
-**Storage**: SQLite for the MVP application database, managed through EF Core migrations  
-**Testing**: xUnit for backend unit/integration/contract tests, Vitest + React Testing Library for frontend unit/component tests, Playwright for critical end-to-end flows  
+**Storage**: SQLite for the MVP application database, managed through EF Core migrations and deterministic non-production `DataSeed` preparation  
+**Testing**: xUnit for backend unit/integration/contract tests, Vitest + React Testing Library for frontend unit/component tests, Playwright for critical end-to-end flows against the backend entry point  
 **Target Platform**: Same-origin web app for desktop and mobile browsers; local development on macOS/Linux/Windows through a single backend entry point  
 **Project Type**: Full-stack web application in a single repository  
-**Interfaces/Contracts**: REST/JSON API under `/api`, same-origin SPA routes (`/`, `/signin`, `/signup`, `/u/:username`, `/posts/:postId`), cursor pagination for post collections, `application/problem+json` error responses  
-**Error Handling Strategy**: Boundary validation on every request, domain/application errors mapped to ProblemDetails-style responses with stable error codes, 400/401/403/404/409 responses used consistently, frontend error mapping through a typed API client boundary  
-**UX Surfaces**: Signup, sign-in, sign-out redirect handling, protected home timeline, composer, post cards, direct post view, own profile, other-user profile, follow/unfollow and like/unlike interactions  
+**Interfaces/Contracts**: REST/JSON API under `/api`, same-origin SPA routes (`/`, `/signin`, `/signup`, `/u/:username`, `/posts/:postId`), cursor pagination for post collections, `application/problem+json` error responses, documented frontend screen and flow contracts  
+**Error Handling Strategy**: Boundary validation on every request, domain/application errors mapped to ProblemDetails-style responses with stable error codes, 400/401/403/404/409 responses used consistently, frontend error mapping through a typed API client boundary with inline and dedicated route-state handling  
+**UX Surfaces**: Signup, sign-in, sign-out redirect handling, protected home timeline, composer, post cards, direct post view, own profile, other-user profile, follow/unfollow and like/unlike interactions, backend-hosted SPA entry path  
 **Performance Goals**: P95 API response under 250 ms for auth and single-post reads and under 400 ms for paginated timeline/profile reads on a single-node MVP dataset; initial pages deliver 20 posts per request; primary content/actions avoid horizontal scrolling on mobile and desktop  
-**Constraints**: Same repository for frontend/backend, clear boundary between endpoint/application/persistence and UI/API client layers, minimal dependencies unless they reduce contract drift or quality risk, SQLite single-node limits accepted for MVP, no repository abstraction unless a concrete duplication/problem appears, frontend build output synchronized into backend `wwwroot`, `dotnet run --project backend/src/Postly.Api` acts as the full local app entry point, no scope beyond approved MVP  
-**Scale/Scope**: Single-node MVP for low-thousands of active users and tens of thousands of posts, with newest-first timelines/profiles and deterministic local setup
+**Constraints**: Same repository for frontend/backend, clear boundary between endpoint/application/persistence and UI/API client layers, minimal dependencies unless they reduce contract drift or quality risk, SQLite single-node limits accepted for MVP, no repository abstraction unless a concrete duplication/problem appears, frontend build output synchronized into backend `wwwroot` during `Postly.Api` pre-build, `dotnet run --project backend/src/Postly.Api` acts as the full local app entry point, no scope beyond approved MVP  
+**Scale/Scope**: Single-node MVP for low-thousands of active users and tens of thousands of posts, with newest-first timelines/profiles, deterministic local setup, and five primary SPA routes/surfaces
 
 ## Constitution Check
 
@@ -45,51 +42,56 @@ safe evolution.
 
 - [x] Clear module boundaries are documented, including ownership and allowed
       dependency direction.
-      Backend is split into endpoint, application, and persistence concerns;
-      frontend is split into app shell, feature modules, and a shared API
-      client boundary.
+      Backend is split into endpoint, application, persistence, and security
+      concerns; frontend is split into app shell, feature modules, and a typed
+      shared API boundary.
 - [x] All affected contracts, validation rules, and predictable error outcomes
       are specified.
-      The spec already locks auth, visibility, ownership, direct-post behavior,
-      state handling, and explicit validation/error outcomes that the contracts
-      will encode.
+      The spec, frontend requirements, user flows, data model, and OpenAPI
+      contract lock auth, authorization, state handling, seeded-data
+      assumptions, and frontend/backend runtime behavior.
 - [x] Automated tests are planned at the lowest useful level plus any impacted
       integration or contract boundaries.
       The plan includes backend unit/integration/contract tests, frontend
-      Vitest coverage, and Playwright end-to-end flows for the critical paths.
+      component tests, and Playwright end-to-end flows against the backend
+      entry point.
 - [x] UX impact is documented, including loading, empty, success, and error
       states plus any intended pattern deviations.
-      The spec defines these states for auth, timeline, profile, compose,
-      follow, and like flows; the plan preserves one shared component and state
-      pattern across surfaces.
+      The spec and frontend requirements define route-level and mutation-level
+      loading, empty, success, error, redirect, unavailable, and confirmation
+      states.
 - [x] The design is the simplest viable approach, and any breaking change
       includes migration or rollback notes.
-      The plan keeps one backend app, one frontend app, SQLite, EF migrations,
-      and direct DbContext usage without repository indirection.
+      The design keeps one backend executable, one frontend app, direct EF
+      Core usage, SQLite migrations, and MSBuild-based SPA asset sync without
+      adding repositories, multiple services, or speculative shared packages.
 
 ### Post-Design Re-Check
 
 - [x] Clear module boundaries are documented, including ownership and allowed
       dependency direction.
-      Project structure, research decisions, contracts, and data model all keep
-      dependency direction explicit: UI -> API client -> HTTP contracts -> API
-      endpoints -> application handlers -> EF persistence.
+      Project structure, research decisions, and contracts keep dependency
+      direction explicit: UI -> API client -> HTTP contracts -> API endpoints
+      -> application handlers -> EF persistence.
 - [x] All affected contracts, validation rules, and predictable error outcomes
       are specified.
-      `contracts/openapi.yaml` defines request/response shapes, pagination, and
-      ProblemDetails responses; `data-model.md` captures entity constraints.
+      `contracts/openapi.yaml`, `data-model.md`, `frontend-requirements.md`,
+      and `user-flows.md` together define requests, responses, seeded data,
+      screen elements, and user-visible outcomes.
 - [x] Automated tests are planned at the lowest useful level plus any impacted
       integration or contract boundaries.
       Quickstart and delivery phases include unit, integration, contract,
-      component, and end-to-end coverage as non-optional quality gates.
+      component, and backend-hosted end-to-end coverage as non-optional
+      quality gates.
 - [x] UX impact is documented, including loading, empty, success, and error
       states plus any intended pattern deviations.
-      The plan and quickstart require consistent pending, empty, success, retry,
-      and protected-access experiences for each critical surface.
+      The design preserves one shared shell, one reusable post-card contract,
+      one profile layout contract, and consistent protected-access behavior.
 - [x] The design is the simplest viable approach, and any breaking change
       includes migration or rollback notes.
-      Schema evolution stays migration-first with SQLite, no speculative shared
-      libraries, and no product-scope expansion beyond the approved MVP.
+      Schema evolution stays migration-first with SQLite, asset sync stays
+      inside the backend project build/publish path, and no scope beyond the
+      approved MVP is introduced.
 
 ## Project Structure
 
@@ -112,39 +114,36 @@ specs/001-microblog-mvp/
 
 ```text
 backend/
-├── src/
-│   └── Postly.Api/
-│       ├── Features/
-│       │   ├── Auth/
-│       │   │   ├── Application/
-│       │   │   ├── Contracts/
-│       │   │   └── Endpoints/
-│       │   ├── Posts/
-│       │   │   ├── Application/
-│       │   │   ├── Contracts/
-│       │   │   └── Endpoints/
-│       │   ├── Profiles/
-│       │   │   ├── Application/
-│       │   │   ├── Contracts/
-│       │   │   └── Endpoints/
-│       │   ├── Timeline/
-│       │   │   ├── Application/
-│       │   │   ├── Contracts/
-│       │   │   └── Endpoints/
-│       │   └── Shared/
-│       │       ├── Contracts/
-│       │       ├── Errors/
-│       │       └── Validation/
-│       ├── Persistence/
-│       │   ├── Configurations/
-│       │   ├── Migrations/
-│       │   └── AppDbContext.cs
-│       ├── Security/
-│       └── Program.cs
-└── tests/
-    ├── Postly.Api.UnitTests/
-    ├── Postly.Api.IntegrationTests/
-    └── Postly.Api.ContractTests/
+└── src/
+    └── Postly.Api/
+        ├── Features/
+        │   ├── Auth/
+        │   │   ├── Application/
+        │   │   ├── Contracts/
+        │   │   └── Endpoints/
+        │   ├── Posts/
+        │   │   ├── Application/
+        │   │   ├── Contracts/
+        │   │   └── Endpoints/
+        │   ├── Profiles/
+        │   │   ├── Application/
+        │   │   ├── Contracts/
+        │   │   └── Endpoints/
+        │   ├── Timeline/
+        │   │   ├── Application/
+        │   │   ├── Contracts/
+        │   │   └── Endpoints/
+        │   └── Shared/
+        │       ├── Contracts/
+        │       ├── Errors/
+        │       └── Validation/
+        ├── Persistence/
+        │   ├── Configurations/
+        │   ├── Migrations/
+        │   └── AppDbContext.cs
+        ├── Security/
+        ├── wwwroot/
+        └── Program.cs
 
 frontend/
 ├── src/
@@ -163,36 +162,41 @@ frontend/
 │       ├── lib/
 │       ├── styles/
 │       └── test/
+└── dist/                # build output synchronized into backend wwwroot
+
+backend/tests/
+├── Postly.Api.UnitTests/
+├── Postly.Api.IntegrationTests/
+└── Postly.Api.ContractTests/
 ```
 
 **Structure Decision**: Use one backend executable project plus clear internal
-layering instead of multiple class-library projects. That keeps startup,
-dependency management, and feature evolution simple while still enforcing clear
-responsibility boundaries through folders/namespaces. The frontend stays as one
-Vite app organized by features with a single shared API client boundary so UI
-code never calls fetch directly from feature components.
+layering instead of multiple class-library projects. The frontend remains one
+Vite app organized by features, but the runtime path is backend-first:
+frontend `dist` output is synchronized into `backend/src/Postly.Api/wwwroot`
+through MSBuild targets equivalent to `SyncSpaAssetsToWwwroot` and
+`IncludeSpaDistInPublish`.
 
 ## Delivery Phases
 
 ### Phase 0: Architecture-Proving Slice
 
-Deliver the minimum end-to-end slice that proves the chosen architecture:
-
-1. Backend app bootstrap, SQLite connection, EF Core migrations, and
-   ProblemDetails/error pipeline.
-2. Signup, sign-in, sign-out, session bootstrap, and protected-route handling.
-3. Frontend authenticated shell, auth forms, typed API client, and route guard.
-4. Create post + own timeline read path with loading, empty, success, and error
-   states.
-5. Baseline quality gates: backend tests, frontend tests, type-checking,
-   linting, formatting, frontend-to-`wwwroot` synchronization during
-   `Postly.Api` pre-build, and one Playwright happy-path flow executed against
+1. Backend app bootstrap, SQLite connection, EF Core migrations, `DataSeed`,
+   and ProblemDetails/error pipeline.
+2. Backend-hosted SPA delivery from `wwwroot`, including MSBuild asset sync for
+   local build and publish output.
+3. Signup, sign-in, sign-out, session bootstrap, and protected-route handling.
+4. Frontend authenticated shell, auth forms, typed API client, and route guard.
+5. Create post + own timeline read path with loading, empty, success, and
+   error states.
+6. Baseline quality gates: backend tests, frontend tests, type-checking,
+   linting, formatting, and one Playwright happy-path flow executed against
    `dotnet run --project backend/src/Postly.Api`.
 
 ### Phase 1: Social Graph and Timeline Composition
 
 1. Profile read model for own/other profiles.
-2. Follow and unfollow flows with consistent counts.
+2. Follow and unfollow flows with consistent counts and self-follow rejection.
 3. Timeline composition from self + followed users, newest-first, with cursor
    pagination and empty-state handling.
 4. Zero-post and zero-follow experiences on home and profile surfaces.
@@ -208,13 +212,14 @@ Deliver the minimum end-to-end slice that proves the chosen architecture:
 
 - Use same-origin deployment for the SPA and API so cookie-based auth stays
   simple. The backend serves built frontend files from `wwwroot`; local and CI
-  end-to-end runs enter through `dotnet run --project backend/src/Postly.Api` instead of a
-  separate frontend dev server.
+  end-to-end runs enter through `dotnet run --project backend/src/Postly.Api`
+  instead of a separate frontend dev server.
 - Synchronize frontend build artifacts into backend `wwwroot` during the
-  `Postly.Api` pre-build step so local `dotnet run`, CI runs, and publish output
-  all use the same backend-hosted frontend path. The design baseline uses an
-  MSBuild target equivalent to `SyncSpaAssetsToWwwroot` plus a publish-stage
-  target equivalent to `IncludeSpaDistInPublish`.
+  `Postly.Api` pre-build step so local `dotnet run`, CI runs, and publish
+  output all use the same backend-hosted frontend path.
+- Implement the asset pipeline with MSBuild targets equivalent to
+  `SyncSpaAssetsToWwwroot` for non-Release build sync and
+  `IncludeSpaDistInPublish` for publish inclusion.
 - Use secure, HTTP-only, same-site cookies for authenticated sessions. Persist
   session records in SQLite so sign-out and stale-session invalidation are
   explicit rather than purely stateless.
@@ -238,5 +243,6 @@ Deliver the minimum end-to-end slice that proves the chosen architecture:
 
 No constitutional violations or unjustified complexity are required for this
 plan. Repository abstractions, distributed caching, background jobs, message
-buses, public APIs beyond the MVP contract, and shared domain packages are
-intentionally excluded until a concrete need appears.
+buses, separate SPA hosting services, public APIs beyond the MVP contract, and
+shared domain packages are intentionally excluded until a concrete need
+appears.
