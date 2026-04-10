@@ -1,9 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { SignupPage } from '../../features/auth/signup/SignupPage'
-
-function SigninPage() {
-  return <div>Signin Page</div>
-}
+import { SigninPage } from '../../features/auth/signin/SigninPage'
+import { ProtectedRoute } from './ProtectedRoute'
 
 function TimelinePage() {
   return <div>Timeline Page</div>
@@ -22,9 +20,30 @@ export function AppRoutes() {
     <Routes>
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/signin" element={<SigninPage />} />
-      <Route path="/" element={<TimelinePage />} />
-      <Route path="/u/:username" element={<ProfilePage />} />
-      <Route path="/posts/:postId" element={<DirectPostPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <TimelinePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/u/:username"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/posts/:postId"
+        element={
+          <ProtectedRoute>
+            <DirectPostPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

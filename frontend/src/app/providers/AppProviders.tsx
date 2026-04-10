@@ -1,5 +1,6 @@
 import { BrowserRouter } from 'react-router-dom'
 import { ErrorBoundary } from './ErrorBoundary'
+import { AuthProvider } from './AuthProvider'
 import { ReactNode } from 'react'
 
 interface AppProvidersProps {
@@ -9,7 +10,9 @@ interface AppProvidersProps {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <ErrorBoundary>
-      <BrowserRouter>{children}</BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>{children}</AuthProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   )
 }
