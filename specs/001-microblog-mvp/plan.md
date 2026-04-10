@@ -162,6 +162,9 @@ frontend/
 │       ├── lib/
 │       ├── styles/
 │       └── test/
+├── tests/
+│   └── e2e/
+│       └── setup/
 └── dist/                # build output synchronized into backend wwwroot
 
 backend/tests/
