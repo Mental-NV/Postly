@@ -101,7 +101,7 @@ describe('SignupPage', () => {
     expect(submitButton).toHaveTextContent('Signing up...')
   })
 
-  it.skip('preserves non-password values after validation error', async () => {
+  it('preserves non-password values after validation error', async () => {
     const mockError = new ApiError(
       400,
       'https://tools.ietf.org/html/rfc9110#section-15.5.1',
@@ -112,7 +112,7 @@ describe('SignupPage', () => {
       }
     )
     // Mock signup to fail with validation error
-    vi.mocked(apiClient.post).mockRejectedValueOnce(mockError)
+    vi.mocked(apiClient.post).mockRejectedValue(mockError)
 
     const user = userEvent.setup()
     renderSignupPage()
