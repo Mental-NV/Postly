@@ -133,7 +133,7 @@
 - [x] T051 [P] [US3] Implement own-post edit mode and delete confirmation behavior in `frontend/src/features/posts/editor/PostEditor.tsx` and `frontend/src/shared/components/ConfirmDialog.tsx`
 - [x] T052 [US3] Add own-post validation, character-limit feedback, pending states, draft preservation, and timeline/profile state updates in `frontend/src/features/posts/` and `frontend/src/features/timeline/`
 
-**Checkpoint**: User Story 3 is independently functional and testable.
+**Checkpoint**: ✅ User Story 3 is independently functional and testable.
 
 ---
 
