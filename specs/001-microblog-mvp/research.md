@@ -1,17 +1,23 @@
 # Research: Postly Microblog MVP
 
-## Decision 1: Keep the application as a same-repo, same-origin full-stack web app
+## Decision 1: Keep the application as a same-repo, same-origin full-stack web app with the backend as the runtime entry point
 
 - **Decision**: Use one repository with separate `backend/` and `frontend/`
-  apps. In production, ASP.NET Core serves the API and static frontend assets;
-  in development, Vite proxies `/api` to the backend.
+  apps. ASP.NET Core serves the API and the built frontend static assets from
+  `wwwroot`. Frontend build output is synchronized into the backend app so
+  `dotnet run --project Postly.Api` is the primary local and end-to-end entry
+  point.
 - **Rationale**: This keeps frontend/backend boundaries explicit without
   introducing distributed deployment concerns into the MVP. Same-origin
-  deployment simplifies cookie-based auth, protected-route redirects, and local
-  debugging.
+  deployment simplifies cookie-based auth, protected-route redirects, local
+  debugging, and Playwright startup because the browser targets the same backend
+  host that also serves the SPA.
 - **Alternatives considered**:
   - Separate repositories and deployments: rejected because it adds release and
     environment complexity before the MVP proves product value.
+  - Separate frontend dev server as the primary local runtime: rejected because
+    it weakens the single-entry-point workflow and leaves static-file serving
+    behavior insufficiently exercised in e2e runs.
   - Monolithic server-rendered UI: rejected because the user requested a React +
     TypeScript + Vite frontend and a clear API client boundary.
 

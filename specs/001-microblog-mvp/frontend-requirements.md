@@ -390,5 +390,8 @@ This is a cross-cutting screen class rather than an additional route.
 - Playwright assertions should target headings, roles, and visible text when
   practical, and fall back to `data-testid` for repeated interactive controls
   and route-state containers.
+- Playwright setup MUST boot and target the application through
+  `dotnet run --project Postly.Api` so e2e coverage exercises the backend-hosted
+  static-file path instead of a separate standalone frontend server.
 - Every flow in `user-flows.md` is expected to map to at least one Playwright
   test case.
