@@ -91,16 +91,16 @@
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T033 [P] [US2] Add contract tests for `POST /api/auth/signin`, `POST /api/auth/signout`, and `GET /api/auth/session` in `backend/tests/Postly.Api.ContractTests/AuthSessionContractsTests.cs`
-- [ ] T034 [P] [US2] Add backend integration tests for signin success, signin failure, redirect resume, and signout re-protection in `backend/tests/Postly.Api.IntegrationTests/AuthSigninAndSessionFlowTests.cs`
+- [x] T033 [P] [US2] Add contract tests for `POST /api/auth/signin`, `POST /api/auth/signout`, and `GET /api/auth/session` in `backend/tests/Postly.Api.ContractTests/AuthSessionContractsTests.cs`
+- [x] T034 [P] [US2] Add backend integration tests for signin success, signin failure, redirect resume, and signout re-protection in `backend/tests/Postly.Api.IntegrationTests/AuthSigninAndSessionFlowTests.cs`
 - [ ] T035 [P] [US2] Add frontend component tests for the sign-in form, redirect message, and protected-route guard behavior in `frontend/src/features/auth/__tests__/signin-and-route-guard.test.tsx`
 - [ ] T036 [P] [US2] Add Playwright coverage for signin, protected redirect return, and signout protection in `frontend/tests/e2e/us2-sign-in-and-protected-navigation.spec.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] [US2] Implement signin, signout, and session contracts in `backend/src/Postly.Api/Features/Auth/Contracts/SigninContracts.cs` and `backend/src/Postly.Api/Features/Auth/Contracts/SessionContracts.cs`
-- [ ] T038 [P] [US2] Implement signin, signout, and session bootstrap handlers in `backend/src/Postly.Api/Features/Auth/Application/SigninHandler.cs`, `backend/src/Postly.Api/Features/Auth/Application/SignoutHandler.cs`, and `backend/src/Postly.Api/Features/Auth/Application/GetSessionHandler.cs`
-- [ ] T039 [US2] Implement signin, signout, and session endpoints in `backend/src/Postly.Api/Features/Auth/Endpoints/SigninEndpoints.cs` and `backend/src/Postly.Api/Features/Auth/Endpoints/SessionEndpoints.cs`
+- [x] T037 [P] [US2] Implement signin, signout, and session contracts in `backend/src/Postly.Api/Features/Auth/Contracts/SigninContracts.cs` and `backend/src/Postly.Api/Features/Auth/Contracts/SessionContracts.cs`
+- [x] T038 [P] [US2] Implement signin, signout, and session bootstrap handlers in `backend/src/Postly.Api/Features/Auth/Application/SigninHandler.cs`, `backend/src/Postly.Api/Features/Auth/Application/SignoutHandler.cs`, and `backend/src/Postly.Api/Features/Auth/Application/GetSessionHandler.cs`
+- [x] T039 [US2] Implement signin, signout, and session endpoints in `backend/src/Postly.Api/Features/Auth/Endpoints/SigninEndpoints.cs` and `backend/src/Postly.Api/Features/Auth/Endpoints/SessionEndpoints.cs`
 - [ ] T040 [P] [US2] Implement the `/signin` route screen and sign-in form in `frontend/src/features/auth/signin/SigninPage.tsx`
 - [ ] T041 [P] [US2] Implement protected-route capture and return behavior in `frontend/src/app/routes/ProtectedRoute.tsx` and `frontend/src/app/routes/navigationState.ts`
 - [ ] T042 [US2] Add sign-in generic error handling, username preservation, password clearing, and post-signout re-protection in `frontend/src/features/auth/signin/useSigninForm.ts` and `frontend/src/app/routes/ProtectedRoute.tsx`
