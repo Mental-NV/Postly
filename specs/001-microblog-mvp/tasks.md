@@ -105,7 +105,7 @@
 - [x] T041 [P] [US2] Implement protected-route capture and return behavior in `frontend/src/app/routes/ProtectedRoute.tsx` and `frontend/src/app/routes/navigationState.ts`
 - [x] T042 [US2] Add sign-in generic error handling, username preservation, password clearing, and post-signout re-protection in `frontend/src/features/auth/signin/useSigninForm.ts` and `frontend/src/app/routes/ProtectedRoute.tsx`
 
-**Checkpoint**: User Story 2 is independently functional and testable.
+**Checkpoint**: ✅ User Story 2 is independently functional and testable.
 
 ---
 
