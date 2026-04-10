@@ -64,20 +64,20 @@
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T024 [P] [US1] Add contract tests for `POST /api/auth/signup` validation and conflict cases in `backend/tests/Postly.Api.ContractTests/AuthSignupContractsTests.cs`
-- [ ] T025 [P] [US1] Add backend integration tests for signup success, duplicate username, and invalid field handling in `backend/tests/Postly.Api.IntegrationTests/AuthSignupFlowTests.cs`
-- [ ] T026 [P] [US1] Add frontend component tests for sign-up form fields, validation, and pending state in `frontend/src/features/auth/__tests__/signup-form.test.tsx`
-- [ ] T027 [P] [US1] Add Playwright coverage for sign-up success and sign-up validation in `frontend/tests/e2e/us1-sign-up.spec.ts`
+- [x] T024 [P] [US1] Add contract tests for `POST /api/auth/signup` validation and conflict cases in `backend/tests/Postly.Api.ContractTests/AuthSignupContractsTests.cs`
+- [x] T025 [P] [US1] Add backend integration tests for signup success, duplicate username, and invalid field handling in `backend/tests/Postly.Api.IntegrationTests/AuthSignupFlowTests.cs`
+- [x] T026 [P] [US1] Add frontend component tests for sign-up form fields, validation, and pending state in `frontend/src/features/auth/__tests__/signup-form.test.tsx`
+- [x] T027 [P] [US1] Add Playwright coverage for sign-up success and sign-up validation in `frontend/tests/e2e/us1-sign-up.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T028 [P] [US1] Implement signup request and response contracts in `backend/src/Postly.Api/Features/Auth/Contracts/SignupContracts.cs`
-- [ ] T029 [P] [US1] Implement signup application handling in `backend/src/Postly.Api/Features/Auth/Application/SignupHandler.cs`
-- [ ] T030 [US1] Implement the signup endpoint in `backend/src/Postly.Api/Features/Auth/Endpoints/SignupEndpoints.cs`
-- [ ] T031 [P] [US1] Implement the `/signup` route screen and form in `frontend/src/features/auth/signup/SignupPage.tsx`
-- [ ] T032 [US1] Add sign-up field-level errors, form status region, pending state, and success navigation in `frontend/src/features/auth/signup/useSignupForm.ts` and `frontend/src/features/auth/signup/SignupPage.tsx`
+- [x] T028 [P] [US1] Implement signup request and response contracts in `backend/src/Postly.Api/Features/Auth/Contracts/SignupContracts.cs`
+- [x] T029 [P] [US1] Implement signup application handling in `backend/src/Postly.Api/Features/Auth/Application/SignupHandler.cs`
+- [x] T030 [US1] Implement the signup endpoint in `backend/src/Postly.Api/Features/Auth/Endpoints/SignupEndpoints.cs`
+- [x] T031 [P] [US1] Implement the `/signup` route screen and form in `frontend/src/features/auth/signup/SignupPage.tsx`
+- [x] T032 [US1] Add sign-up field-level errors, form status region, pending state, and success navigation in `frontend/src/features/auth/signup/useSignupForm.ts` and `frontend/src/features/auth/signup/SignupPage.tsx`
 
-**Checkpoint**: User Story 1 is independently functional and testable.
+**Checkpoint**: ✅ User Story 1 is independently functional and testable.
 
 ---
 
