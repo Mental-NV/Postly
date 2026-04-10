@@ -140,13 +140,16 @@ describe('SignupPage', () => {
     expect(passwordInput.value).toBe('')
   })
 
+  // TODO: This test is flaky - the mock rejection doesn't trigger consistently.
+  // The API call to /auth/signup doesn't seem to be made or the mock isn't applied.
+  // Needs investigation of test setup and mock configuration.
   it.skip('clears password field after error', async () => {
     const mockError = new ApiError(
       409,
       'https://tools.ietf.org/html/rfc9110#section-15.5.10',
       'Username already exists.'
     )
-    vi.mocked(apiClient.post).mockRejectedValueOnce(mockError)
+    const postMock = vi.mocked(apiClient.post).mockRejectedValueOnce(mockError)
 
     const user = userEvent.setup()
     renderSignupPage()
@@ -165,13 +168,21 @@ describe('SignupPage', () => {
 
     await user.click(submitButton)
 
-    // Wait for error to appear
+    // Wait for the API to be called
     await waitFor(() => {
-      expect(screen.getByTestId('username-error')).toBeInTheDocument()
+      expect(postMock).toHaveBeenCalledWith('/auth/signup', {
+        username: 'testuser',
+        displayName: 'Test User',
+        bio: undefined,
+        password: 'TestPassword123',
+      })
     })
 
-    // Password should be cleared after error
-    expect(passwordInput).toHaveValue('')
+    // Wait for error to appear and password to be cleared
+    await waitFor(() => {
+      expect(screen.getByTestId('username-error')).toBeInTheDocument()
+      expect(passwordInput).toHaveValue('')
+    })
   })
 
   it('navigates to home timeline on success', async () => {
