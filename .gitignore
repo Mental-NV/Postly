@@ -28,6 +28,9 @@ dist/
 .env.local
 *.tsbuildinfo
 
+# Test coverage
+frontend/coverage/
+
 # .NET
 bin/
 obj/
