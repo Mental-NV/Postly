@@ -163,8 +163,6 @@ frontend/
 │       ├── lib/
 │       ├── styles/
 │       └── test/
-└── tests/
-    └── e2e/
 ```
 
 **Structure Decision**: Use one backend executable project plus clear internal
