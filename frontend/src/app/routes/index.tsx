@@ -1,11 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { SignupPage } from '../../features/auth/signup/SignupPage'
 import { SigninPage } from '../../features/auth/signin/SigninPage'
+import { TimelinePage } from '../../features/timeline/TimelinePage'
 import { ProtectedRoute } from './ProtectedRoute'
-
-function TimelinePage() {
-  return <div>Timeline Page</div>
-}
 
 function ProfilePage() {
   return <div>Profile Page</div>

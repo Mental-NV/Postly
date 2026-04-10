@@ -121,17 +121,17 @@
 
 - [x] T043 [P] [US3] Add contract tests for `POST /api/posts`, `PATCH /api/posts/{postId}`, and `DELETE /api/posts/{postId}` in `backend/tests/Postly.Api.ContractTests/OwnPostsContractsTests.cs`
 - [x] T044 [P] [US3] Add backend integration tests for own-post create, edit, delete, stale delete handling, and ownership rejection in `backend/tests/Postly.Api.IntegrationTests/OwnPostsFlowTests.cs`
-- [ ] T045 [P] [US3] Add frontend component tests for composer, editor, character-limit messaging, and delete confirmation in `frontend/src/features/posts/__tests__/own-posts-ui.test.tsx`
-- [ ] T046 [P] [US3] Add Playwright coverage for create, edit, and delete own-post flows in `frontend/tests/e2e/us3-own-posts.spec.ts`
+- [x] T045 [P] [US3] Add frontend component tests for composer, editor, character-limit messaging, and delete confirmation in `frontend/src/features/posts/__tests__/own-posts-ui.test.tsx`
+- [x] T046 [P] [US3] Add Playwright coverage for create, edit, and delete own-post flows in `frontend/tests/e2e/us3-own-posts.spec.ts`
 
 ### Implementation for User Story 3
 
 - [x] T047 [P] [US3] Implement post create, update, and delete contracts in `backend/src/Postly.Api/Features/Posts/Contracts/PostMutationContracts.cs`
 - [x] T048 [P] [US3] Implement own-post create, update, and delete handlers with ownership enforcement in `backend/src/Postly.Api/Features/Posts/Application/CreatePostHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/UpdatePostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/DeletePostHandler.cs`
 - [x] T049 [US3] Implement post mutation endpoints in `backend/src/Postly.Api/Features/Posts/Endpoints/PostMutationEndpoints.cs`
-- [ ] T050 [P] [US3] Implement the signed-in home shell, composer, and own-post action controls in `frontend/src/app/shell/AppShell.tsx`, `frontend/src/features/posts/composer/Composer.tsx`, and `frontend/src/features/posts/post-card/PostCard.tsx`
-- [ ] T051 [P] [US3] Implement own-post edit mode and delete confirmation behavior in `frontend/src/features/posts/editor/PostEditor.tsx` and `frontend/src/shared/components/ConfirmDialog.tsx`
-- [ ] T052 [US3] Add own-post validation, character-limit feedback, pending states, draft preservation, and timeline/profile state updates in `frontend/src/features/posts/` and `frontend/src/features/timeline/`
+- [x] T050 [P] [US3] Implement the signed-in home shell, composer, and own-post action controls in `frontend/src/app/shell/AppShell.tsx`, `frontend/src/features/posts/composer/Composer.tsx`, and `frontend/src/features/posts/post-card/PostCard.tsx`
+- [x] T051 [P] [US3] Implement own-post edit mode and delete confirmation behavior in `frontend/src/features/posts/editor/PostEditor.tsx` and `frontend/src/shared/components/ConfirmDialog.tsx`
+- [x] T052 [US3] Add own-post validation, character-limit feedback, pending states, draft preservation, and timeline/profile state updates in `frontend/src/features/posts/` and `frontend/src/features/timeline/`
 
 **Checkpoint**: User Story 3 is independently functional and testable.
 
