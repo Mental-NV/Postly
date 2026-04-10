@@ -101,9 +101,9 @@
 - [x] T037 [P] [US2] Implement signin, signout, and session contracts in `backend/src/Postly.Api/Features/Auth/Contracts/SigninContracts.cs` and `backend/src/Postly.Api/Features/Auth/Contracts/SessionContracts.cs`
 - [x] T038 [P] [US2] Implement signin, signout, and session bootstrap handlers in `backend/src/Postly.Api/Features/Auth/Application/SigninHandler.cs`, `backend/src/Postly.Api/Features/Auth/Application/SignoutHandler.cs`, and `backend/src/Postly.Api/Features/Auth/Application/GetSessionHandler.cs`
 - [x] T039 [US2] Implement signin, signout, and session endpoints in `backend/src/Postly.Api/Features/Auth/Endpoints/SigninEndpoints.cs` and `backend/src/Postly.Api/Features/Auth/Endpoints/SessionEndpoints.cs`
-- [ ] T040 [P] [US2] Implement the `/signin` route screen and sign-in form in `frontend/src/features/auth/signin/SigninPage.tsx`
-- [ ] T041 [P] [US2] Implement protected-route capture and return behavior in `frontend/src/app/routes/ProtectedRoute.tsx` and `frontend/src/app/routes/navigationState.ts`
-- [ ] T042 [US2] Add sign-in generic error handling, username preservation, password clearing, and post-signout re-protection in `frontend/src/features/auth/signin/useSigninForm.ts` and `frontend/src/app/routes/ProtectedRoute.tsx`
+- [x] T040 [P] [US2] Implement the `/signin` route screen and sign-in form in `frontend/src/features/auth/signin/SigninPage.tsx`
+- [x] T041 [P] [US2] Implement protected-route capture and return behavior in `frontend/src/app/routes/ProtectedRoute.tsx` and `frontend/src/app/routes/navigationState.ts`
+- [x] T042 [US2] Add sign-in generic error handling, username preservation, password clearing, and post-signout re-protection in `frontend/src/features/auth/signin/useSigninForm.ts` and `frontend/src/app/routes/ProtectedRoute.tsx`
 
 **Checkpoint**: User Story 2 is independently functional and testable.
 
