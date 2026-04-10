@@ -21,6 +21,9 @@ builder.Services.AddScoped<ICurrentViewerAccessor, CurrentViewerAccessor>();
 
 // Handlers
 builder.Services.AddScoped<SignupHandler>();
+builder.Services.AddScoped<SigninHandler>();
+builder.Services.AddScoped<SignoutHandler>();
+builder.Services.AddScoped<GetSessionHandler>();
 
 // Problem Details
 builder.Services.AddProblemDetails();
@@ -44,6 +47,8 @@ app.UseAuthorization();
 
 // API endpoints
 app.MapSignupEndpoints();
+app.MapSigninEndpoints();
+app.MapSessionEndpoints();
 
 // SPA fallback
 app.MapFallbackToFile("index.html");

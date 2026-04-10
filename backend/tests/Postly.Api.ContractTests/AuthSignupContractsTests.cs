@@ -5,11 +5,11 @@ using Xunit;
 
 namespace Postly.Api.ContractTests;
 
-public class AuthSignupContractsTests : IClassFixture<WebApplicationFactory<Program>>
+public class AuthSignupContractsTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public AuthSignupContractsTests(WebApplicationFactory<Program> factory)
+    public AuthSignupContractsTests(TestWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }

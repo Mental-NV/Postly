@@ -7,6 +7,7 @@ public static class DataSeed
 {
     private const string BobPassword = "TestPassword123";
     private const string AlicePassword = "TestPassword123";
+    private const string CharliePassword = "TestPassword123";
 
     public static async Task SeedAsync(AppDbContext context)
     {
@@ -40,7 +41,18 @@ public static class DataSeed
         };
         alice.PasswordHash = passwordHasher.HashPassword(alice, AlicePassword);
 
-        context.UserAccounts.AddRange(bob, alice);
+        var charlie = new UserAccount
+        {
+            Username = "charlie",
+            NormalizedUsername = "CHARLIE",
+            DisplayName = "Charlie Test",
+            Bio = "Additional test user.",
+            PasswordHash = string.Empty,
+            CreatedAtUtc = now
+        };
+        charlie.PasswordHash = passwordHasher.HashPassword(charlie, CharliePassword);
+
+        context.UserAccounts.AddRange(bob, alice, charlie);
         await context.SaveChangesAsync();
 
         var alicePost = new Post

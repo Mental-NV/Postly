@@ -8,11 +8,11 @@ using Xunit;
 
 namespace Postly.Api.IntegrationTests;
 
-public class AuthSignupFlowTests : IClassFixture<WebApplicationFactory<Program>>
+public class AuthSignupFlowTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
 
-    public AuthSignupFlowTests(WebApplicationFactory<Program> factory)
+    public AuthSignupFlowTests(TestWebApplicationFactory factory)
     {
         _factory = factory;
     }
