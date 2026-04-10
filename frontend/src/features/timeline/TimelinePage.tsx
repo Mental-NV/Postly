@@ -25,7 +25,7 @@ export function TimelinePage() {
     setError(null)
 
     try {
-      const data = await apiClient.get<{ posts: PostSummary[], nextCursor?: string }>('/api/timeline')
+      const data = await apiClient.get<{ posts: PostSummary[], nextCursor?: string }>('/timeline')
 
       setPosts(data.posts)
       setNextCursor(data.nextCursor ?? null)
@@ -42,7 +42,7 @@ export function TimelinePage() {
     setIsLoadingMore(true)
 
     try {
-      const data = await apiClient.get<{ posts: PostSummary[], nextCursor?: string }>(`/api/timeline?cursor=${nextCursor}`)
+      const data = await apiClient.get<{ posts: PostSummary[], nextCursor?: string }>(`/timeline?cursor=${nextCursor}`)
 
       setPosts(prev => [...prev, ...data.posts])
       setNextCursor(data.nextCursor ?? null)
