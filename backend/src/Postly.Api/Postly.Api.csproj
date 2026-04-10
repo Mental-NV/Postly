@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <SpaRoot>../../../frontend/</SpaRoot>
+    <SpaDistPath>$(SpaRoot)dist/</SpaDistPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.4" />
+  </ItemGroup>
+
+  <!-- Sync SPA assets to wwwroot for non-Release builds -->
+  <Target Name="SyncSpaAssetsToWwwroot" BeforeTargets="Build" Condition="'$(Configuration)' != 'Release'">
+    <Message Text="Syncing SPA assets from $(SpaDistPath) to wwwroot/" Importance="high" />
+    <ItemGroup>
+      <SpaDistFiles Include="$(SpaDistPath)**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(SpaDistFiles)"
+          DestinationFolder="wwwroot\%(RecursiveDir)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(SpaDistPath)')" />
+  </Target>
+
+  <!-- Include SPA dist in publish output -->
+  <Target Name="IncludeSpaDistInPublish" BeforeTargets="ComputeFilesToPublish">
+    <Message Text="Including SPA dist files in publish output" Importance="high" />
+    <ItemGroup>
+      <SpaDistFiles Include="$(SpaDistPath)**\*" />
+      <ResolvedFileToPublish Include="@(SpaDistFiles)">
+        <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+
+</Project>

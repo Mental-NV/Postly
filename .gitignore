@@ -20,3 +20,24 @@ App_Data/
 data/
 *.mdf
 *.ldf
+
+# Node.js
+node_modules/
+dist/
+.env
+.env.local
+
+# .NET
+bin/
+obj/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
