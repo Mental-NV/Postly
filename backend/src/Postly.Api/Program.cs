@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Postly.Api.Features.Auth.Application;
 using Postly.Api.Features.Auth.Endpoints;
+using Postly.Api.Features.Posts.Application;
+using Postly.Api.Features.Posts.Endpoints;
 using Postly.Api.Persistence;
 using Postly.Api.Security;
 
@@ -24,6 +26,9 @@ builder.Services.AddScoped<SignupHandler>();
 builder.Services.AddScoped<SigninHandler>();
 builder.Services.AddScoped<SignoutHandler>();
 builder.Services.AddScoped<GetSessionHandler>();
+builder.Services.AddScoped<CreatePostHandler>();
+builder.Services.AddScoped<UpdatePostHandler>();
+builder.Services.AddScoped<DeletePostHandler>();
 
 // Problem Details
 builder.Services.AddProblemDetails();
@@ -49,6 +54,7 @@ app.UseAuthorization();
 app.MapSignupEndpoints();
 app.MapSigninEndpoints();
 app.MapSessionEndpoints();
+app.MapPostMutationEndpoints();
 
 // SPA fallback
 app.MapFallbackToFile("index.html");

@@ -25,6 +25,13 @@ public static class SessionCookieAuthentication
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
                 options.SlidingExpiration = false;
                 options.Events.OnValidatePrincipal = ValidateSessionAsync;
+
+                // Return 401 for API requests instead of redirecting
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                };
             });
 
         services.AddAuthorization();
