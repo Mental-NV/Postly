@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/home/mental/projects/Postly"
+    ],
+    "allow": [
+      "Bash(git add:*)"
+    ]
+  }
+}
