@@ -93,8 +93,8 @@
 
 - [x] T033 [P] [US2] Add contract tests for `POST /api/auth/signin`, `POST /api/auth/signout`, and `GET /api/auth/session` in `backend/tests/Postly.Api.ContractTests/AuthSessionContractsTests.cs`
 - [x] T034 [P] [US2] Add backend integration tests for signin success, signin failure, redirect resume, and signout re-protection in `backend/tests/Postly.Api.IntegrationTests/AuthSigninAndSessionFlowTests.cs`
-- [ ] T035 [P] [US2] Add frontend component tests for the sign-in form, redirect message, and protected-route guard behavior in `frontend/src/features/auth/__tests__/signin-and-route-guard.test.tsx`
-- [ ] T036 [P] [US2] Add Playwright coverage for signin, protected redirect return, and signout protection in `frontend/tests/e2e/us2-sign-in-and-protected-navigation.spec.ts`
+- [x] T035 [P] [US2] Add frontend component tests for the sign-in form, redirect message, and protected-route guard behavior in `frontend/src/features/auth/__tests__/signin-and-route-guard.test.tsx`
+- [x] T036 [P] [US2] Add Playwright coverage for signin, protected redirect return, and signout protection in `frontend/tests/e2e/us2-sign-in-and-protected-navigation.spec.ts`
 
 ### Implementation for User Story 2
 
