@@ -5,8 +5,9 @@
 - **Decision**: Use one repository with separate `backend/` and `frontend/`
   apps. ASP.NET Core serves the API and the built frontend static assets from
   `wwwroot`. Frontend build output is synchronized into the backend app so
-  `dotnet run --project Postly.Api` is the primary local and end-to-end entry
-  point.
+  `dotnet run --project backend/src/Postly.Api` is the primary local and end-to-end entry
+  point. The intended implementation is an MSBuild-driven asset sync target for
+  local builds and a publish inclusion target for deployable output.
 - **Rationale**: This keeps frontend/backend boundaries explicit without
   introducing distributed deployment concerns into the MVP. Same-origin
   deployment simplifies cookie-based auth, protected-route redirects, local

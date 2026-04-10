@@ -34,7 +34,7 @@ safe evolution.
 **Error Handling Strategy**: Boundary validation on every request, domain/application errors mapped to ProblemDetails-style responses with stable error codes, 400/401/403/404/409 responses used consistently, frontend error mapping through a typed API client boundary  
 **UX Surfaces**: Signup, sign-in, sign-out redirect handling, protected home timeline, composer, post cards, direct post view, own profile, other-user profile, follow/unfollow and like/unlike interactions  
 **Performance Goals**: P95 API response under 250 ms for auth and single-post reads and under 400 ms for paginated timeline/profile reads on a single-node MVP dataset; initial pages deliver 20 posts per request; primary content/actions avoid horizontal scrolling on mobile and desktop  
-**Constraints**: Same repository for frontend/backend, clear boundary between endpoint/application/persistence and UI/API client layers, minimal dependencies unless they reduce contract drift or quality risk, SQLite single-node limits accepted for MVP, no repository abstraction unless a concrete duplication/problem appears, frontend build output synchronized into backend `wwwroot`, `dotnet run --project Postly.Api` acts as the full local app entry point, no scope beyond approved MVP  
+**Constraints**: Same repository for frontend/backend, clear boundary between endpoint/application/persistence and UI/API client layers, minimal dependencies unless they reduce contract drift or quality risk, SQLite single-node limits accepted for MVP, no repository abstraction unless a concrete duplication/problem appears, frontend build output synchronized into backend `wwwroot`, `dotnet run --project backend/src/Postly.Api` acts as the full local app entry point, no scope beyond approved MVP  
 **Scale/Scope**: Single-node MVP for low-thousands of active users and tens of thousands of posts, with newest-first timelines/profiles and deterministic local setup
 
 ## Constitution Check
@@ -185,8 +185,9 @@ Deliver the minimum end-to-end slice that proves the chosen architecture:
 4. Create post + own timeline read path with loading, empty, success, and error
    states.
 5. Baseline quality gates: backend tests, frontend tests, type-checking,
-   linting, formatting, frontend-to-`wwwroot` build synchronization, and one
-   Playwright happy-path flow executed against `dotnet run --project Postly.Api`.
+   linting, formatting, frontend-to-`wwwroot` synchronization during
+   `Postly.Api` pre-build, and one Playwright happy-path flow executed against
+   `dotnet run --project backend/src/Postly.Api`.
 
 ### Phase 1: Social Graph and Timeline Composition
 
@@ -207,10 +208,13 @@ Deliver the minimum end-to-end slice that proves the chosen architecture:
 
 - Use same-origin deployment for the SPA and API so cookie-based auth stays
   simple. The backend serves built frontend files from `wwwroot`; local and CI
-  end-to-end runs enter through `dotnet run --project Postly.Api` instead of a
+  end-to-end runs enter through `dotnet run --project backend/src/Postly.Api` instead of a
   separate frontend dev server.
-- Synchronize frontend build artifacts into backend `wwwroot` as part of the
-  build or publish workflow so deployable output is produced by the backend app.
+- Synchronize frontend build artifacts into backend `wwwroot` during the
+  `Postly.Api` pre-build step so local `dotnet run`, CI runs, and publish output
+  all use the same backend-hosted frontend path. The design baseline uses an
+  MSBuild target equivalent to `SyncSpaAssetsToWwwroot` plus a publish-stage
+  target equivalent to `IncludeSpaDistInPublish`.
 - Use secure, HTTP-only, same-site cookies for authenticated sessions. Persist
   session records in SQLite so sign-out and stale-session invalidation are
   explicit rather than purely stateless.
@@ -226,7 +230,9 @@ Deliver the minimum end-to-end slice that proves the chosen architecture:
   migration PR. Local setup uses deterministic migration application rather than
   ad hoc manual SQL.
 - Configure Playwright to boot and target the backend entry point so e2e
-  coverage exercises the same static-file serving path used by real local runs.
+  coverage exercises the same static-file serving path used by real local runs;
+  use best-effort readiness checks for backend HTTP availability, SPA entry
+  availability, and `DataSeed` reset/preparation before tests start.
 
 ## Complexity Tracking
 

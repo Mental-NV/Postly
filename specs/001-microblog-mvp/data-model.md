@@ -193,6 +193,10 @@ test-only public API endpoints.
 - `DataSeed` MUST be available only in non-production environments.
 - `DataSeed` MUST be idempotent or paired with a reset mechanism that restores
   the same known state before each automated test run.
+- `DataSeed` preparation for e2e startup SHOULD be best effort and deterministic:
+  when a full reset is unavailable, the startup process should at minimum apply
+  required migrations and restore the documented baseline assumptions before
+  Playwright scenarios begin.
 - Seeded usernames MUST comply with all normal username rules.
 - Seeded passwords MUST comply with all normal password rules and be stored only
   as hashes in the database.
@@ -275,6 +279,8 @@ test-only public API endpoints.
   suite.
 - Resetting `DataSeed` MUST leave production-only or user-created development
   data out of scope for automated assertions.
+- Local runtime and test database files produced from `DataSeed` are generated
+  artifacts and are not intended to be committed to the repository.
 
 ## Schema Evolution Notes
 

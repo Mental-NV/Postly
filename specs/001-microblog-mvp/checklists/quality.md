@@ -124,3 +124,48 @@ on feature context and requirements.
       protected content through refresh or browser navigation, rather than only
       stating that content becomes inaccessible? [Gap, Spec §User Story 1,
       Spec §FR-005-§FR-007, Spec §Error Outcomes]
+
+## MVP Readiness Recheck
+
+- [ ] CHK025 Are all critical auth requirements defined end-to-end, including
+      signup, sign-in, sign-out, session bootstrap, protected-route return, and
+      post-sign-out re-entry behavior? [Completeness, Spec §User Story 1,
+      Spec §User Story 2, Spec §FR-008-§FR-011, Spec §FR-038-§FR-046]
+- [ ] CHK026 Are authorization, visibility, and ownership rules stated
+      consistently across user stories, functional requirements, frontend
+      requirements, and direct-post/profile/timeline surfaces? [Consistency,
+      Spec §User Story 3, Spec §User Story 4, Spec §User Story 5,
+      Spec §FR-020-§FR-037, Spec §FR-060-§FR-063]
+- [ ] CHK027 Are loading, empty, success, and error-state requirements complete
+      for every primary route and every mutating flow, including redirect,
+      not-available, retry, and delete-confirmation states? [Coverage,
+      Spec §FR-040-§FR-056, Spec §frontend-requirements.md, Spec §user-flows.md]
+- [ ] CHK028 Do the user stories and acceptance scenarios remain consistent
+      with the seeded-data assumptions in `DataSeed`, especially for Alice/Bob,
+      owned-post flows, follow-state baselines, and direct-post destinations?
+      [Consistency, Spec §User Stories, Spec §FR-066-§FR-070, Data Model §DataSeed]
+- [x] CHK029 Is the requirement that `dotnet run --project backend/src/Postly.Api` starts
+      the full local MVP stack specific enough to avoid ambiguity about whether
+      frontend build/watch synchronization happens automatically or requires a
+      separate prebuild step? [Ambiguity, Spec §FR-071-§FR-074, Plan §Operational Considerations]
+- [x] CHK030 Are frontend static-file serving requirements complete enough to
+      define what gets copied into backend `wwwroot`, when synchronization
+      occurs during build/publish, and how stale frontend assets are prevented?
+      [Gap, Spec §FR-071-§FR-075, Plan §Operational Considerations]
+- [x] CHK031 Are Playwright startup requirements clear enough to define the
+      expected boot order, readiness condition, database reset timing, and
+      single entry URL before implementation planning begins? [Gap,
+      Spec §FR-068-§FR-074, Frontend Requirements §Testability Notes, Data Model §DataSeed]
+- [ ] CHK032 Does the specification keep MVP scope disciplined by excluding
+      search, messaging, notifications, moderation, public browsing, and other
+      accidental product expansion across stories, flows, and screen
+      definitions? [Consistency, Spec §FR-054, Spec §frontend-requirements.md,
+      Spec §user-flows.md]
+- [x] CHK033 Are user-facing copy expectations such as "clear message",
+      "explicit next steps", and "clear path back" sufficiently specific to be
+      reviewed objectively across auth, empty, error, and unavailable states?
+      [Clarity, Spec §FR-038-§FR-053, Spec §frontend-requirements.md]
+- [x] CHK034 Are repository-local data artifact requirements complete enough to
+      specify which SQLite files, sidecars, and generated local DB assets must
+      be ignored, and whether any sample/seed DB files are intentionally
+      excluded from that rule? [Completeness, Spec §FR-076-§FR-078, Repo §.gitignore]

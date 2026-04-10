@@ -391,7 +391,10 @@ This is a cross-cutting screen class rather than an additional route.
   practical, and fall back to `data-testid` for repeated interactive controls
   and route-state containers.
 - Playwright setup MUST boot and target the application through
-  `dotnet run --project Postly.Api` so e2e coverage exercises the backend-hosted
+  `dotnet run --project backend/src/Postly.Api` so e2e coverage exercises the backend-hosted
   static-file path instead of a separate standalone frontend server.
+- Playwright startup SHOULD use best-effort readiness checks that wait for the
+  backend base URL, the backend-served SPA entry document, and the expected
+  non-production `DataSeed` preparation to complete before scenario execution.
 - Every flow in `user-flows.md` is expected to map to at least one Playwright
   test case.
