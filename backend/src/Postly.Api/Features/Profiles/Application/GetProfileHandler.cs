@@ -78,15 +78,21 @@ public class GetProfileHandler
             }
         }
 
-        // 5. Query posts by this user
-        var query = _dbContext.Posts
+        // 5. Query posts by this user and load into memory
+        var allPosts = await _dbContext.Posts
             .Include(p => p.Author)
             .Where(p => p.AuthorId == targetUser.Id)
-            .Where(p => p.CreatedAtUtc < cursorTime || (p.CreatedAtUtc == cursorTime && p.Id < cursorId))
-            .OrderByDescending(p => p.CreatedAtUtc)
-            .ThenByDescending(p => p.Id);
+            .ToListAsync();
 
-        var posts = await query.Take(PageSize + 1).ToListAsync();
+        // Apply cursor filter and sort in memory
+        var posts = allPosts
+            .Where(p => cursorTime == DateTimeOffset.MaxValue ||
+                       p.CreatedAtUtc < cursorTime ||
+                       (p.CreatedAtUtc == cursorTime && p.Id < cursorId))
+            .OrderByDescending(p => p.CreatedAtUtc)
+            .ThenByDescending(p => p.Id)
+            .Take(PageSize + 1)
+            .ToList();
 
         // 6. Calculate viewer context for posts
         var postIds = posts.Take(PageSize).Select(p => p.Id).ToList();

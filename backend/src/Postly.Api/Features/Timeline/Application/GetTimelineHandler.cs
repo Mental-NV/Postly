@@ -45,22 +45,30 @@ public class GetTimelineHandler
             }
         }
 
-        // 3. Get followed user IDs
+        // 3. Get followed user IDs (materialize to avoid complex subquery)
         var followedUserIds = await _dbContext.Follows
             .Where(f => f.FollowerId == userId.Value)
             .Select(f => f.FollowedId)
             .ToListAsync();
 
-        // 4. Query posts (own + followed users)
-        var query = _dbContext.Posts
-            .Include(p => p.Author)
-            .Where(p => p.AuthorId == userId.Value || followedUserIds.Contains(p.AuthorId))
-            .Where(p => p.CreatedAtUtc < cursorTime || (p.CreatedAtUtc == cursorTime && p.Id < cursorId))
-            .OrderByDescending(p => p.CreatedAtUtc)
-            .ThenByDescending(p => p.Id);
+        // Add current user to the list to simplify query
+        var authorIds = new List<long>(followedUserIds) { userId.Value };
 
-        // 5. Take PageSize + 1 to check if more exist
-        var posts = await query.Take(PageSize + 1).ToListAsync();
+        // 4. Query posts (own + followed users) and load into memory
+        var allPosts = await _dbContext.Posts
+            .Include(p => p.Author)
+            .Where(p => authorIds.Contains(p.AuthorId))
+            .ToListAsync();
+
+        // 5. Apply cursor filter and sort in memory
+        var posts = allPosts
+            .Where(p => cursorTime == DateTimeOffset.MaxValue ||
+                       p.CreatedAtUtc < cursorTime ||
+                       (p.CreatedAtUtc == cursorTime && p.Id < cursorId))
+            .OrderByDescending(p => p.CreatedAtUtc)
+            .ThenByDescending(p => p.Id)
+            .Take(PageSize + 1)
+            .ToList();
 
         // 6. Calculate viewer context for each post
         var postIds = posts.Take(PageSize).Select(p => p.Id).ToList();
