@@ -16,7 +16,7 @@ test.describe('User Story 1: Sign Up', () => {
     await page.getByTestId('submit-button').click()
 
     await expect(page).toHaveURL('/')
-    await expect(page.getByText('Timeline Page')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible()
   })
 
   test('validation errors displayed for invalid inputs', async ({ page }) => {
@@ -41,6 +41,7 @@ test.describe('User Story 1: Sign Up', () => {
     await page.getByTestId('submit-button').click()
 
     await expect(page).toHaveURL('/')
+    await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible()
 
     // Navigate back to signup
     await page.goto('/signup')
