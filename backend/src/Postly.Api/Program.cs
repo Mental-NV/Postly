@@ -3,7 +3,6 @@ using Postly.Api.Features.Auth.Application;
 using Postly.Api.Features.Auth.Endpoints;
 using Postly.Api.Persistence;
 using Postly.Api.Security;
-using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,30 +22,6 @@ builder.Services.AddScoped<ICurrentViewerAccessor, CurrentViewerAccessor>();
 // Handlers
 builder.Services.AddScoped<SignupHandler>();
 
-// Rate Limiting
-builder.Services.AddRateLimiter(options =>
-{
-    options.AddPolicy("auth", context =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                Window = TimeSpan.FromMinutes(1),
-                PermitLimit = builder.Environment.IsDevelopment() ? 1000 : 5,
-                QueueLimit = 0
-            }));
-
-    options.AddPolicy("write", context =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                Window = TimeSpan.FromMinutes(1),
-                PermitLimit = builder.Environment.IsDevelopment() ? 1000 : 20,
-                QueueLimit = 0
-            }));
-});
-
 // Problem Details
 builder.Services.AddProblemDetails();
 
@@ -64,7 +39,6 @@ if (app.Environment.IsDevelopment())
 // Middleware pipeline
 app.UseStaticFiles();
 app.UseRouting();
-app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

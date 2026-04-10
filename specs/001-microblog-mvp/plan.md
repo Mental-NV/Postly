@@ -226,9 +226,6 @@ through MSBuild targets equivalent to `SyncSpaAssetsToWwwroot` and
 - Use secure, HTTP-only, same-site cookies for authenticated sessions. Persist
   session records in SQLite so sign-out and stale-session invalidation are
   explicit rather than purely stateless.
-- Apply fixed-window rate limits to signup and sign-in endpoints and lighter
-  write-endpoint limits to post creation/update/delete to reduce abuse without
-  introducing non-MVP moderation features.
 - Keep SQLite in WAL mode and add the minimal indexes needed for username
   lookup, newest-first post queries, follows, and likes.
 - Emit structured request logs and include trace identifiers in ProblemDetails

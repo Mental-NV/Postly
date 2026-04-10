@@ -111,15 +111,14 @@
 
 ## Decision 8: Treat MVP security, performance, and operations as narrow but explicit concerns
 
-- **Decision**: Add built-in rate limiting for auth/write endpoints, use secure
-  cookie settings, maintain SQLite indexes for timeline and relationship reads,
-  include trace IDs in ProblemDetails, and keep local setup deterministic via EF
-  migrations.
+- **Decision**: Use secure cookie settings, maintain SQLite indexes for timeline
+  and relationship reads, include trace IDs in ProblemDetails, and keep local
+  setup deterministic via EF migrations.
 - **Rationale**: These controls are proportionate to an MVP social web app.
-  They reduce predictable operational and abuse risks without creating new
-  product scope such as moderation tooling or distributed infrastructure.
+  They reduce predictable operational risks without creating new product scope
+  such as moderation tooling or distributed infrastructure.
 - **Alternatives considered**:
-  - No rate limiting or structured logging: rejected because auth/write abuse
-    and low-debuggability are avoidable risks even at MVP scale.
+  - No structured logging: rejected because low-debuggability is an avoidable
+    risk even at MVP scale.
   - Early distributed cache or queue adoption: rejected because the scale does
     not justify the added complexity yet.

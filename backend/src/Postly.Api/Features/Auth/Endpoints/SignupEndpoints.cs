@@ -13,7 +13,6 @@ public static class SignupEndpoints
         {
             return await handler.HandleAsync(request);
         })
-        .RequireRateLimiting("auth")
         .WithName("Signup")
         .Produces<SessionResponse>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)

@@ -41,7 +41,7 @@
 - [x] T013 [P] Implement session cookie authentication and current-viewer accessors in `backend/src/Postly.Api/Security/SessionCookieAuthentication.cs` and `backend/src/Postly.Api/Security/CurrentViewerAccessor.cs`
 - [x] T014 [P] Implement shared ProblemDetails mapping and stable error codes in `backend/src/Postly.Api/Features/Shared/Errors/`
 - [x] T015 [P] Implement shared validation helpers in `backend/src/Postly.Api/Features/Shared/Validation/`
-- [x] T016 Add startup wiring for migrations, `DataSeed`, auth, ProblemDetails, rate limiting, and static files in `backend/src/Postly.Api/Program.cs`
+- [x] T016 Add startup wiring for migrations, `DataSeed`, auth, ProblemDetails, and static files in `backend/src/Postly.Api/Program.cs`
 - [x] T017 Implement MSBuild targets equivalent to `SyncSpaAssetsToWwwroot` and `IncludeSpaDistInPublish` in `backend/src/Postly.Api/Postly.Api.csproj`
 - [x] T018 [P] Create the typed frontend API client foundation in `frontend/src/shared/api/client.ts`, `frontend/src/shared/api/contracts.ts`, and `frontend/src/shared/api/errors.ts`
 - [x] T019 [P] Create the shared frontend app providers and route bootstrap in `frontend/src/app/providers/` and `frontend/src/app/routes/index.tsx`
@@ -202,7 +202,7 @@
 - [ ] T075 [P] Add frontend accessibility and copy-consistency tests for shared route states and post cards in `frontend/src/shared/test/accessibility-and-copy.test.tsx`
 - [ ] T076 Run and document quickstart validation updates in `specs/001-microblog-mvp/quickstart.md`
 - [ ] T077 Document compatibility, migration, and rollback notes for schema, static-asset sync, and seeded-data behavior in `specs/001-microblog-mvp/quickstart.md`
-- [ ] T078 Perform performance and rate-limit review for auth, timeline, and direct-post flows in `backend/src/Postly.Api/Program.cs` and `backend/src/Postly.Api/Persistence/`
+- [ ] T078 Perform performance review for auth, timeline, and direct-post flows in `backend/src/Postly.Api/Program.cs` and `backend/src/Postly.Api/Persistence/`
 
 ---
 
