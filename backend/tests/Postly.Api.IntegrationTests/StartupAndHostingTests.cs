@@ -60,6 +60,6 @@ public class StartupAndHostingTests : IClassFixture<WebApplicationFactory<Progra
         var client = _factory.CreateClient();
         var response = await client.GetAsync("/");
 
-        Assert.True(response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.NotFound);
+        Assert.True(response.IsSuccessStatusCode);
     }
 }
