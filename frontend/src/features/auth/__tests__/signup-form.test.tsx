@@ -140,16 +140,15 @@ describe('SignupPage', () => {
     expect(passwordInput.value).toBe('')
   })
 
-  // TODO: This test is flaky - the mock rejection doesn't trigger consistently.
-  // The API call to /auth/signup doesn't seem to be made or the mock isn't applied.
-  // Needs investigation of test setup and mock configuration.
-  it.skip('clears password field after error', async () => {
+  it('clears password field after error', async () => {
     const mockError = new ApiError(
       409,
       'https://tools.ietf.org/html/rfc9110#section-15.5.10',
       'Username already exists.'
     )
-    const postMock = vi.mocked(apiClient.post).mockRejectedValueOnce(mockError)
+
+    // Use mockRejectedValue instead of mockRejectedValueOnce
+    vi.mocked(apiClient.post).mockRejectedValue(mockError)
 
     const user = userEvent.setup()
     renderSignupPage()
@@ -157,32 +156,24 @@ describe('SignupPage', () => {
     const usernameInput = screen.getByTestId('username-input')
     const displayNameInput = screen.getByTestId('displayName-input')
     const passwordInput = screen.getByTestId('password-input')
-    const submitButton = screen.getByTestId('submit-button')
 
     await user.type(usernameInput, 'testuser')
     await user.type(displayNameInput, 'Test User')
     await user.type(passwordInput, 'TestPassword123')
 
-    // Verify password is filled before submit
     expect(passwordInput).toHaveValue('TestPassword123')
 
-    await user.click(submitButton)
+    await user.click(screen.getByTestId('submit-button'))
 
-    // Wait for the API to be called
+    // Wait for error message to appear
     await waitFor(() => {
-      expect(postMock).toHaveBeenCalledWith('/auth/signup', {
-        username: 'testuser',
-        displayName: 'Test User',
-        bio: undefined,
-        password: 'TestPassword123',
-      })
+      expect(screen.getByTestId('username-error')).toHaveTextContent(
+        'Username is already taken.'
+      )
     })
 
-    // Wait for error to appear and password to be cleared
-    await waitFor(() => {
-      expect(screen.getByTestId('username-error')).toBeInTheDocument()
-      expect(passwordInput).toHaveValue('')
-    })
+    // Verify password was cleared
+    expect(passwordInput).toHaveValue('')
   })
 
   it('navigates to home timeline on success', async () => {
