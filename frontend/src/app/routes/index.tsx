@@ -1,8 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-
-function SignupPage() {
-  return <div>Signup Page</div>
-}
+import { SignupPage } from '../../features/auth/signup/SignupPage'
 
 function SigninPage() {
   return <div>Signin Page</div>

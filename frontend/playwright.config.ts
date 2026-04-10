@@ -20,7 +20,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'dotnet run --project ../../backend/src/Postly.Api',
+    command: 'dotnet run --project ../backend/src/Postly.Api/Postly.Api.csproj',
     url: 'http://localhost:5000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

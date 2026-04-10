@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Postly.Api.Features.Auth.Application;
+using Postly.Api.Features.Auth.Endpoints;
 using Postly.Api.Persistence;
 using Postly.Api.Security;
 using System.Threading.RateLimiting;
@@ -18,6 +20,9 @@ builder.Services.AddSessionCookieAuthentication();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentViewerAccessor, CurrentViewerAccessor>();
 
+// Handlers
+builder.Services.AddScoped<SignupHandler>();
+
 // Rate Limiting
 builder.Services.AddRateLimiter(options =>
 {
@@ -27,7 +32,7 @@ builder.Services.AddRateLimiter(options =>
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 Window = TimeSpan.FromMinutes(1),
-                PermitLimit = 5,
+                PermitLimit = builder.Environment.IsDevelopment() ? 1000 : 5,
                 QueueLimit = 0
             }));
 
@@ -37,7 +42,7 @@ builder.Services.AddRateLimiter(options =>
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 Window = TimeSpan.FromMinutes(1),
-                PermitLimit = 20,
+                PermitLimit = builder.Environment.IsDevelopment() ? 1000 : 20,
                 QueueLimit = 0
             }));
 });
@@ -62,6 +67,9 @@ app.UseRouting();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// API endpoints
+app.MapSignupEndpoints();
 
 // SPA fallback
 app.MapFallbackToFile("index.html");
