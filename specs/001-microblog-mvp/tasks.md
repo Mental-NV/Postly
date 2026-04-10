@@ -17,14 +17,14 @@
 
 **Purpose**: Initialize the repository structure, toolchain, and project scaffolding.
 
-- [ ] T001 Create the ASP.NET Core backend project skeleton in `backend/src/Postly.Api/`
-- [ ] T002 Create the frontend project skeleton in `frontend/`
-- [ ] T003 [P] Initialize the backend project file and package references in `backend/src/Postly.Api/Postly.Api.csproj`
-- [ ] T004 [P] Initialize the frontend package, TypeScript, and Vite configuration in `frontend/package.json`, `frontend/tsconfig.json`, and `frontend/vite.config.ts`
-- [ ] T005 [P] Configure frontend linting, formatting, and shared test commands in `frontend/package.json`, `frontend/eslint.config.js`, and `frontend/.prettierrc`
-- [ ] T006 [P] Create backend test project files in `backend/tests/Postly.Api.UnitTests/Postly.Api.UnitTests.csproj`, `backend/tests/Postly.Api.IntegrationTests/Postly.Api.IntegrationTests.csproj`, and `backend/tests/Postly.Api.ContractTests/Postly.Api.ContractTests.csproj`
-- [ ] T007 [P] Create frontend end-to-end test scaffolding directories in `frontend/tests/e2e/` and `frontend/tests/e2e/setup/`
-- [ ] T008 Add baseline solution and startup files in `Postly.sln` and `backend/src/Postly.Api/Program.cs`
+- [x] T001 Create the ASP.NET Core backend project skeleton in `backend/src/Postly.Api/`
+- [x] T002 Create the frontend project skeleton in `frontend/`
+- [x] T003 [P] Initialize the backend project file and package references in `backend/src/Postly.Api/Postly.Api.csproj`
+- [x] T004 [P] Initialize the frontend package, TypeScript, and Vite configuration in `frontend/package.json`, `frontend/tsconfig.json`, and `frontend/vite.config.ts`
+- [x] T005 [P] Configure frontend linting, formatting, and shared test commands in `frontend/package.json`, `frontend/eslint.config.js`, and `frontend/.prettierrc`
+- [x] T006 [P] Create backend test project files in `backend/tests/Postly.Api.UnitTests/Postly.Api.UnitTests.csproj`, `backend/tests/Postly.Api.IntegrationTests/Postly.Api.IntegrationTests.csproj`, and `backend/tests/Postly.Api.ContractTests/Postly.Api.ContractTests.csproj`
+- [x] T007 [P] Create frontend end-to-end test scaffolding directories in `frontend/tests/e2e/` and `frontend/tests/e2e/setup/`
+- [x] T008 Add baseline solution and startup files in `Postly.sln` and `backend/src/Postly.Api/Program.cs`
 
 ---
 
@@ -34,23 +34,23 @@
 
 **⚠️ CRITICAL**: No user story work starts until this phase is complete
 
-- [ ] T009 Implement the EF Core `AppDbContext` and entity sets in `backend/src/Postly.Api/Persistence/AppDbContext.cs`
-- [ ] T010 [P] Add EF Core entity configurations for `UserAccount`, `Session`, `Post`, `Follow`, and `Like` in `backend/src/Postly.Api/Persistence/Configurations/`
-- [ ] T011 Create the initial SQLite migrations and migration startup support in `backend/src/Postly.Api/Persistence/Migrations/`
-- [ ] T012 Implement deterministic non-production `DataSeed` preparation in `backend/src/Postly.Api/Persistence/DataSeed.cs`
-- [ ] T013 [P] Implement session cookie authentication and current-viewer accessors in `backend/src/Postly.Api/Security/SessionCookieAuthentication.cs` and `backend/src/Postly.Api/Security/CurrentViewerAccessor.cs`
-- [ ] T014 [P] Implement shared ProblemDetails mapping and stable error codes in `backend/src/Postly.Api/Features/Shared/Errors/`
-- [ ] T015 [P] Implement shared validation helpers in `backend/src/Postly.Api/Features/Shared/Validation/`
-- [ ] T016 Add startup wiring for migrations, `DataSeed`, auth, ProblemDetails, rate limiting, and static files in `backend/src/Postly.Api/Program.cs`
-- [ ] T017 Implement MSBuild targets equivalent to `SyncSpaAssetsToWwwroot` and `IncludeSpaDistInPublish` in `backend/src/Postly.Api/Postly.Api.csproj`
-- [ ] T018 [P] Create the typed frontend API client foundation in `frontend/src/shared/api/client.ts`, `frontend/src/shared/api/contracts.ts`, and `frontend/src/shared/api/errors.ts`
-- [ ] T019 [P] Create the shared frontend app providers and route bootstrap in `frontend/src/app/providers/` and `frontend/src/app/routes/index.tsx`
-- [ ] T020 [P] Create reusable route-state, status, and post-shell components in `frontend/src/shared/components/`
-- [ ] T021 Configure backend-entry-point Playwright startup, readiness checks, and seeded setup support in `frontend/playwright.config.ts` and `frontend/tests/e2e/setup/`
-- [ ] T022 Add foundational backend integration tests for startup, migrations, static-file hosting, and `DataSeed` preparation in `backend/tests/Postly.Api.IntegrationTests/StartupAndHostingTests.cs`
-- [ ] T023 Add foundational backend contract tests for shared ProblemDetails and auth bootstrap behavior in `backend/tests/Postly.Api.ContractTests/SharedContractsTests.cs`
+- [x] T009 Implement the EF Core `AppDbContext` and entity sets in `backend/src/Postly.Api/Persistence/AppDbContext.cs`
+- [x] T010 [P] Add EF Core entity configurations for `UserAccount`, `Session`, `Post`, `Follow`, and `Like` in `backend/src/Postly.Api/Persistence/Configurations/`
+- [x] T011 Create the initial SQLite migrations and migration startup support in `backend/src/Postly.Api/Persistence/Migrations/`
+- [x] T012 Implement deterministic non-production `DataSeed` preparation in `backend/src/Postly.Api/Persistence/DataSeed.cs`
+- [x] T013 [P] Implement session cookie authentication and current-viewer accessors in `backend/src/Postly.Api/Security/SessionCookieAuthentication.cs` and `backend/src/Postly.Api/Security/CurrentViewerAccessor.cs`
+- [x] T014 [P] Implement shared ProblemDetails mapping and stable error codes in `backend/src/Postly.Api/Features/Shared/Errors/`
+- [x] T015 [P] Implement shared validation helpers in `backend/src/Postly.Api/Features/Shared/Validation/`
+- [x] T016 Add startup wiring for migrations, `DataSeed`, auth, ProblemDetails, rate limiting, and static files in `backend/src/Postly.Api/Program.cs`
+- [x] T017 Implement MSBuild targets equivalent to `SyncSpaAssetsToWwwroot` and `IncludeSpaDistInPublish` in `backend/src/Postly.Api/Postly.Api.csproj`
+- [x] T018 [P] Create the typed frontend API client foundation in `frontend/src/shared/api/client.ts`, `frontend/src/shared/api/contracts.ts`, and `frontend/src/shared/api/errors.ts`
+- [x] T019 [P] Create the shared frontend app providers and route bootstrap in `frontend/src/app/providers/` and `frontend/src/app/routes/index.tsx`
+- [x] T020 [P] Create reusable route-state, status, and post-shell components in `frontend/src/shared/components/`
+- [x] T021 Configure backend-entry-point Playwright startup, readiness checks, and seeded setup support in `frontend/playwright.config.ts` and `frontend/tests/e2e/setup/`
+- [x] T022 Add foundational backend integration tests for startup, migrations, static-file hosting, and `DataSeed` preparation in `backend/tests/Postly.Api.IntegrationTests/StartupAndHostingTests.cs`
+- [x] T023 Add foundational backend contract tests for shared ProblemDetails and auth bootstrap behavior in `backend/tests/Postly.Api.ContractTests/SharedContractsTests.cs`
 
-**Checkpoint**: Shared runtime, backend-hosted SPA, and seeded environment are ready for user-story implementation.
+**Checkpoint**: ✅ Shared runtime, backend-hosted SPA, and seeded environment are ready for user-story implementation.
 
 ---
 
