@@ -97,9 +97,11 @@ safe evolution.
 
 ```text
 specs/001-microblog-mvp/
+├── frontend-requirements.md
 ├── plan.md
 ├── research.md
 ├── data-model.md
+├── user-flows.md
 ├── quickstart.md
 ├── contracts/
 │   └── openapi.yaml

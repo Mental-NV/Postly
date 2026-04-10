@@ -58,63 +58,101 @@
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Join and Publish (Priority: P1)
+### User Story 1 - Sign Up (Priority: P1)
 
-A new user creates an account, signs in, publishes short text posts, and manages
-their own posts from the home timeline and profile.
+A first-time visitor creates an account from the sign-up screen and enters the
+application already signed in.
 
-**Why this priority**: Without account access and posting, Postly does not
-deliver its core value as a microblogging product.
+**Why this priority**: Signup is the first critical conversion point and must
+be fully specified before any protected social flow exists.
 
-**Independent Test**: A first-time visitor can create an account, sign in,
-publish a post, edit that post, delete it, sign out, and sign back in to see
-their account still exists.
+**Independent Test**: A visitor can open `/signup`, submit valid account data,
+land on the home timeline, and see their signed-in identity and empty-state or
+timeline content.
 
 **Acceptance Scenarios**:
 
-1. **Given** a signed-out visitor on the entry screen, **When** they register
-   with a unique username, valid display name, optional bio, and valid
-   password, **Then** the account is created, a default avatar is assigned, and
-   the user lands in a signed-in home timeline state.
-2. **Given** a signed-in user with no posts, **When** they submit a valid
-   non-empty text post of 280 characters or fewer, **Then** the submit control
-   shows a pending state until completion and the post appears at the top of
-   their home timeline and on their profile.
-3. **Given** the author is viewing their own published post, **When** they edit
-   the text and save a valid update, **Then** the save control shows a pending
-   state until completion, the post content updates, an edited indicator is
-   shown, and the post keeps its original timeline order.
-4. **Given** the author is viewing their own post, **When** they confirm
-   deletion, **Then** the delete control shows a pending state until completion
-   and the post is removed from the home timeline and profile.
-5. **Given** a signed-in user is viewing someone else's post on the timeline,
-   profile, or direct-post surface, **When** they try to edit or delete it,
-   **Then** the UI does not offer those controls and the action is rejected with
-   a clear error if attempted directly.
-6. **Given** a signed-in user, **When** they sign out, **Then** their session
-   ends and protected content is no longer accessible until they sign in again.
-7. **Given** a visitor submits signup with one or more missing or invalid
-   required fields, **When** validation runs, **Then** the screen shows
-   field-level errors for each invalid field, preserves all entered non-password
-   values, and does not create an account.
-8. **Given** a visitor attempts sign-in with an unknown username or incorrect
-   password, **When** sign-in fails, **Then** the screen shows the same generic
-   inline error, preserves the entered username, clears the password field, and
-   leaves the user on the sign-in screen.
-9. **Given** a visitor submits valid signup data, **When** the account is
-   created, **Then** the user lands signed in on the home timeline without
-   needing a separate sign-in step.
-10. **Given** a signed-out visitor requests a protected timeline, profile, or
-    direct post URL, **When** they sign in successfully, **Then** they are
-    returned to the originally requested protected destination.
-11. **Given** a signed-in user signs out from a protected screen, **When** they
-    refresh the page, use browser back, or directly navigate to a previously
-    viewed protected URL, **Then** sign-in is required before protected content
-    is shown again.
+1. **Given** a signed-out visitor on `/signup`, **When** they submit a unique
+   username, valid display name, optional valid bio, and valid password,
+   **Then** the account is created, a default avatar is assigned, and the user
+   lands on the signed-in home timeline.
+2. **Given** a visitor submits signup with missing or invalid fields, **When**
+   validation runs, **Then** field-level errors are shown for each invalid
+   field, non-password values are preserved, and no account is created.
+3. **Given** a visitor submits a username already in use, **When** signup
+   fails, **Then** the username field shows a specific conflict message and the
+   rest of the form stays intact except for any password-clearing rule the UI
+   applies consistently.
+4. **Given** signup is being submitted, **When** the request is in progress,
+   **Then** the primary submit action shows a pending state and duplicate
+   submission is prevented.
 
 ---
 
-### User Story 2 - Build a Personalized Timeline (Priority: P2)
+### User Story 2 - Sign In and Resume Protected Navigation (Priority: P1)
+
+A returning user signs in from the sign-in screen and is routed either to the
+home timeline or back to the protected page they originally requested.
+
+**Why this priority**: Protected access and reliable session entry are required
+before timeline, profile, and direct-post screens can behave predictably.
+
+**Independent Test**: A signed-out visitor requesting `/`, `/u/:username`, or
+`/posts/:postId` is redirected to `/signin`, signs in successfully, and returns
+to the originally requested protected URL.
+
+**Acceptance Scenarios**:
+
+1. **Given** a registered user on `/signin`, **When** they submit a valid
+   username and password, **Then** a session is established and the user lands
+   on the originally requested protected destination or the home timeline.
+2. **Given** a visitor attempts sign-in with an unknown username or incorrect
+   password, **When** sign-in fails, **Then** the same generic inline error is
+   shown, the username is preserved, the password is cleared, and the user
+   remains on `/signin`.
+3. **Given** a signed-out visitor requests a protected timeline, profile, or
+   direct-post URL, **When** the app resolves access, **Then** the visitor is
+   redirected to `/signin` with a clear message that sign-in is required.
+4. **Given** a signed-in user signs out, **When** they refresh, use browser
+   back, or directly revisit a previously protected URL, **Then** protected
+   content is not shown until they sign in again.
+
+---
+
+### User Story 3 - Publish and Manage Own Posts (Priority: P1)
+
+A signed-in user writes short posts, edits their own posts, and deletes their
+own posts from the home timeline, profile, and direct-post surfaces.
+
+**Why this priority**: Post creation and ownership-based management are the core
+value loop after authentication.
+
+**Independent Test**: A newly signed-in user can publish a post, edit it,
+delete it, sign out, sign back in, and confirm their account still exists.
+
+**Acceptance Scenarios**:
+
+1. **Given** a signed-in user with no posts, **When** they submit a valid
+   non-empty post of 280 characters or fewer, **Then** the submit control shows
+   a pending state until completion and the post appears at the top of their
+   home timeline and on their profile.
+2. **Given** the author is viewing their own published post, **When** they edit
+   the text and save a valid update, **Then** the save control shows a pending
+   state until completion, the post content updates, an edited indicator is
+   shown, and the post keeps its original timeline order.
+3. **Given** the author is viewing their own post, **When** they confirm
+   deletion, **Then** the delete control shows a pending state until completion
+   and the post is removed from the home timeline and profile.
+4. **Given** a signed-in user is viewing someone else's post on the timeline,
+   profile, or direct-post surface, **When** they inspect available actions,
+   **Then** edit and delete controls are absent.
+5. **Given** a compose or edit attempt exceeds 280 characters or is empty,
+   **When** client or server validation runs, **Then** the user receives clear
+   inline guidance and their draft text is preserved.
+
+---
+
+### User Story 4 - Build a Personalized Timeline (Priority: P2)
 
 A signed-in user explores profiles, follows and unfollows other users, and sees
 their home timeline update to include their own posts plus posts from followed
@@ -162,7 +200,7 @@ and unfollow to remove that content again.
 
 ---
 
-### User Story 3 - React to Posts and View Profiles (Priority: P3)
+### User Story 5 - React to Posts and View Profiles (Priority: P3)
 
 A signed-in user likes and unlikes posts, views clear profile details for
 themselves and others, and encounters consistent protected-access behavior for
@@ -476,6 +514,60 @@ content is shown.
   comments, hashtags, trending topics, search, media upload, notifications,
   admin or moderation tools, anonymous browsing, and profile editing after
   signup.
+- **FR-055**: The frontend MUST implement the signed-out routes `/signup` and
+  `/signin`, and the protected routes `/`, `/u/:username`, and
+  `/posts/:postId`.
+- **FR-056**: Each route MUST render one primary page heading, one primary
+  action area, and one deterministic loading, empty, success, error, or
+  unavailable state container as appropriate for that route.
+- **FR-057**: The frontend MUST define and preserve stable automation hooks for
+  critical controls and state containers, using `data-testid` values that map
+  directly to documented screen elements and flow steps.
+- **FR-058**: The sign-up screen MUST contain username, display name, bio, and
+  password inputs, field-level validation messages, a primary submit button, a
+  link to sign-in, and a visible form-level status region.
+- **FR-059**: The sign-in screen MUST contain username and password inputs, a
+  primary submit button, a link to sign-up, a visible form-level status region,
+  and a protected-access return message area when the screen is reached by
+  redirect.
+- **FR-060**: The home timeline screen MUST contain a signed-in shell, a post
+  composer, timeline feed region, timeline empty state, timeline error state,
+  and sign-out action.
+- **FR-061**: The profile screen MUST contain profile identity, avatar, bio,
+  follower and following counts, relationship action region, profile post list,
+  and a distinct empty or error state when profile posts are absent or fail to
+  load.
+- **FR-062**: The direct-post screen MUST contain a back navigation action, the
+  single target post, author identity, edited indicator when applicable, like
+  count, allowed actions for the viewer, and a dedicated not-available state.
+- **FR-063**: Reusable post cards MUST expose author navigation, body text,
+  publish timestamp, edited indicator when applicable, like toggle, like count,
+  and viewer-permitted edit and delete actions.
+- **FR-064**: Post deletion MUST require an explicit confirmation pattern or an
+  equally clear accidental-action prevention mechanism consistent across the
+  frontend.
+- **FR-065**: The frontend requirements, screen inventory, required UI
+  elements, and automation hooks MUST be maintained in
+  `frontend-requirements.md`, and the user-story interaction sequences MUST be
+  maintained in `user-flows.md` as normative companion artifacts to this spec.
+- **FR-066**: Non-production environments MUST support a deterministic end-to-
+  end test fixture strategy for authentication and social-graph flows, using
+  seeded accounts or an equivalent test harness that produces the same stable
+  preconditions.
+- **FR-067**: The end-to-end fixture strategy MUST provide at least one stable
+  acting user and one stable follow target user so sign-in, follow, unfollow,
+  like, profile, and protected-route return flows can run repeatably without
+  relying on ad hoc data creation.
+- **FR-068**: Non-production environments MUST define a deterministic database
+  seed named `DataSeed` that creates the minimum users, posts, follows, and
+  like-state permutations required by the documented user flows and automated
+  tests.
+- **FR-069**: `DataSeed` MUST be resettable so each end-to-end test run can
+  start from a known state without depending on residual data from previous
+  runs.
+- **FR-070**: `DataSeed` MUST include stable direct-profile and direct-post
+  destinations used by protected-route return, unavailable-content, like,
+  follow, and timeline scenarios.
 
 ### Key Entities *(include if feature involves data)*
 

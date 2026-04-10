@@ -179,6 +179,103 @@ denormalized read models or repository wrappers are introduced up front.
 - Not-available state when the post was deleted or cannot be resolved after
   sign-in
 
+## DataSeed
+
+## Purpose
+
+`DataSeed` is the deterministic non-production seed dataset used for local
+development, QA, and Playwright end-to-end automation. It exists to guarantee
+that documented user flows can run from a known database state without adding
+test-only public API endpoints.
+
+## Seed Rules
+
+- `DataSeed` MUST be available only in non-production environments.
+- `DataSeed` MUST be idempotent or paired with a reset mechanism that restores
+  the same known state before each automated test run.
+- Seeded usernames MUST comply with all normal username rules.
+- Seeded passwords MUST comply with all normal password rules and be stored only
+  as hashes in the database.
+- Seeded post bodies used by tests MUST be stable and human-readable.
+- Tests MAY create additional transient records during execution, but they MUST
+  start from the same baseline dataset.
+
+## Seeded Users
+
+### bob
+
+- Purpose: primary acting signed-in user for most authenticated flows
+- Username: `bob`
+- Display name: `Bob Tester`
+- Bio: `Primary seeded user for Postly e2e flows.`
+- Password: deterministic non-production test credential
+
+### alice
+
+- Purpose: viewed profile, follow target, and visible author for social flows
+- Username: `alice`
+- Display name: `Alice Example`
+- Bio: `Seeded profile used for follow, like, and redirect scenarios.`
+- Password: deterministic non-production test credential
+
+## Seeded Posts
+
+### alice_visible_post
+
+- Author: `alice`
+- Purpose: visible seeded post for timeline, profile, direct-post, like, and
+  protected-route-return scenarios
+- Body: `Seed post from Alice`
+- Direct URL: stable seeded direct-post destination
+- Edited state: not edited
+
+### bob_owned_post
+
+- Author: `bob`
+- Purpose: owned seeded post for edit and delete scenarios that should not
+  depend on creating a fresh post first
+- Body: `Seed post from Bob`
+- Direct URL: stable seeded direct-post destination
+- Edited state: not edited
+
+## Seeded Relationship State
+
+- `bob` does not follow `alice` in the baseline seed state.
+- No self-follow relationships exist.
+- Follower and following counts are derived from the seeded `Follow` table rows.
+
+## Seeded Like State
+
+- Baseline seed state contains no like from `bob` on `alice_visible_post`.
+- Aggregate like counts MAY be zero or greater than zero, but the seeded
+  current-user like state for `bob` on `alice_visible_post` MUST be known and
+  documented by the test harness.
+
+## Flow Coverage Matrix
+
+| Flow / Scenario | Required DataSeed Preconditions |
+|-----------------|---------------------------------|
+| Sign in as returning user | Seeded user `bob` exists with deterministic credential |
+| Protected redirect to profile | Seeded profile route `/u/alice` exists |
+| Protected redirect to direct post | Stable seeded direct-post route exists |
+| Follow user | `bob` exists, `alice` exists, `bob -> alice` follow does not yet exist |
+| Unfollow user | Reset or setup step can establish `bob -> alice` before assertion |
+| Like / unlike | `alice_visible_post` exists and is visible to signed-in `bob` |
+| Edit own post | `bob_owned_post` exists and is owned by `bob` |
+| Delete own post | `bob_owned_post` exists and is owned by `bob` |
+| Direct-post unavailable | Test targets a non-seeded or deleted post ID outside the seed set |
+
+## Reset Expectations
+
+- Resetting `DataSeed` MUST restore the same seeded usernames and seeded post
+  bodies.
+- Resetting `DataSeed` MUST restore the baseline "bob does not follow alice"
+  relationship state.
+- Resetting `DataSeed` MUST restore the baseline like state used by the e2e
+  suite.
+- Resetting `DataSeed` MUST leave production-only or user-created development
+  data out of scope for automated assertions.
+
 ## Schema Evolution Notes
 
 - Every schema change must land through an EF Core migration checked into the
