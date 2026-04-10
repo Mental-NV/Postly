@@ -35,7 +35,7 @@ describe('SigninPage', () => {
     )
   })
 
-  it('renders signin form with all fields', () => {
+  it('renders signin form with all fields', async () => {
     render(
       <BrowserRouter>
         <AuthProvider>
@@ -44,7 +44,11 @@ describe('SigninPage', () => {
       </BrowserRouter>
     )
 
-    expect(screen.getByTestId('username-input')).toBeInTheDocument()
+    // Wait for AuthProvider's session check to complete
+    await waitFor(() => {
+      expect(screen.getByTestId('username-input')).toBeInTheDocument()
+    })
+
     expect(screen.getByTestId('password-input')).toBeInTheDocument()
     expect(screen.getByTestId('submit-button')).toBeInTheDocument()
     expect(screen.getByText(/don't have an account/i)).toBeInTheDocument()

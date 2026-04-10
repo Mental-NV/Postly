@@ -42,10 +42,14 @@ describe('SignupPage', () => {
     )
   })
 
-  it('renders all form fields', () => {
+  it('renders all form fields', async () => {
     renderSignupPage()
 
-    expect(screen.getByLabelText(/username/i)).toBeInTheDocument()
+    // Wait for AuthProvider's session check to complete
+    await waitFor(() => {
+      expect(screen.getByLabelText(/username/i)).toBeInTheDocument()
+    })
+
     expect(screen.getByLabelText(/display name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/bio/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
