@@ -31,6 +31,10 @@ dist/
 bin/
 obj/
 
+# Backend wwwroot (SPA assets synced from frontend/dist)
+backend/src/Postly.Api/wwwroot/*
+!backend/src/Postly.Api/wwwroot/.gitkeep
+
 # Playwright
 test-results/
 playwright-report/
