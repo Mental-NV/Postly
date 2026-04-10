@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../../app/providers/AuthProvider'
 import { apiClient } from '../../../shared/api/client'
 import { isApiError } from '../../../shared/api/errors'
 import type { SignupRequest } from '../../../shared/api/contracts'
@@ -14,6 +15,7 @@ interface FormErrors {
 
 export function useSignupForm() {
   const navigate = useNavigate()
+  const { signin } = useAuth()
   const [values, setValues] = useState({
     username: '',
     displayName: '',
@@ -53,8 +55,11 @@ export function useSignupForm() {
 
       await apiClient.post('/auth/signup', request)
 
+      // Automatically sign in after successful signup
+      await signin(values.username, values.password)
+
       // Success - navigate to home timeline
-      navigate('/')
+      navigate('/', { replace: true })
     } catch (error) {
       if (isApiError(error)) {
         if (error.status === 400 && error.errors) {

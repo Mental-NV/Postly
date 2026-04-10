@@ -23,10 +23,11 @@ export function SigninPage() {
             value={values.username}
             onChange={handleChange}
             disabled={isPending}
+            data-testid="username-input"
             style={{ display: 'block', width: '100%' }}
           />
           {errors.username && (
-            <div style={{ color: 'red', fontSize: '0.875rem' }}>
+            <div data-testid="username-error" style={{ color: 'red', fontSize: '0.875rem' }}>
               {errors.username[0]}
             </div>
           )}
@@ -41,16 +42,17 @@ export function SigninPage() {
             value={values.password}
             onChange={handleChange}
             disabled={isPending}
+            data-testid="password-input"
             style={{ display: 'block', width: '100%' }}
           />
           {errors.password && (
-            <div style={{ color: 'red', fontSize: '0.875rem' }}>
+            <div data-testid="password-error" style={{ color: 'red', fontSize: '0.875rem' }}>
               {errors.password[0]}
             </div>
           )}
         </div>
 
-        <button type="submit" disabled={isPending}>
+        <button type="submit" disabled={isPending} data-testid="submit-button">
           {isPending ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
