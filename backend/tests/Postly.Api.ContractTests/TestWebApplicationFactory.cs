@@ -9,10 +9,14 @@ namespace Postly.Api.ContractTests;
 public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly string _dbName = $"test_{Guid.NewGuid():N}.db";
+    private static readonly string AppProjectPath = Path.GetFullPath(
+        Path.Combine(AppContext.BaseDirectory, "../../../../../src/Postly.Api"));
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
+        builder.UseContentRoot(AppProjectPath);
+        builder.UseWebRoot("wwwroot");
 
         builder.ConfigureServices(services =>
         {
