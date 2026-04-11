@@ -38,9 +38,6 @@ export function MainLayout({ children }: MainLayoutProps) {
               Profile
             </NavLink>
           </nav>
-          <Button variant="primary" className="nav-post-btn">
-            Post
-          </Button>
           <div className="nav-footer">
             <Button
               variant="ghost"
