@@ -9,7 +9,7 @@ test.describe('User Story 2: Sign In and Protected Navigation', () => {
     await page.getByTestId('submit-button').click()
 
     await expect(page).toHaveURL('/')
-    await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible()
   })
 
   test('invalid credentials show generic error', async ({ page }) => {
@@ -53,7 +53,7 @@ test.describe('User Story 2: Sign In and Protected Navigation', () => {
 
     // Should redirect back to original URL
     await expect(page).toHaveURL('/')
-    await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Home' })).toBeVisible()
   })
 
   test('signout re-protects routes', async ({ page, context }) => {
