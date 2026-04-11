@@ -10,10 +10,6 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
             ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        var isDevelopment = string.Equals(
-            environmentName,
-            "Development",
-            StringComparison.OrdinalIgnoreCase);
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -23,7 +19,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .Build();
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseSqlite(DefaultConnectionString.Resolve(configuration, isDevelopment));
+        optionsBuilder.UseSqlite(DefaultConnectionString.Resolve(configuration));
 
         return new AppDbContext(optionsBuilder.Options);
     }

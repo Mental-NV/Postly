@@ -15,9 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var connectionString = DefaultConnectionString.Resolve(
-        builder.Configuration,
-        builder.Environment.IsDevelopment());
+    var connectionString = DefaultConnectionString.Resolve(builder.Configuration);
     options.UseSqlite(connectionString);
 });
 
@@ -47,13 +45,17 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-// Apply migrations and seed data in development
-if (app.Environment.IsDevelopment())
+// Apply migrations on local/test runs. Keep production Azure schema changes in CD.
+if (!DefaultConnectionString.IsAzureAppService())
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await dbContext.Database.MigrateAsync();
-    await DataSeed.SeedAsync(dbContext);
+    
+    if (app.Environment.IsDevelopment())
+    {
+        await DataSeed.SeedAsync(dbContext);
+    }
 }
 
 // Middleware pipeline

@@ -6,8 +6,9 @@ namespace Postly.Api.Persistence;
 public static class DefaultConnectionString
 {
     private const string DefaultDatabaseFileName = "postly.db";
+    private const string AzureSiteNameVariable = "WEBSITE_SITE_NAME";
 
-    public static string Resolve(IConfiguration configuration, bool isDevelopment)
+    public static string Resolve(IConfiguration configuration)
     {
         var configuredConnectionString = configuration.GetConnectionString("DefaultConnection");
 
@@ -17,17 +18,23 @@ public static class DefaultConnectionString
             return configuredConnectionString;
         }
 
-        var fallbackConnectionString = BuildFallbackConnectionString(isDevelopment);
+        var fallbackConnectionString = BuildFallbackConnectionString();
         EnsureDataDirectoryExists(fallbackConnectionString);
 
         return fallbackConnectionString;
     }
 
-    private static string BuildFallbackConnectionString(bool isDevelopment)
+    public static bool IsAzureAppService()
+    {
+        return !string.IsNullOrWhiteSpace(
+            Environment.GetEnvironmentVariable(AzureSiteNameVariable));
+    }
+
+    private static string BuildFallbackConnectionString()
     {
         var homeDirectory = Environment.GetEnvironmentVariable("HOME");
 
-        if (!isDevelopment && !string.IsNullOrWhiteSpace(homeDirectory))
+        if (IsAzureAppService() && !string.IsNullOrWhiteSpace(homeDirectory))
         {
             var persistentDatabasePath = Path.Combine(homeDirectory, "data", DefaultDatabaseFileName);
             return BuildSqliteConnectionString(persistentDatabasePath);
