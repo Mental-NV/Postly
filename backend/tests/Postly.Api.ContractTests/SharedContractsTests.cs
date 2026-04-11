@@ -1,14 +1,13 @@
-using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using Xunit;
 
 namespace Postly.Api.ContractTests;
 
-public class SharedContractsTests : IClassFixture<WebApplicationFactory<Program>>
+public class SharedContractsTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public SharedContractsTests(WebApplicationFactory<Program> factory)
+    public SharedContractsTests(TestWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }

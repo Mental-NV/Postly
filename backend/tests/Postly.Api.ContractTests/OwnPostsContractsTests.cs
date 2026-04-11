@@ -5,12 +5,12 @@ using Xunit;
 
 namespace Postly.Api.ContractTests;
 
-public class OwnPostsContractsTests : IClassFixture<WebApplicationFactory<Program>>
+public class OwnPostsContractsTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public OwnPostsContractsTests(WebApplicationFactory<Program> factory)
+    public OwnPostsContractsTests(TestWebApplicationFactory factory)
     {
         _factory = factory;
         _client = factory.CreateClient();
