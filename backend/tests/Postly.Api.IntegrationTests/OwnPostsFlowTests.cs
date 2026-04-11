@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Postly.Api.Persistence;
@@ -8,12 +7,12 @@ using Xunit;
 
 namespace Postly.Api.IntegrationTests;
 
-public class OwnPostsFlowTests : IClassFixture<WebApplicationFactory<Program>>
+public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
-    public OwnPostsFlowTests(WebApplicationFactory<Program> factory)
+    public OwnPostsFlowTests(TestWebApplicationFactory factory)
     {
         _factory = factory;
         _client = factory.CreateClient();
