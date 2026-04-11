@@ -37,14 +37,24 @@ export function ConfirmDialog({
         justifyContent: 'center',
       }}
     >
-      <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px' }}>
+      <div
+        style={{
+          backgroundColor: 'white',
+          padding: '2rem',
+          borderRadius: '8px',
+        }}
+      >
         <h2>{title}</h2>
         <p>{message}</p>
         <div>
           <button onClick={onCancel} disabled={isPending}>
             {cancelText}
           </button>
-          <button onClick={onConfirm} disabled={isPending} data-testid="confirm-delete">
+          <button
+            onClick={onConfirm}
+            disabled={isPending}
+            data-testid="confirm-delete"
+          >
             {isPending ? 'Deleting...' : confirmText}
           </button>
         </div>

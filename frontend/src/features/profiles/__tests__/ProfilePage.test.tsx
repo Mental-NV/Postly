@@ -3,7 +3,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { ProfilePage } from '../ProfilePage'
-import { createMockProfile, createMockPost } from '../../../shared/test/factories'
+import {
+  createMockProfile,
+  createMockPost,
+} from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
 
@@ -55,7 +58,10 @@ describe('ProfilePage', () => {
 
   it('loads and displays profile successfully', async () => {
     const mockData = {
-      profile: createMockProfile({ username: 'alice', displayName: 'Alice Example' }),
+      profile: createMockProfile({
+        username: 'alice',
+        displayName: 'Alice Example',
+      }),
       posts: [createMockPost()],
       nextCursor: null,
     }
@@ -64,12 +70,18 @@ describe('ProfilePage', () => {
     renderProfilePage('alice')
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Alice Example' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { name: 'Alice Example' })
+      ).toBeInTheDocument()
     })
   })
 
   it('verifies correct API URL for profile load', async () => {
-    const mockData = { profile: createMockProfile(), posts: [], nextCursor: null }
+    const mockData = {
+      profile: createMockProfile(),
+      posts: [],
+      nextCursor: null,
+    }
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
     renderProfilePage('alice')
@@ -100,7 +112,9 @@ describe('ProfilePage', () => {
     renderProfilePage('alice')
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load profile. Please try again.')).toBeInTheDocument()
+      expect(
+        screen.getByText('Failed to load profile. Please try again.')
+      ).toBeInTheDocument()
     })
   })
 
@@ -117,7 +131,9 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Your profile')).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: /follow/i })).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: /follow/i })
+      ).not.toBeInTheDocument()
     })
   })
 
@@ -147,7 +163,9 @@ describe('ProfilePage', () => {
     renderProfilePage('alice')
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Unfollow' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Unfollow' })
+      ).toBeInTheDocument()
     })
   })
 
@@ -175,7 +193,9 @@ describe('ProfilePage', () => {
 
     // Optimistic update - button changes to Unfollow and count increments
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Unfollow' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Unfollow' })
+      ).toBeInTheDocument()
       expect(screen.getByText('6')).toBeInTheDocument()
     })
 
@@ -192,7 +212,9 @@ describe('ProfilePage', () => {
       nextCursor: null,
     }
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
-    vi.mocked(apiClient.post).mockRejectedValueOnce(new ApiError(500, 'Error', 'Failed'))
+    vi.mocked(apiClient.post).mockRejectedValueOnce(
+      new ApiError(500, 'Error', 'Failed')
+    )
 
     const user = userEvent.setup()
     renderProfilePage('alice')
@@ -207,7 +229,9 @@ describe('ProfilePage', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Follow' })).toBeInTheDocument()
       expect(screen.getByText('5')).toBeInTheDocument()
-      expect(screen.getByText('Failed to follow user. Please try again.')).toBeInTheDocument()
+      expect(
+        screen.getByText('Failed to follow user. Please try again.')
+      ).toBeInTheDocument()
     })
   })
 
@@ -227,7 +251,9 @@ describe('ProfilePage', () => {
     renderProfilePage('alice')
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Unfollow' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Unfollow' })
+      ).toBeInTheDocument()
     })
 
     await user.click(screen.getByRole('button', { name: 'Unfollow' }))
@@ -250,21 +276,29 @@ describe('ProfilePage', () => {
       nextCursor: null,
     }
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
-    vi.mocked(apiClient.delete).mockRejectedValueOnce(new ApiError(500, 'Error', 'Failed'))
+    vi.mocked(apiClient.delete).mockRejectedValueOnce(
+      new ApiError(500, 'Error', 'Failed')
+    )
 
     const user = userEvent.setup()
     renderProfilePage('alice')
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Unfollow' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Unfollow' })
+      ).toBeInTheDocument()
     })
 
     await user.click(screen.getByRole('button', { name: 'Unfollow' }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Unfollow' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Unfollow' })
+      ).toBeInTheDocument()
       expect(screen.getByText('6')).toBeInTheDocument()
-      expect(screen.getByText('Failed to unfollow user. Please try again.')).toBeInTheDocument()
+      expect(
+        screen.getByText('Failed to unfollow user. Please try again.')
+      ).toBeInTheDocument()
     })
   })
 
@@ -368,7 +402,9 @@ describe('ProfilePage', () => {
     renderProfilePage('alice')
 
     await waitFor(() => {
-      expect(screen.getByText("Alice Example hasn't posted yet.")).toBeInTheDocument()
+      expect(
+        screen.getByText("Alice Example hasn't posted yet.")
+      ).toBeInTheDocument()
     })
   })
 
@@ -392,16 +428,22 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('First post')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Load more' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Load more' })
+      ).toBeInTheDocument()
     })
 
     await user.click(screen.getByRole('button', { name: 'Load more' }))
 
     await waitFor(() => {
       expect(screen.getByText('Second post')).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: 'Load more' })
+      ).not.toBeInTheDocument()
     })
 
-    expect(apiClient.get).toHaveBeenCalledWith('/profiles/alice?cursor=cursor123')
+    expect(apiClient.get).toHaveBeenCalledWith(
+      '/profiles/alice?cursor=cursor123'
+    )
   })
 })

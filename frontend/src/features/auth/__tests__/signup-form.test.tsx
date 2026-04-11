@@ -121,10 +121,16 @@ describe('SignupPage', () => {
     const user = userEvent.setup()
     renderSignupPage()
 
-    const usernameInput = screen.getByTestId('username-input') as HTMLInputElement
-    const displayNameInput = screen.getByTestId('displayName-input') as HTMLInputElement
+    const usernameInput = screen.getByTestId(
+      'username-input'
+    ) as HTMLInputElement
+    const displayNameInput = screen.getByTestId(
+      'displayName-input'
+    ) as HTMLInputElement
     const bioInput = screen.getByTestId('bio-input') as HTMLTextAreaElement
-    const passwordInput = screen.getByTestId('password-input') as HTMLInputElement
+    const passwordInput = screen.getByTestId(
+      'password-input'
+    ) as HTMLInputElement
 
     await user.type(usernameInput, 'testuser')
     await user.type(displayNameInput, 'Test User')

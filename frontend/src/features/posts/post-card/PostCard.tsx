@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { PostSummary } from '../../../shared/api/contracts'
 import { PostLikeButton } from './PostLikeButton'
+import { Avatar } from '../../../shared/components/Avatar'
+import { Button } from '../../../shared/components/Button'
 
 interface PostCardProps {
   post: PostSummary
@@ -10,15 +12,6 @@ interface PostCardProps {
   onDelete?: (post: PostSummary) => void
 }
 
-function getInitials(displayName: string) {
-  return displayName
-    .split(' ')
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
-
 export function PostCard({
   post,
   isLikePending = false,
@@ -26,94 +19,138 @@ export function PostCard({
   onEdit,
   onDelete,
 }: PostCardProps) {
+  const navigate = useNavigate()
+
+  const handleCardClick = () => {
+    void navigate(`/posts/${String(post.id)}`)
+  }
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    if (diffInSeconds < 60) return 'Just now'
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`
+
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    })
+  }
+
   return (
     <article
-      data-testid={`post-card-${post.id}`}
-      className="rounded-lg bg-white p-4 shadow"
+      data-testid={`post-card-${String(post.id)}`}
+      className="post-card"
+      onClick={handleCardClick}
     >
-      <div className="flex items-start gap-3">
+      <div className="post-card-avatar-column">
         <Link
           to={`/u/${post.authorUsername}`}
+          onClick={(e) => {
+            e.stopPropagation()
+          }}
           data-testid={`author-link-${post.authorUsername}`}
-          className="flex items-start gap-3 hover:opacity-90"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-purple-500 font-bold text-white">
-            {getInitials(post.authorDisplayName)}
-          </div>
+          <Avatar
+            username={post.authorUsername}
+            displayName={post.authorDisplayName}
+            size="sm"
+          />
         </Link>
+      </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              to={`/u/${post.authorUsername}`}
-              className="font-bold hover:underline"
-            >
-              {post.authorDisplayName}
-            </Link>
-            <Link
-              to={`/u/${post.authorUsername}`}
-              className="text-gray-600 hover:underline"
-            >
-              @{post.authorUsername}
-            </Link>
-            <span className="text-gray-400">·</span>
-            <Link
-              to={`/posts/${post.id}`}
-              data-testid={`post-permalink-${post.id}`}
-              className="text-sm text-gray-600 hover:underline"
-            >
-              <time data-testid={`post-timestamp-${post.id}`}>
-                {new Date(post.createdAtUtc).toLocaleString()}
-              </time>
-            </Link>
-            {post.isEdited && (
-              <span
-                data-testid={`post-edited-badge-${post.id}`}
-                className="text-sm text-gray-500"
-              >
-                (edited)
-              </span>
-            )}
-          </div>
-
-          <p
-            data-testid={`post-body-${post.id}`}
-            className="mt-2 whitespace-pre-wrap text-gray-900"
+      <div className="post-card-content-column">
+        <div className="post-header">
+          <Link
+            to={`/u/${post.authorUsername}`}
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+            className="author-display-name"
           >
-            {post.body}
-          </p>
+            {post.authorDisplayName}
+          </Link>
+          <Link
+            to={`/u/${post.authorUsername}`}
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+            className="author-username"
+          >
+            @{post.authorUsername}
+          </Link>
+          <span className="metadata-separator">·</span>
+          <Link
+            to={`/posts/${String(post.id)}`}
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+            data-testid={`post-permalink-${String(post.id)}`}
+            className="post-timestamp"
+          >
+            <time data-testid={`post-timestamp-${String(post.id)}`}>
+              {formatDate(post.createdAtUtc)}
+            </time>
+          </Link>
+          {post.isEdited && (
+            <span
+              data-testid={`post-edited-badge-${String(post.id)}`}
+              className="post-edited-indicator"
+            >
+              (edited)
+            </span>
+          )}
+        </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <PostLikeButton
-              postId={post.id}
-              likedByViewer={post.likedByViewer}
-              likeCount={post.likeCount}
-              isPending={isLikePending}
-              onToggle={() => onLikeToggle?.(post)}
-            />
+        <div className="post-body" data-testid={`post-body-${String(post.id)}`}>
+          {post.body}
+        </div>
 
-            {post.canEdit && (
-              <button
-                type="button"
-                onClick={() => onEdit?.(post)}
-                data-testid={`post-edit-button-${post.id}`}
-                className="rounded bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700"
+        <div className="post-actions">
+          <PostLikeButton
+            postId={post.id}
+            likedByViewer={post.likedByViewer}
+            likeCount={post.likeCount}
+            isPending={isLikePending}
+            onToggle={() => {
+              onLikeToggle?.(post)
+            }}
+          />
+
+          {post.canEdit && (
+            <div className="post-action-item">
+              <Button
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit?.(post)
+                }}
+                data-testid={`post-edit-button-${String(post.id)}`}
+                className="post-action-btn edit-btn"
               >
-                Edit
-              </button>
-            )}
+                ✏️
+              </Button>
+            </div>
+          )}
 
-            {post.canDelete && (
-              <button
-                type="button"
-                onClick={() => onDelete?.(post)}
-                data-testid={`post-delete-button-${post.id}`}
-                className="rounded bg-red-100 px-3 py-1 text-sm font-medium text-red-700"
+          {post.canDelete && (
+            <div className="post-action-item">
+              <Button
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete?.(post)
+                }}
+                data-testid={`post-delete-button-${String(post.id)}`}
+                className="post-action-btn delete-btn"
               >
-                Delete
-              </button>
-            )}
-          </div>
+                🗑️
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </article>

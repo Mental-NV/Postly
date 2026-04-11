@@ -74,7 +74,9 @@ describe('SigninPage', () => {
     await user.click(screen.getByTestId('submit-button'))
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Invalid username or password')
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Invalid username or password'
+      )
     })
   })
 
@@ -93,8 +95,12 @@ describe('SigninPage', () => {
       </BrowserRouter>
     )
 
-    const usernameInput = screen.getByTestId('username-input') as HTMLInputElement
-    const passwordInput = screen.getByTestId('password-input') as HTMLInputElement
+    const usernameInput = screen.getByTestId(
+      'username-input'
+    ) as HTMLInputElement
+    const passwordInput = screen.getByTestId(
+      'password-input'
+    ) as HTMLInputElement
 
     await user.type(usernameInput, 'alice')
     await user.type(passwordInput, 'wrongpassword')

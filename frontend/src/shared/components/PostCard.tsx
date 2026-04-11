@@ -16,7 +16,10 @@ export function PostCard({
   onUnlike,
 }: PostCardProps) {
   return (
-    <div data-testid="post-card" style={{ border: '1px solid #ccc', padding: '1rem', margin: '0.5rem 0' }}>
+    <div
+      data-testid="post-card"
+      style={{ border: '1px solid #ccc', padding: '1rem', margin: '0.5rem 0' }}
+    >
       <div>
         <strong>{post.authorDisplayName}</strong> @{post.authorUsername}
       </div>
@@ -34,8 +37,12 @@ export function PostCard({
         ) : (
           <button onClick={() => onLike?.(post.id)}>Like</button>
         )}
-        {post.canEdit && <button onClick={() => onEdit?.(post.id)}>Edit</button>}
-        {post.canDelete && <button onClick={() => onDelete?.(post.id)}>Delete</button>}
+        {post.canEdit && (
+          <button onClick={() => onEdit?.(post.id)}>Edit</button>
+        )}
+        {post.canDelete && (
+          <button onClick={() => onDelete?.(post.id)}>Delete</button>
+        )}
       </div>
     </div>
   )

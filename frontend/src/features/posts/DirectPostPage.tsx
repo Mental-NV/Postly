@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
-import type { PostInteractionState, PostSummary } from '../../shared/api/contracts'
+import type {
+  PostInteractionState,
+  PostSummary,
+} from '../../shared/api/contracts'
 import { isApiError } from '../../shared/api/errors'
 import { PostEditor } from './editor/PostEditor'
 import { PostCard } from './post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
+import { Button } from '../../shared/components/Button'
 
 export function DirectPostPage() {
   const { postId } = useParams<{ postId: string }>()
@@ -22,8 +26,6 @@ export function DirectPostPage() {
 
   useEffect(() => {
     void loadPost()
-    // `loadPost` intentionally re-runs only when the route param changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId])
 
   const loadPost = async () => {
@@ -59,7 +61,7 @@ export function DirectPostPage() {
     setIsDeleting(true)
     try {
       await apiClient.delete(`/posts/${String(postId)}`)
-      navigate('/')
+      void navigate('/')
     } finally {
       setIsDeleting(false)
     }
@@ -85,8 +87,12 @@ export function DirectPostPage() {
 
     try {
       const interactionState = currentPost.likedByViewer
-        ? await apiClient.delete<PostInteractionState>(`/posts/${String(currentPost.id)}/like`)
-        : await apiClient.post<PostInteractionState>(`/posts/${String(currentPost.id)}/like`)
+        ? await apiClient.delete<PostInteractionState>(
+            `/posts/${String(currentPost.id)}/like`
+          )
+        : await apiClient.post<PostInteractionState>(
+            `/posts/${String(currentPost.id)}/like`
+          )
 
       setPost((existingPost) =>
         existingPost == null
@@ -111,28 +117,33 @@ export function DirectPostPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto p-4" data-testid="post-page">
-        <div className="text-center py-8" data-testid="post-status">Loading post...</div>
+      <div className="page-loading" data-testid="post-page">
+        <div className="text-center py-8" data-testid="post-status">
+          Loading post...
+        </div>
       </div>
     )
   }
 
   if (notFound) {
     return (
-      <div className="max-w-2xl mx-auto p-4" data-testid="post-page">
-        <div
-          className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center"
-          data-testid="post-unavailable-state"
-        >
-          <h2 className="text-xl font-bold mb-2">Post not available</h2>
-          <p className="text-gray-600 mb-4">This post may have been deleted or does not exist.</p>
-          <Link
-            to="/"
-            data-testid="post-unavailable-home-link"
-            className="inline-block px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Back to Timeline
-          </Link>
+      <div className="page-unavailable-state" data-testid="post-page">
+        <div data-testid="post-unavailable-state">
+          <h2 className="empty-title">Post not available</h2>
+          <p className="empty-text">
+            This post may have been deleted or does not exist.
+          </p>
+          <div style={{ marginTop: '24px' }}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                void navigate('/')
+              }}
+              data-testid="post-unavailable-home-link"
+            >
+              Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -140,21 +151,28 @@ export function DirectPostPage() {
 
   if (error && !post) {
     return (
-      <div className="max-w-2xl mx-auto p-4" data-testid="post-page">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-          <p className="text-red-800" data-testid="post-status">{error}</p>
+      <div className="page-error-container" data-testid="post-page">
+        <p className="page-error-text" data-testid="post-status">
+          {error}
+        </p>
+        <div className="error-actions">
+          <Button
+            variant="primary"
+            onClick={() => {
+              void loadPost()
+            }}
+          >
+            Retry
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              void navigate('/')
+            }}
+          >
+            Back to Home
+          </Button>
         </div>
-        <button
-          onClick={() => {
-            void loadPost()
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Retry
-        </button>
-        <Link to="/" className="ml-2 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-          Back to Timeline
-        </Link>
       </div>
     )
   }
@@ -162,50 +180,70 @@ export function DirectPostPage() {
   if (!post) return null
 
   return (
-    <div className="max-w-2xl mx-auto p-4" data-testid="post-page">
-      <Link
-        to="/"
-        data-testid="post-back-link"
-        className="inline-flex items-center text-blue-500 hover:underline mb-4"
-      >
-        ← Back to Timeline
-      </Link>
+    <div className="post-detail-page" data-testid="post-page">
+      <header className="page-header">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            navigate(-1)
+          }}
+          className="back-btn"
+          data-testid="post-back-link"
+        >
+          ←
+        </Button>
+        <h1 className="page-title">Post</h1>
+      </header>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-          <p className="text-red-800" data-testid="post-status">{error}</p>
+        <div className="page-error-container" style={{ padding: '16px' }}>
+          <p className="page-error-text" data-testid="post-status">
+            {error}
+          </p>
         </div>
       )}
 
-      {editingPostId === post.id ? (
-        <PostEditor
-          post={post}
-          onSave={(body) => handleEdit(post.id, body)}
-          onCancel={() => setEditingPostId(null)}
-        />
-      ) : (
-        <PostCard
-          post={post}
-          isLikePending={isLikePending}
-          onLikeToggle={handleLikeToggle}
-          onEdit={(currentPost) => setEditingPostId(currentPost.id)}
-          onDelete={(currentPost) => setDeletingPostId(currentPost.id)}
-        />
-      )}
+      <div className="post-detail-content">
+        {editingPostId === post.id ? (
+          <PostEditor
+            post={post}
+            onSave={(body) => handleEdit(post.id, body)}
+            onCancel={() => {
+              setEditingPostId(null)
+            }}
+          />
+        ) : (
+          <PostCard
+            post={post}
+            isLikePending={isLikePending}
+            onLikeToggle={(p) => {
+              void handleLikeToggle(p)
+            }}
+            onEdit={(currentPost) => {
+              setEditingPostId(currentPost.id)
+            }}
+            onDelete={(currentPost) => {
+              setDeletingPostId(currentPost.id)
+            }}
+          />
+        )}
+      </div>
 
-        <ConfirmDialog
-          isOpen={deletingPostId !== null}
-          title="Delete Post"
-          message="Are you sure you want to delete this post? This action cannot be undone."
-          confirmText="Delete"
-          onConfirm={() => {
-            if (deletingPostId !== null) {
-              void handleDelete(deletingPostId)
-            }
-          }}
-          onCancel={() => setDeletingPostId(null)}
-          isPending={isDeleting}
-        />
+      <ConfirmDialog
+        isOpen={deletingPostId !== null}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={() => {
+          if (deletingPostId !== null) {
+            void handleDelete(deletingPostId)
+          }
+        }}
+        onCancel={() => {
+          setDeletingPostId(null)
+        }}
+        isPending={isDeleting}
+      />
     </div>
   )
 }

@@ -156,7 +156,9 @@ describe('PostEditor', () => {
   it('renders with existing post content', () => {
     render(<PostEditor post={mockPost} onSave={vi.fn()} onCancel={vi.fn()} />)
 
-    expect(screen.getByTestId('editor-textarea')).toHaveValue('Original content')
+    expect(screen.getByTestId('editor-textarea')).toHaveValue(
+      'Original content'
+    )
   })
 
   it('shows character count', () => {
@@ -205,9 +207,11 @@ describe('PostEditor', () => {
 
   it('shows pending state during save', async () => {
     const user = userEvent.setup()
-    const onSave = vi.fn().mockImplementationOnce(
-      () => new Promise((resolve) => setTimeout(resolve, 100))
-    )
+    const onSave = vi
+      .fn()
+      .mockImplementationOnce(
+        () => new Promise((resolve) => setTimeout(resolve, 100))
+      )
 
     render(<PostEditor post={mockPost} onSave={onSave} onCancel={vi.fn()} />)
 
@@ -220,16 +224,20 @@ describe('PostEditor', () => {
 
   it('shows error message on save failure', async () => {
     const user = userEvent.setup()
-    const onSave = vi.fn().mockRejectedValueOnce(
-      new ApiError(500, 'error', 'Server error', 'Failed to update post')
-    )
+    const onSave = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new ApiError(500, 'error', 'Server error', 'Failed to update post')
+      )
 
     render(<PostEditor post={mockPost} onSave={onSave} onCancel={vi.fn()} />)
 
     await user.click(screen.getByTestId('editor-save'))
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Failed to update post')
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Failed to update post'
+      )
     })
   })
 })

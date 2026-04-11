@@ -1,137 +1,120 @@
 import { Link } from 'react-router-dom'
 import { useSignupForm } from './useSignupForm'
+import { Button } from '../../../shared/components/Button'
 
 export function SignupPage() {
   const { values, errors, isPending, handleChange, handleSubmit } =
     useSignupForm()
 
   return (
-    <div style={{ maxWidth: '400px', margin: '2rem auto', padding: '1rem' }}>
-      <h1>Sign Up</h1>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-brand">Postly</div>
+        <h1 className="auth-title">Create your account</h1>
 
-      <form onSubmit={handleSubmit} data-testid="signup-form">
-        {errors.form && (
-          <div
-            role="alert"
-            style={{ color: 'red', marginBottom: '1rem' }}
-            data-testid="form-error"
-          >
-            {errors.form}
-          </div>
-        )}
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="username" style={{ display: 'block' }}>
-            Username
-          </label>
-          <input
-            id="username"
-            type="text"
-            value={values.username}
-            onChange={(e) => handleChange('username', e.target.value)}
-            disabled={isPending}
-            data-testid="username-input"
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
-          {errors.username && (
-            <div
-              style={{ color: 'red', fontSize: '0.875rem' }}
-              data-testid="username-error"
-            >
-              {errors.username[0]}
-            </div>
-          )}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="displayName" style={{ display: 'block' }}>
-            Display Name
-          </label>
-          <input
-            id="displayName"
-            type="text"
-            value={values.displayName}
-            onChange={(e) => handleChange('displayName', e.target.value)}
-            disabled={isPending}
-            data-testid="displayName-input"
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
-          {errors.displayName && (
-            <div
-              style={{ color: 'red', fontSize: '0.875rem' }}
-              data-testid="displayName-error"
-            >
-              {errors.displayName[0]}
-            </div>
-          )}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="bio" style={{ display: 'block' }}>
-            Bio (optional)
-          </label>
-          <textarea
-            id="bio"
-            value={values.bio}
-            onChange={(e) => handleChange('bio', e.target.value)}
-            disabled={isPending}
-            data-testid="bio-input"
-            style={{ width: '100%', padding: '0.5rem' }}
-            rows={3}
-          />
-          {errors.bio && (
-            <div
-              style={{ color: 'red', fontSize: '0.875rem' }}
-              data-testid="bio-error"
-            >
-              {errors.bio[0]}
-            </div>
-          )}
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="password" style={{ display: 'block' }}>
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={values.password}
-            onChange={(e) => handleChange('password', e.target.value)}
-            disabled={isPending}
-            data-testid="password-input"
-            style={{ width: '100%', padding: '0.5rem' }}
-          />
-          {errors.password && (
-            <div
-              style={{ color: 'red', fontSize: '0.875rem' }}
-              data-testid="password-error"
-            >
-              {errors.password[0]}
-            </div>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={isPending}
-          data-testid="submit-button"
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: isPending ? '#ccc' : '#007bff',
-            color: 'white',
-            border: 'none',
-            cursor: isPending ? 'not-allowed' : 'pointer',
+        <form
+          onSubmit={(e) => {
+            void handleSubmit(e)
           }}
+          data-testid="signup-form"
+          className="auth-form"
         >
-          {isPending ? 'Signing up...' : 'Sign Up'}
-        </button>
-      </form>
+          {errors.form && (
+            <div
+              role="alert"
+              className="auth-error-top"
+              data-testid="form-error"
+            >
+              {errors.form}
+            </div>
+          )}
 
-      <p style={{ marginTop: '1rem', textAlign: 'center' }}>
-        Already have an account? <Link to="/signin">Sign in</Link>
-      </p>
+          <div className="auth-field">
+            <label htmlFor="username">Username</label>
+            <input
+              id="username"
+              type="text"
+              value={values.username}
+              onChange={(e) => handleChange('username', e.target.value)}
+              disabled={isPending}
+              data-testid="username-input"
+              className={errors.username ? 'invalid' : ''}
+            />
+            {errors.username && (
+              <div className="auth-field-error" data-testid="username-error">
+                {errors.username[0]}
+              </div>
+            )}
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="displayName">Display Name</label>
+            <input
+              id="displayName"
+              type="text"
+              value={values.displayName}
+              onChange={(e) => handleChange('displayName', e.target.value)}
+              disabled={isPending}
+              data-testid="displayName-input"
+              className={errors.displayName ? 'invalid' : ''}
+            />
+            {errors.displayName && (
+              <div className="auth-field-error" data-testid="displayName-error">
+                {errors.displayName[0]}
+              </div>
+            )}
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="bio">Bio (optional)</label>
+            <textarea
+              id="bio"
+              value={values.bio}
+              onChange={(e) => handleChange('bio', e.target.value)}
+              disabled={isPending}
+              data-testid="bio-input"
+              rows={3}
+              className={errors.bio ? 'invalid' : ''}
+            />
+            {errors.bio && (
+              <div className="auth-field-error" data-testid="bio-error">
+                {errors.bio[0]}
+              </div>
+            )}
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              value={values.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              disabled={isPending}
+              data-testid="password-input"
+              className={errors.password ? 'invalid' : ''}
+            />
+            {errors.password && (
+              <div className="auth-field-error" data-testid="password-error">
+                {errors.password[0]}
+              </div>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isPending}
+            data-testid="submit-button"
+            className="auth-submit-btn"
+          >
+            {isPending ? 'Signing up...' : 'Sign Up'}
+          </Button>
+        </form>
+
+        <p className="auth-footer">
+          Already have an account? <Link to="/signin">Sign in</Link>
+        </p>
+      </div>
     </div>
   )
 }

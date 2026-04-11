@@ -16,7 +16,11 @@ export function EmptyState({ message, action }: EmptyStateProps) {
     >
       <p>{message}</p>
       {action && (
-        <button type="button" onClick={action.onClick} data-testid="empty-state-action">
+        <button
+          type="button"
+          onClick={action.onClick}
+          data-testid="empty-state-action"
+        >
           {action.label}
         </button>
       )}

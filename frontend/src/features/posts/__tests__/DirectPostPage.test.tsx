@@ -119,13 +119,19 @@ describe('DirectPostPage', () => {
   })
 
   it('shows error state for other errors', async () => {
-    const serverError = new ApiError(500, 'Server Error', 'Internal server error')
+    const serverError = new ApiError(
+      500,
+      'Server Error',
+      'Internal server error'
+    )
     vi.mocked(apiClient.get).mockRejectedValueOnce(serverError)
 
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load post. Please try again.')).toBeInTheDocument()
+      expect(
+        screen.getByText('Failed to load post. Please try again.')
+      ).toBeInTheDocument()
     })
 
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
@@ -133,7 +139,11 @@ describe('DirectPostPage', () => {
   })
 
   it('retries loading on error', async () => {
-    const serverError = new ApiError(500, 'Server Error', 'Internal server error')
+    const serverError = new ApiError(
+      500,
+      'Server Error',
+      'Internal server error'
+    )
     const mockPost = createMockPost({ id: 123, body: 'Loaded after retry' })
 
     vi.mocked(apiClient.get).mockRejectedValueOnce(serverError)
@@ -174,11 +184,17 @@ describe('DirectPostPage', () => {
       expect(screen.getByText('Test post content')).toBeInTheDocument()
     })
 
-    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Edit' })
+    ).not.toBeInTheDocument()
   })
 
   it('enters edit mode when edit clicked', async () => {
-    const mockPost = createMockPost({ id: 123, canEdit: true, body: 'Original content' })
+    const mockPost = createMockPost({
+      id: 123,
+      canEdit: true,
+      body: 'Original content',
+    })
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
 
     const user = userEvent.setup()
@@ -198,7 +214,11 @@ describe('DirectPostPage', () => {
   })
 
   it('saves edited post successfully', async () => {
-    const mockPost = createMockPost({ id: 123, canEdit: true, body: 'Original content' })
+    const mockPost = createMockPost({
+      id: 123,
+      canEdit: true,
+      body: 'Original content',
+    })
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
     vi.mocked(apiClient.patch).mockResolvedValueOnce({})
 
@@ -217,7 +237,9 @@ describe('DirectPostPage', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => {
-      expect(apiClient.patch).toHaveBeenCalledWith('/posts/123', { body: 'Updated content' })
+      expect(apiClient.patch).toHaveBeenCalledWith('/posts/123', {
+        body: 'Updated content',
+      })
     })
 
     await waitFor(() => {
@@ -227,7 +249,11 @@ describe('DirectPostPage', () => {
   })
 
   it('cancels edit mode', async () => {
-    const mockPost = createMockPost({ id: 123, canEdit: true, body: 'Original content' })
+    const mockPost = createMockPost({
+      id: 123,
+      canEdit: true,
+      body: 'Original content',
+    })
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
 
     const user = userEvent.setup()
@@ -278,7 +304,9 @@ describe('DirectPostPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Delete Post')).toBeInTheDocument()
       expect(
-        screen.getByText('Are you sure you want to delete this post? This action cannot be undone.')
+        screen.getByText(
+          'Are you sure you want to delete this post? This action cannot be undone.'
+        )
       ).toBeInTheDocument()
     })
   })
@@ -340,7 +368,7 @@ describe('DirectPostPage', () => {
     })
 
     // Give time for the error to propagate and be handled
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     // Post should still be visible after error (dialog closes but post remains)
     await waitFor(() => {

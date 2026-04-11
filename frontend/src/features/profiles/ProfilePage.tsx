@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
 import type {
   PostInteractionState,
@@ -10,9 +10,12 @@ import type {
 import { PostCard } from '../posts/post-card/PostCard'
 import { PostEditor } from '../posts/editor/PostEditor'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
+import { Avatar } from '../../shared/components/Avatar'
+import { Button } from '../../shared/components/Button'
 
 export function ProfilePage() {
   const { username } = useParams<{ username: string }>()
+  const navigate = useNavigate()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [posts, setPosts] = useState<PostSummary[]>([])
@@ -23,11 +26,13 @@ export function ProfilePage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isFollowPending, setIsFollowPending] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [pendingLikePostId, setPendingLikePostId] = useState<number | null>(null)
+  const [pendingLikePostId, setPendingLikePostId] = useState<number | null>(
+    null
+  )
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadProfile()
+    void loadProfile()
   }, [username])
 
   const loadProfile = async () => {
@@ -37,7 +42,9 @@ export function ProfilePage() {
     setError(null)
 
     try {
-      const data = await apiClient.get<ProfileResponse>(`/profiles/${username}`)
+      const data = await apiClient.get<ProfileResponse>(
+        `/profiles/${String(username)}`
+      )
 
       setProfile(data.profile)
       setPosts(data.posts)
@@ -59,11 +66,13 @@ export function ProfilePage() {
     setIsLoadingMore(true)
 
     try {
-      const data = await apiClient.get<ProfileResponse>(`/profiles/${username}?cursor=${nextCursor}`)
+      const data = await apiClient.get<ProfileResponse>(
+        `/profiles/${String(username)}?cursor=${String(nextCursor)}`
+      )
 
       setPosts((currentPosts) => [...currentPosts, ...data.posts])
       setNextCursor(data.nextCursor ?? null)
-    } catch (err) {
+    } catch {
       setError('Failed to load more posts')
     } finally {
       setIsLoadingMore(false)
@@ -83,8 +92,8 @@ export function ProfilePage() {
     })
 
     try {
-      await apiClient.post(`/profiles/${username}/follow`)
-    } catch (err) {
+      await apiClient.post(`/profiles/${String(username)}/follow`)
+    } catch {
       setProfile({
         ...profile,
         isFollowedByViewer: wasFollowing,
@@ -109,8 +118,8 @@ export function ProfilePage() {
     })
 
     try {
-      await apiClient.delete(`/profiles/${username}/follow`)
-    } catch (err) {
+      await apiClient.delete(`/profiles/${String(username)}/follow`)
+    } catch {
       setProfile({
         ...profile,
         isFollowedByViewer: wasFollowing,
@@ -122,14 +131,17 @@ export function ProfilePage() {
     }
   }
 
-  function updatePost(postId: number, updater: (post: PostSummary) => PostSummary) {
+  function updatePost(
+    postId: number,
+    updater: (post: PostSummary) => PostSummary
+  ) {
     setPosts((currentPosts) =>
       currentPosts.map((post) => (post.id === postId ? updater(post) : post))
     )
   }
 
   const handleEdit = async (postId: number, newBody: string) => {
-    await apiClient.patch(`/posts/${postId}`, { body: newBody })
+    await apiClient.patch(`/posts/${String(postId)}`, { body: newBody })
     setEditingPostId(null)
     updatePost(postId, (post) => ({ ...post, body: newBody, isEdited: true }))
   }
@@ -138,9 +150,11 @@ export function ProfilePage() {
     setIsDeleting(true)
 
     try {
-      await apiClient.delete(`/posts/${postId}`)
+      await apiClient.delete(`/posts/${String(postId)}`)
       setDeletingPostId(null)
-      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId))
+      setPosts((currentPosts) =>
+        currentPosts.filter((post) => post.id !== postId)
+      )
     } finally {
       setIsDeleting(false)
     }
@@ -153,7 +167,10 @@ export function ProfilePage() {
     setError(null)
 
     const optimisticLikedByViewer = !post.likedByViewer
-    const optimisticLikeCount = Math.max(0, post.likeCount + (optimisticLikedByViewer ? 1 : -1))
+    const optimisticLikeCount = Math.max(
+      0,
+      post.likeCount + (optimisticLikedByViewer ? 1 : -1)
+    )
 
     updatePost(post.id, (currentPost) => ({
       ...currentPost,
@@ -163,15 +180,19 @@ export function ProfilePage() {
 
     try {
       const interactionState = post.likedByViewer
-        ? await apiClient.delete<PostInteractionState>(`/posts/${post.id}/like`)
-        : await apiClient.post<PostInteractionState>(`/posts/${post.id}/like`)
+        ? await apiClient.delete<PostInteractionState>(
+            `/posts/${String(post.id)}/like`
+          )
+        : await apiClient.post<PostInteractionState>(
+            `/posts/${String(post.id)}/like`
+          )
 
       updatePost(post.id, (currentPost) => ({
         ...currentPost,
         likedByViewer: interactionState.likedByViewer,
         likeCount: interactionState.likeCount,
       }))
-    } catch (err) {
+    } catch {
       updatePost(post.id, (currentPost) => ({
         ...currentPost,
         likedByViewer: post.likedByViewer,
@@ -187,119 +208,130 @@ export function ProfilePage() {
     }
   }
 
-  const getInitials = (displayName: string) => {
-    return displayName
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
-
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto p-4">
+      <div className="page-loading">
         <div className="text-center py-8">Loading profile...</div>
       </div>
-    );
+    )
   }
 
   if (error && !profile) {
     return (
-      <div className="max-w-2xl mx-auto p-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-          <p className="text-red-800">{error}</p>
+      <div className="page-error-container">
+        <p className="page-error-text">{error}</p>
+        <div className="error-actions">
+          <Button
+            variant="primary"
+            onClick={() => {
+              void loadProfile()
+            }}
+          >
+            Retry
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              void navigate('/')
+            }}
+          >
+            Back to Home
+          </Button>
         </div>
-        <button
-          onClick={loadProfile}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Retry
-        </button>
-        <Link to="/" className="ml-2 px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-          Back to Timeline
-        </Link>
       </div>
-    );
+    )
   }
 
   if (!profile) return null
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      {/* Profile Header */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4">
-            {/* Avatar */}
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-              {getInitials(profile.displayName)}
-            </div>
+    <div className="profile-page">
+      <header className="page-header">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            navigate(-1)
+          }}
+          className="back-btn"
+        >
+          ←
+        </Button>
+        <div className="header-info">
+          <h1 className="page-title">{profile.displayName}</h1>
+          <span className="header-post-count">{posts.length} Posts</span>
+        </div>
+      </header>
 
-            {/* Profile Info */}
-            <div>
-              <h1 className="text-2xl font-bold">{profile.displayName}</h1>
-              <p className="text-gray-600">@{profile.username}</p>
-              {profile.bio && (
-                <p className="mt-2 text-gray-800">{profile.bio}</p>
-              )}
-              <div className="flex space-x-4 mt-3 text-sm">
-                <span>
-                  <strong>{profile.followingCount}</strong> Following
-                </span>
-                <span>
-                  <strong>{profile.followerCount}</strong> Followers
-                </span>
-              </div>
-            </div>
+      <div className="profile-hero">
+        <div className="profile-banner" />
+        <div className="profile-avatar-row">
+          <Avatar
+            username={profile.username}
+            displayName={profile.displayName}
+            size="lg"
+            className="profile-avatar-large"
+          />
+          <div className="profile-action-area">
+            {!profile.isSelf ? (
+              <Button
+                variant={profile.isFollowedByViewer ? 'secondary' : 'primary'}
+                onClick={() => {
+                  void (profile.isFollowedByViewer
+                    ? handleUnfollow()
+                    : handleFollow())
+                }}
+                disabled={isFollowPending}
+              >
+                {isFollowPending
+                  ? '...'
+                  : profile.isFollowedByViewer
+                    ? 'Unfollow'
+                    : 'Follow'}
+              </Button>
+            ) : (
+              <Button variant="secondary" disabled>
+                Edit Profile
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="profile-info-block">
+          <div className="profile-names">
+            <h2 className="profile-display-name">{profile.displayName}</h2>
+            <span className="profile-username">@{profile.username}</span>
           </div>
 
-          {/* Follow Button */}
-          {!profile.isSelf && (
-            <button
-              onClick={profile.isFollowedByViewer ? handleUnfollow : handleFollow}
-              disabled={isFollowPending}
-              className={`px-4 py-2 rounded font-medium ${
-                profile.isFollowedByViewer
-                  ? 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {isFollowPending ? 'Loading...' : profile.isFollowedByViewer ? 'Unfollow' : 'Follow'}
-            </button>
-          )}
+          {profile.bio && <p className="profile-bio">{profile.bio}</p>}
 
-          {profile.isSelf && (
-            <span className="px-4 py-2 bg-blue-50 text-blue-700 rounded font-medium">
-              Your profile
+          <div className="profile-stats">
+            <span className="stat-item">
+              <strong className="stat-value">{profile.followingCount}</strong>{' '}
+              Following
             </span>
-          )}
+            <span className="stat-item">
+              <strong className="stat-value">{profile.followerCount}</strong>{' '}
+              Followers
+            </span>
+          </div>
         </div>
+
+        <nav className="profile-tabs">
+          <div className="tab active">Posts</div>
+        </nav>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-          <p className="text-red-800">{error}</p>
-        </div>
-      )}
-
-      {/* Posts Section */}
-      <div className="space-y-4" data-testid="profile-posts-feed">
-        <h2 className="text-xl font-bold">Posts</h2>
-
+      <div className="profile-posts-feed" data-testid="profile-posts-feed">
         {posts.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center text-gray-600">
-            {profile.isSelf ? (
-              <>
-                <p>You haven't posted yet.</p>
-                <Link to="/" className="text-blue-500 hover:underline mt-2 inline-block">
-                  Create your first post!
-                </Link>
-              </>
-            ) : (
-              <p>{profile.displayName} hasn't posted yet.</p>
-            )}
+          <div className="page-empty-state">
+            <h2 className="empty-title">
+              {profile.isSelf ? "You haven't posted yet" : 'No posts yet'}
+            </h2>
+            <p className="empty-text">
+              {profile.isSelf
+                ? "When you post, they'll show up here."
+                : `When @${profile.username} posts, they'll show up here.`}
+            </p>
           </div>
         ) : (
           <>
@@ -316,21 +348,32 @@ export function ProfilePage() {
                   key={post.id}
                   post={post}
                   isLikePending={pendingLikePostId === post.id}
-                  onLikeToggle={handleLikeToggle}
-                  onEdit={(currentPost) => setEditingPostId(currentPost.id)}
-                  onDelete={(currentPost) => setDeletingPostId(currentPost.id)}
+                  onLikeToggle={(p) => {
+                    void handleLikeToggle(p)
+                  }}
+                  onEdit={(currentPost) => {
+                    setEditingPostId(currentPost.id)
+                  }}
+                  onDelete={(currentPost) => {
+                    setDeletingPostId(currentPost.id)
+                  }}
                 />
               )
             )}
 
             {nextCursor && (
-              <button
-                onClick={loadMorePosts}
-                disabled={isLoadingMore}
-                className="w-full py-2 bg-gray-100 hover:bg-gray-200 rounded disabled:opacity-50"
-              >
-                {isLoadingMore ? 'Loading...' : 'Load more'}
-              </button>
+              <div className="load-more-container">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    void loadMorePosts()
+                  }}
+                  disabled={isLoadingMore}
+                  className="load-more-btn"
+                >
+                  {isLoadingMore ? 'Loading...' : 'Load more'}
+                </Button>
+              </div>
             )}
           </>
         )}
@@ -341,8 +384,14 @@ export function ProfilePage() {
         title="Delete Post"
         message="Are you sure you want to delete this post? This action cannot be undone."
         confirmText="Delete"
-        onConfirm={() => deletingPostId && handleDelete(deletingPostId)}
-        onCancel={() => setDeletingPostId(null)}
+        onConfirm={() => {
+          if (deletingPostId !== null) {
+            void handleDelete(deletingPostId)
+          }
+        }}
+        onCancel={() => {
+          setDeletingPostId(null)
+        }}
         isPending={isDeleting}
       />
     </div>

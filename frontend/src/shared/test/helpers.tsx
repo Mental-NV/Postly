@@ -16,9 +16,7 @@ export function setupApiMocks() {
 export function renderWithProviders(ui: React.ReactElement) {
   return render(
     <BrowserRouter>
-      <AuthProvider>
-        {ui}
-      </AuthProvider>
+      <AuthProvider>{ui}</AuthProvider>
     </BrowserRouter>
   )
 }

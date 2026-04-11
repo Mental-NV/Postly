@@ -16,7 +16,9 @@ export function createMockPost(overrides?: Partial<PostSummary>): PostSummary {
   }
 }
 
-export function createMockProfile(overrides?: Partial<UserProfile>): UserProfile {
+export function createMockProfile(
+  overrides?: Partial<UserProfile>
+): UserProfile {
   return {
     username: 'alice',
     displayName: 'Alice Example',

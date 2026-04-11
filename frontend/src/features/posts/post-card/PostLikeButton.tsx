@@ -1,3 +1,5 @@
+import { Button } from '../../../shared/components/Button'
+
 interface PostLikeButtonProps {
   postId: number
   likedByViewer: boolean
@@ -14,24 +16,27 @@ export function PostLikeButton({
   onToggle,
 }: PostLikeButtonProps) {
   return (
-    <div className="flex items-center gap-3 text-sm text-gray-600">
-      <button
-        type="button"
-        onClick={onToggle}
+    <div className="post-action-item like-action">
+      <Button
+        variant="ghost"
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggle()
+        }}
         disabled={isPending}
         aria-pressed={likedByViewer}
         data-testid={`post-like-button-${postId}`}
-        className="rounded border border-gray-300 px-3 py-1 font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className={`post-action-btn like-btn ${likedByViewer ? 'liked' : ''}`}
       >
-        {isPending ? (likedByViewer ? 'Unliking...' : 'Liking...') : likedByViewer ? 'Unlike' : 'Like'}
-      </button>
-      <span
-        aria-live="polite"
-        data-testid={`post-like-count-${postId}`}
-        className="font-medium"
-      >
-        {likeCount} like{likeCount === 1 ? '' : 's'}
-      </span>
+        <span className="action-icon">{likedByViewer ? '❤️' : '🤍'}</span>
+        <span
+          aria-live="polite"
+          data-testid={`post-like-count-${postId}`}
+          className="action-count"
+        >
+          {likeCount > 0 ? likeCount : ''}
+        </span>
+      </Button>
     </div>
   )
 }

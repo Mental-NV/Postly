@@ -1,19 +1,32 @@
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useRef, useEffect } from 'react'
 import { apiClient } from '../../../shared/api/client'
 import { isApiError } from '../../../shared/api/errors'
+import { Button } from '../../../shared/components/Button'
+import { Avatar } from '../../../shared/components/Avatar'
+import { useAuth } from '../../../app/providers/AuthProvider'
 
 interface ComposerProps {
   onPostCreated?: () => void
 }
 
 export function Composer({ onPostCreated }: ComposerProps) {
+  const { session } = useAuth()
   const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const charCount = body.length
   const isOverLimit = charCount > 280
   const isEmpty = body.trim().length === 0
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+    }
+  }, [body])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -24,7 +37,7 @@ export function Composer({ onPostCreated }: ComposerProps) {
 
     try {
       await apiClient.post('/posts', { body: body.trim() })
-      setBody('') // Clear on success
+      setBody('')
       onPostCreated?.()
     } catch (err) {
       if (isApiError(err)) {
@@ -32,42 +45,65 @@ export function Composer({ onPostCreated }: ComposerProps) {
       } else {
         setError('An unexpected error occurred')
       }
-      // Draft preserved (body not cleared)
     } finally {
       setIsPending(false)
     }
   }
 
+  if (!session) return null
+
   return (
-    <form onSubmit={handleSubmit} data-testid="composer-form">
-      {error && <div role="alert">{error}</div>}
-
-      <textarea
-        data-testid="composer-textarea"
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        disabled={isPending}
-        placeholder="What's happening?"
-        rows={3}
-      />
-
-      <div>
-        <span style={{ color: isOverLimit ? 'red' : 'gray' }}>
-          {charCount}/280
-        </span>
-
-        <button
-          type="submit"
-          disabled={isPending || isEmpty || isOverLimit}
-          data-testid="composer-submit"
-        >
-          {isPending ? 'Posting...' : 'Post'}
-        </button>
+    <div className="composer-container">
+      <div className="composer-avatar-column">
+        <Avatar
+          username={session.username}
+          displayName={session.displayName}
+          size="md"
+        />
       </div>
+      <form
+        onSubmit={(e) => {
+          void handleSubmit(e)
+        }}
+        className="composer-form"
+        data-testid="composer-form"
+      >
+        <textarea
+          ref={textareaRef}
+          className="composer-textarea"
+          data-testid="composer-textarea"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          disabled={isPending}
+          placeholder="What's happening?"
+          rows={1}
+        />
 
-      {isOverLimit && (
-        <div>Post exceeds 280 character limit</div>
-      )}
-    </form>
+        {error && (
+          <div className="composer-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        <div className="composer-footer">
+          <div className="composer-stats">
+            <span
+              className={`char-counter ${isOverLimit ? 'over-limit' : ''}`}
+              style={{ opacity: isEmpty ? 0 : 1 }}
+            >
+              {280 - charCount}
+            </span>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isPending || isEmpty || isOverLimit}
+            data-testid="composer-submit"
+          >
+            {isPending ? 'Posting...' : 'Post'}
+          </Button>
+        </div>
+      </form>
+    </div>
   )
 }

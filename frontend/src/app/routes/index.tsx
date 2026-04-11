@@ -5,6 +5,7 @@ import { TimelinePage } from '../../features/timeline/TimelinePage'
 import { ProfilePage } from '../../features/profiles/ProfilePage'
 import { DirectPostPage } from '../../features/posts/DirectPostPage'
 import { ProtectedRoute } from './ProtectedRoute'
+import { MainLayout } from '../../shared/components/MainLayout'
 
 export function AppRoutes() {
   return (
@@ -15,7 +16,9 @@ export function AppRoutes() {
         path="/"
         element={
           <ProtectedRoute>
-            <TimelinePage />
+            <MainLayout>
+              <TimelinePage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -23,7 +26,9 @@ export function AppRoutes() {
         path="/u/:username"
         element={
           <ProtectedRoute>
-            <ProfilePage />
+            <MainLayout>
+              <ProfilePage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -31,7 +36,9 @@ export function AppRoutes() {
         path="/posts/:postId"
         element={
           <ProtectedRoute>
-            <DirectPostPage />
+            <MainLayout>
+              <DirectPostPage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />

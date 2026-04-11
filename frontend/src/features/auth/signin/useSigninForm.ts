@@ -67,6 +67,6 @@ export function useSigninForm() {
     formError,
     isPending,
     handleChange,
-    handleSubmit
+    handleSubmit,
   }
 }

@@ -12,7 +12,12 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated) {
     // Redirect to signin with return URL
     const returnUrl = location.pathname + location.search
-    return <Navigate to={`/signin?returnUrl=${encodeURIComponent(returnUrl)}`} replace />
+    return (
+      <Navigate
+        to={`/signin?returnUrl=${encodeURIComponent(returnUrl)}`}
+        replace
+      />
+    )
   }
 
   return <>{children}</>

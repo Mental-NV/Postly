@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signin(username: string, password: string) {
     const response = await apiClient.post<SessionResponse>('/auth/signin', {
       username,
-      password
+      password,
     })
     setSession(response)
   }
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: session !== null,
         signin,
-        signout
+        signout,
       }}
     >
       {children}

@@ -7,7 +7,10 @@ import { ProfilePage } from '../../profiles/ProfilePage'
 import { DirectPostPage } from '../DirectPostPage'
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
-import { createMockPost, createMockProfile } from '../../../shared/test/factories'
+import {
+  createMockPost,
+  createMockProfile,
+} from '../../../shared/test/factories'
 
 vi.mock('../../../shared/api/client', () => ({
   apiClient: {
@@ -50,7 +53,9 @@ describe('Direct post and likes UI', () => {
     await waitFor(() => {
       expect(apiClient.post).toHaveBeenCalledWith('/posts/7/like')
       expect(screen.getByRole('button', { name: 'Unlike' })).toBeInTheDocument()
-      expect(screen.getByTestId('post-like-count-7')).toHaveTextContent('1 like')
+      expect(screen.getByTestId('post-like-count-7')).toHaveTextContent(
+        '1 like'
+      )
     })
   })
 
@@ -59,7 +64,9 @@ describe('Direct post and likes UI', () => {
       posts: [createMockPost({ id: 7, likeCount: 0, likedByViewer: false })],
       nextCursor: null,
     })
-    vi.mocked(apiClient.post).mockRejectedValueOnce(new ApiError(500, 'HTTP_ERROR', 'HTTP 500'))
+    vi.mocked(apiClient.post).mockRejectedValueOnce(
+      new ApiError(500, 'HTTP_ERROR', 'HTTP 500')
+    )
 
     const user = userEvent.setup()
     render(
@@ -76,8 +83,12 @@ describe('Direct post and likes UI', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Like' })).toBeInTheDocument()
-      expect(screen.getByTestId('post-like-count-7')).toHaveTextContent('0 likes')
-      expect(screen.getByText('Failed to like post. Please try again.')).toBeInTheDocument()
+      expect(screen.getByTestId('post-like-count-7')).toHaveTextContent(
+        '0 likes'
+      )
+      expect(
+        screen.getByText('Failed to like post. Please try again.')
+      ).toBeInTheDocument()
     })
   })
 
@@ -114,7 +125,9 @@ describe('Direct post and likes UI', () => {
   })
 
   it('renders a direct post and supports the unavailable-state recovery link', async () => {
-    vi.mocked(apiClient.get).mockRejectedValueOnce(new ApiError(404, 'NOT_FOUND', 'Not found'))
+    vi.mocked(apiClient.get).mockRejectedValueOnce(
+      new ApiError(404, 'NOT_FOUND', 'Not found')
+    )
 
     const user = userEvent.setup()
     render(
@@ -162,7 +175,9 @@ describe('Direct post and likes UI', () => {
 
     expect(screen.getByTestId('post-card-11')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Unlike' })).toBeInTheDocument()
-    expect(screen.getByTestId('post-like-count-11')).toHaveTextContent('2 likes')
+    expect(screen.getByTestId('post-like-count-11')).toHaveTextContent(
+      '2 likes'
+    )
     expect(screen.getByTestId('post-permalink-11')).toBeInTheDocument()
   })
 })

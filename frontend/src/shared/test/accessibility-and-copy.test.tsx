@@ -49,9 +49,13 @@ describe('shared route states accessibility and copy', () => {
       />
     )
 
-    expect(screen.getByRole('status')).toHaveTextContent('No posts are available yet.')
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No posts are available yet.'
+    )
 
-    const actionButton = screen.getByRole('button', { name: 'Create your first post' })
+    const actionButton = screen.getByRole('button', {
+      name: 'Create your first post',
+    })
     await user.click(actionButton)
 
     expect(onCreateFirstPost).toHaveBeenCalledOnce()
@@ -75,14 +79,27 @@ describe('shared post card accessibility and copy', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('link', { name: /alice example/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: /alice example/i })
+    ).toBeInTheDocument()
     expect(screen.getByText('@alice')).toBeInTheDocument()
-    expect(screen.getByTestId('post-body-42')).toHaveTextContent('Seed post from Alice')
+    expect(screen.getByTestId('post-body-42')).toHaveTextContent(
+      'Seed post from Alice'
+    )
     expect(screen.getByTestId('post-permalink-42')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Like' })).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByTestId('post-like-count-42')).toHaveTextContent('2 likes')
-    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Like' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+    expect(screen.getByTestId('post-like-count-42')).toHaveTextContent(
+      '2 likes'
+    )
+    expect(
+      screen.queryByRole('button', { name: 'Edit' })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Delete' })
+    ).not.toBeInTheDocument()
   })
 
   it('renders explicit edited and owner-only action labels', async () => {
@@ -111,8 +128,13 @@ describe('shared post card accessibility and copy', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByTestId('post-edited-badge-99')).toHaveTextContent('(edited)')
-    expect(screen.getByRole('button', { name: 'Unlike' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('post-edited-badge-99')).toHaveTextContent(
+      '(edited)'
+    )
+    expect(screen.getByRole('button', { name: 'Unlike' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
     expect(screen.getByTestId('post-like-count-99')).toHaveTextContent('1 like')
 
     await user.click(screen.getByRole('button', { name: 'Unlike' }))
