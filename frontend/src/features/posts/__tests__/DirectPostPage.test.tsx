@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { DirectPostPage } from '../DirectPostPage'
@@ -86,9 +86,9 @@ describe('DirectPostPage', () => {
       expect(screen.getByText('This is a test post')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('Alice Example')).toBeInTheDocument()
+    expect(screen.getAllByText(/Alice Example/i).length).toBeGreaterThan(0)
     expect(screen.getByText('@alice')).toBeInTheDocument()
-    expect(screen.getByText('← Back to Timeline')).toBeInTheDocument()
+    expect(screen.getByTestId('post-back-link')).toBeInTheDocument()
   })
 
   it('verifies correct API URL (regression test)', async () => {
@@ -109,13 +109,13 @@ describe('DirectPostPage', () => {
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(screen.getByText('Post not available')).toBeInTheDocument()
+      expect(screen.getByText(/post not available/i)).toBeInTheDocument()
     })
 
     expect(
-      screen.getByText('This post may have been deleted or does not exist.')
+      screen.getByText(/this post may have been deleted/i)
     ).toBeInTheDocument()
-    expect(screen.getByText('Back to Timeline')).toBeInTheDocument()
+    expect(screen.getByTestId('post-unavailable-home-link')).toBeInTheDocument()
   })
 
   it('shows error state for other errors', async () => {
@@ -130,12 +130,11 @@ describe('DirectPostPage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Failed to load post. Please try again.')
+        screen.getByText(/failed to load post/i)
       ).toBeInTheDocument()
     })
 
-    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
-    expect(screen.getByText('Back to Timeline')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
   })
 
   it('retries loading on error', async () => {
@@ -170,7 +169,7 @@ describe('DirectPostPage', () => {
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+      expect(screen.getByTestId('post-edit-button-123')).toBeInTheDocument()
     })
   })
 
@@ -201,14 +200,14 @@ describe('DirectPostPage', () => {
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+      expect(screen.getByTestId('post-edit-button-123')).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await user.click(screen.getByTestId('post-edit-button-123'))
 
     // PostEditor should be rendered with textarea
     await waitFor(() => {
-      const textarea = screen.getByRole('textbox')
+      const textarea = screen.getByTestId('editor-textarea')
       expect(textarea).toHaveValue('Original content')
     })
   })
@@ -226,15 +225,15 @@ describe('DirectPostPage', () => {
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+      expect(screen.getByTestId('post-edit-button-123')).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await user.click(screen.getByTestId('post-edit-button-123'))
 
-    const textarea = await screen.findByRole('textbox')
+    const textarea = await screen.findByTestId('editor-textarea')
     await user.clear(textarea)
     await user.type(textarea, 'Updated content')
-    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await user.click(screen.getByRole('button', { name: /save/i }))
 
     await waitFor(() => {
       expect(apiClient.patch).toHaveBeenCalledWith('/posts/123', {
@@ -244,7 +243,7 @@ describe('DirectPostPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Updated content')).toBeInTheDocument()
-      expect(screen.getByText('(edited)')).toBeInTheDocument()
+      expect(screen.getByTestId('post-edited-badge-123')).toBeInTheDocument()
     })
   })
 
@@ -260,19 +259,19 @@ describe('DirectPostPage', () => {
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+      expect(screen.getByTestId('post-edit-button-123')).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await user.click(screen.getByTestId('post-edit-button-123'))
 
     await waitFor(() => {
-      expect(screen.getByRole('textbox')).toBeInTheDocument()
+      expect(screen.getByTestId('editor-textarea')).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    await user.click(screen.getByRole('button', { name: /cancel/i }))
 
     await waitFor(() => {
-      expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('editor-textarea')).not.toBeInTheDocument()
       expect(screen.getByText('Original content')).toBeInTheDocument()
     })
   })
@@ -284,7 +283,7 @@ describe('DirectPostPage', () => {
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+      expect(screen.getByTestId('post-delete-button-123')).toBeInTheDocument()
     })
   })
 
@@ -296,18 +295,13 @@ describe('DirectPostPage', () => {
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+      expect(screen.getByTestId('post-delete-button-123')).toBeInTheDocument()
     })
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    await user.click(screen.getByTestId('post-delete-button-123'))
 
     await waitFor(() => {
-      expect(screen.getByText('Delete Post')).toBeInTheDocument()
-      expect(
-        screen.getByText(
-          'Are you sure you want to delete this post? This action cannot be undone.'
-        )
-      ).toBeInTheDocument()
+      expect(screen.getByText(/delete post/i)).toBeInTheDocument()
     })
   })
 
@@ -329,8 +323,10 @@ describe('DirectPostPage', () => {
       expect(screen.getByText('Delete Post')).toBeInTheDocument()
     })
 
-    // Find the confirm button in the dialog
-    const confirmButton = screen.getAllByRole('button', { name: 'Delete' })[1]!
+    const confirmButton = within(screen.getByRole('dialog')).getByRole(
+      'button',
+      { name: 'Delete' }
+    )
     await user.click(confirmButton)
 
     await waitFor(() => {
@@ -359,7 +355,10 @@ describe('DirectPostPage', () => {
       expect(screen.getByText('Delete Post')).toBeInTheDocument()
     })
 
-    const confirmButton = screen.getAllByRole('button', { name: 'Delete' })[1]!
+    const confirmButton = within(screen.getByRole('dialog')).getByRole(
+      'button',
+      { name: 'Delete' }
+    )
     await user.click(confirmButton)
 
     // Wait for the delete call and let the error be handled

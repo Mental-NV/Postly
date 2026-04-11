@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
-import type { PostSummary } from "../../../shared/api/contracts";
-import { Button } from "../../../shared/components/Button";
+import { useState, useRef, useEffect } from 'react'
+import type { PostSummary } from '../../../shared/api/contracts'
+import { isApiError } from '../../../shared/api/errors'
+import { Button } from '../../../shared/components/Button'
 
 interface PostEditorProps {
   post: PostSummary
@@ -34,8 +35,12 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps) {
 
     try {
       await onSave(body.trim())
-    } catch {
-      setError('An unexpected error occurred')
+    } catch (err) {
+      if (isApiError(err)) {
+        setError(err.detail || 'Failed to update post')
+      } else {
+        setError('An unexpected error occurred')
+      }
     } finally {
       setIsPending(false)
     }

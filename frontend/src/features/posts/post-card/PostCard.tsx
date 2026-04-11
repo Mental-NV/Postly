@@ -128,6 +128,7 @@ export function PostCard({
                   e.stopPropagation()
                   onEdit?.(post)
                 }}
+                aria-label="Edit"
                 data-testid={`post-edit-button-${String(post.id)}`}
                 className="post-action-btn edit-btn"
               >
@@ -144,6 +145,7 @@ export function PostCard({
                   e.stopPropagation()
                   onDelete?.(post)
                 }}
+                aria-label="Delete"
                 data-testid={`post-delete-button-${String(post.id)}`}
                 className="post-action-btn delete-btn"
               >

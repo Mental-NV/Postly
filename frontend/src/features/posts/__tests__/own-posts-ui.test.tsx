@@ -6,9 +6,14 @@ import { PostEditor } from '../editor/PostEditor'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
+import {
+  renderWithProviders,
+  mockAuthenticatedSession,
+} from '../../../shared/test/helpers'
 
 vi.mock('../../../shared/api/client', () => ({
   apiClient: {
+    get: vi.fn(),
     post: vi.fn(),
     patch: vi.fn(),
     delete: vi.fn(),
@@ -21,7 +26,7 @@ describe('Composer', () => {
   })
 
   it('renders textarea and submit button', () => {
-    render(<Composer />)
+    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
     expect(screen.getByTestId('composer-textarea')).toBeInTheDocument()
     expect(screen.getByTestId('composer-submit')).toBeInTheDocument()
@@ -29,16 +34,16 @@ describe('Composer', () => {
 
   it('shows character count', async () => {
     const user = userEvent.setup()
-    render(<Composer />)
+    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
     const textarea = screen.getByTestId('composer-textarea')
     await user.type(textarea, 'Hello')
 
-    expect(screen.getByText('5/280')).toBeInTheDocument()
+    expect(screen.getByText('275')).toBeInTheDocument()
   })
 
   it('disables submit when empty', () => {
-    render(<Composer />)
+    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
     const submitButton = screen.getByTestId('composer-submit')
     expect(submitButton).toBeDisabled()
@@ -46,30 +51,31 @@ describe('Composer', () => {
 
   it('disables submit when over limit', async () => {
     const user = userEvent.setup()
-    render(<Composer />)
+    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
     const textarea = screen.getByTestId('composer-textarea')
     await user.type(textarea, 'a'.repeat(281))
 
     expect(screen.getByTestId('composer-submit')).toBeDisabled()
-    expect(screen.getByText(/exceeds 280 character limit/i)).toBeInTheDocument()
+    expect(screen.getByText('-1')).toBeInTheDocument()
   })
 
   it('shows error message for over 280 chars', async () => {
     const user = userEvent.setup()
-    render(<Composer />)
+    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
     const textarea = screen.getByTestId('composer-textarea')
     await user.type(textarea, 'a'.repeat(281))
 
-    expect(screen.getByText(/exceeds 280 character limit/i)).toBeInTheDocument()
+    expect(screen.getByTestId('composer-submit')).toBeDisabled()
+    expect(screen.getByText('-1')).toBeInTheDocument()
   })
 
   it('clears textarea after successful submit', async () => {
     const user = userEvent.setup()
     vi.mocked(apiClient.post).mockResolvedValueOnce({})
 
-    render(<Composer />)
+    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
     const textarea = screen.getByTestId('composer-textarea')
     await user.type(textarea, 'Test post')
@@ -86,7 +92,7 @@ describe('Composer', () => {
       new ApiError(500, 'error', 'Server error', 'Server error')
     )
 
-    render(<Composer />)
+    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
     const textarea = screen.getByTestId('composer-textarea')
     await user.type(textarea, 'Test post')
@@ -105,7 +111,7 @@ describe('Composer', () => {
       () => new Promise((resolve) => setTimeout(resolve, 100))
     )
 
-    render(<Composer />)
+    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
     const textarea = screen.getByTestId('composer-textarea')
     await user.type(textarea, 'Test post')
@@ -122,7 +128,9 @@ describe('Composer', () => {
     const onPostCreated = vi.fn()
     vi.mocked(apiClient.post).mockResolvedValueOnce({})
 
-    render(<Composer onPostCreated={onPostCreated} />)
+    renderWithProviders(<Composer onPostCreated={onPostCreated} />, {
+      session: mockAuthenticatedSession(),
+    })
 
     const textarea = screen.getByTestId('composer-textarea')
     await user.type(textarea, 'Test post')
@@ -164,7 +172,7 @@ describe('PostEditor', () => {
   it('shows character count', () => {
     render(<PostEditor post={mockPost} onSave={vi.fn()} onCancel={vi.fn()} />)
 
-    expect(screen.getByText('16/280')).toBeInTheDocument()
+    expect(screen.getByText('264')).toBeInTheDocument()
   })
 
   it('validates character limit', async () => {

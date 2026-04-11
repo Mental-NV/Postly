@@ -24,6 +24,7 @@ export function PostLikeButton({
           onToggle()
         }}
         disabled={isPending}
+        aria-label={likedByViewer ? 'Unlike' : 'Like'}
         aria-pressed={likedByViewer}
         data-testid={`post-like-button-${postId}`}
         className={`post-action-btn like-btn ${likedByViewer ? 'liked' : ''}`}

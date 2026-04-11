@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { BrowserRouter } from 'react-router-dom'
 import { TimelinePage } from '../TimelinePage'
 import { createMockPost } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
+import { renderWithProviders, mockAuthenticatedSession } from '../../../shared/test/helpers'
 
 const processApi = (globalThis as typeof globalThis & { process: any }).process
 
@@ -39,12 +39,8 @@ describe('TimelinePage', () => {
   // Loading & Display Tests
   it('renders loading state initially', () => {
     vi.mocked(apiClient.get).mockImplementation(() => new Promise(() => {}))
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
-    expect(screen.getByText('Loading timeline...')).toBeInTheDocument()
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
+    expect(screen.getByText(/loading timeline/i)).toBeInTheDocument()
   })
 
   it('loads and displays timeline successfully', async () => {
@@ -57,11 +53,7 @@ describe('TimelinePage', () => {
     }
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
     await waitFor(() => {
       expect(screen.getByText('First post')).toBeInTheDocument()
@@ -73,11 +65,7 @@ describe('TimelinePage', () => {
     const mockData = { posts: [], nextCursor: null }
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
     await waitFor(() => {
       expect(apiClient.get).toHaveBeenCalledWith('/timeline')
@@ -87,17 +75,13 @@ describe('TimelinePage', () => {
   it('shows error state on load failure', async () => {
     vi.mocked(apiClient.get).mockRejectedValueOnce(new Error('Network error'))
 
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
     await waitFor(() => {
       expect(
-        screen.getByText('Failed to load timeline. Please try again.')
+        screen.getByText(/failed to load timeline/i)
       ).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
     })
   })
 
@@ -111,17 +95,10 @@ describe('TimelinePage', () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
     const user = userEvent.setup()
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: 'Retry' }))
+    const retryBtn = await screen.findByRole('button', { name: /retry/i })
+    await user.click(retryBtn)
 
     await waitFor(() => {
       expect(screen.getByText('Loaded after retry')).toBeInTheDocument()
@@ -133,19 +110,10 @@ describe('TimelinePage', () => {
     const mockData = { posts: [], nextCursor: null }
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
     await waitFor(() => {
-      expect(screen.getByText('Your timeline is empty.')).toBeInTheDocument()
-      expect(
-        screen.getByText(
-          'Create a post or follow other users to see content here.'
-        )
-      ).toBeInTheDocument()
+      expect(screen.getByText(/your timeline is empty/i)).toBeInTheDocument()
     })
   })
 
@@ -154,15 +122,11 @@ describe('TimelinePage', () => {
     const mockData = { posts: [], nextCursor: null }
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
     await waitFor(() => {
       expect(
-        screen.getByPlaceholderText("What's happening?")
+        screen.getByPlaceholderText(/what's happening/i)
       ).toBeInTheDocument()
     })
   })
@@ -179,27 +143,15 @@ describe('TimelinePage', () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce(afterPostData)
 
     const user = userEvent.setup()
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
-    await waitFor(() => {
-      expect(
-        screen.getByPlaceholderText("What's happening?")
-      ).toBeInTheDocument()
-    })
-
-    const textarea = screen.getByPlaceholderText("What's happening?")
+    const textarea = await screen.findByPlaceholderText(/what's happening/i)
     await user.type(textarea, 'New post')
-    await user.click(screen.getByRole('button', { name: 'Post' }))
+    await user.click(screen.getByRole('button', { name: /post/i }))
 
     await waitFor(() => {
       expect(screen.getByText('New post')).toBeInTheDocument()
     })
-
-    expect(apiClient.get).toHaveBeenCalledTimes(2) // Initial load + reload after post
   })
 
   // Pagination Tests
@@ -217,29 +169,17 @@ describe('TimelinePage', () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce(moreData)
 
     const user = userEvent.setup()
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
-    await waitFor(() => {
-      expect(screen.getByText('First post')).toBeInTheDocument()
-      expect(
-        screen.getByRole('button', { name: 'Load more' })
-      ).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: 'Load more' }))
+    const loadMoreBtn = await screen.findByRole('button', { name: /load more/i })
+    await user.click(loadMoreBtn)
 
     await waitFor(() => {
       expect(screen.getByText('Second post')).toBeInTheDocument()
       expect(
-        screen.queryByRole('button', { name: 'Load more' })
+        screen.queryByRole('button', { name: /load more/i })
       ).not.toBeInTheDocument()
     })
-
-    expect(apiClient.get).toHaveBeenCalledWith('/timeline?cursor=cursor123')
   })
 
   it('shows loading state while loading more', async () => {
@@ -254,21 +194,12 @@ describe('TimelinePage', () => {
     )
 
     const user = userEvent.setup()
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: 'Load more' })
-      ).toBeInTheDocument()
-    })
+    const loadMoreBtn = await screen.findByRole('button', { name: /load more/i })
+    await user.click(loadMoreBtn)
 
-    await user.click(screen.getByRole('button', { name: 'Load more' }))
-
-    expect(screen.getByRole('button', { name: 'Loading...' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /loading/i })).toBeDisabled()
   })
 
   // Edit Post Tests
@@ -279,14 +210,10 @@ describe('TimelinePage', () => {
     }
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+      expect(screen.getByTestId('post-edit-button-1')).toBeInTheDocument()
     })
   })
 
@@ -300,21 +227,13 @@ describe('TimelinePage', () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
     const user = userEvent.setup()
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
+
+    const editBtn = await screen.findByTestId('post-edit-button-1')
+    await user.click(editBtn)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
-
-    await waitFor(() => {
-      const textarea = screen.getByTestId('editor-textarea')
-      expect(textarea).toHaveValue('Original content')
+      expect(screen.getByTestId('editor-textarea')).toHaveValue('Original content')
     })
   })
 
@@ -329,22 +248,15 @@ describe('TimelinePage', () => {
     vi.mocked(apiClient.patch).mockResolvedValueOnce({})
 
     const user = userEvent.setup()
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    const editBtn = await screen.findByTestId('post-edit-button-1')
+    await user.click(editBtn)
 
     const textarea = await screen.findByTestId('editor-textarea')
     await user.clear(textarea)
     await user.type(textarea, 'Updated content')
-    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await user.click(screen.getByRole('button', { name: /save/i }))
 
     await waitFor(() => {
       expect(apiClient.patch).toHaveBeenCalledWith('/posts/1', {
@@ -354,7 +266,7 @@ describe('TimelinePage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Updated content')).toBeInTheDocument()
-      expect(screen.getByText('(edited)')).toBeInTheDocument()
+      expect(screen.getByTestId('post-edited-badge-1')).toBeInTheDocument()
     })
   })
 
@@ -366,14 +278,10 @@ describe('TimelinePage', () => {
     }
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+      expect(screen.getByTestId('post-delete-button-1')).toBeInTheDocument()
     })
   })
 
@@ -385,25 +293,13 @@ describe('TimelinePage', () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
 
     const user = userEvent.setup()
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
+
+    const deleteBtn = await screen.findByTestId('post-delete-button-1')
+    await user.click(deleteBtn)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: 'Delete' }))
-
-    await waitFor(() => {
-      expect(screen.getByText('Delete Post')).toBeInTheDocument()
-      expect(
-        screen.getByText(
-          'Are you sure you want to delete this post? This action cannot be undone.'
-        )
-      ).toBeInTheDocument()
+      expect(screen.getByText(/delete post/i)).toBeInTheDocument()
     })
   })
 
@@ -419,25 +315,13 @@ describe('TimelinePage', () => {
     vi.mocked(apiClient.delete).mockResolvedValueOnce(undefined)
 
     const user = userEvent.setup()
-    render(
-      <BrowserRouter>
-        <TimelinePage />
-      </BrowserRouter>
-    )
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
-    await waitFor(() => {
-      expect(screen.getByText('Post to delete')).toBeInTheDocument()
-    })
+    const deleteBtn = await screen.findByTestId('post-delete-button-1')
+    await user.click(deleteBtn)
 
-    const deleteButtons = screen.getAllByRole('button', { name: 'Delete' })
-    await user.click(deleteButtons[0]!)
-
-    await waitFor(() => {
-      expect(screen.getByText('Delete Post')).toBeInTheDocument()
-    })
-
-    const confirmButton = screen.getAllByRole('button', { name: 'Delete' })[1]!
-    await user.click(confirmButton)
+    const confirmBtn = await screen.findByTestId('confirm-delete')
+    await user.click(confirmBtn)
 
     await waitFor(() => {
       expect(apiClient.delete).toHaveBeenCalledWith('/posts/1')

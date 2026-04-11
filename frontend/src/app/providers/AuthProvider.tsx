@@ -13,13 +13,24 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<SessionResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export function AuthProvider({
+  children,
+  initialSession,
+}: {
+  children: React.ReactNode
+  initialSession?: SessionResponse | null
+}) {
+  const hasInitialSession = initialSession !== undefined
+  const [session, setSession] = useState<SessionResponse | null>(
+    initialSession ?? null
+  )
+  const [isLoading, setIsLoading] = useState(!hasInitialSession)
 
   useEffect(() => {
-    checkSession()
-  }, [])
+    if (!hasInitialSession) {
+      void checkSession()
+    }
+  }, [hasInitialSession])
 
   async function checkSession() {
     try {

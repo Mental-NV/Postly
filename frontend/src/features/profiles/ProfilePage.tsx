@@ -83,6 +83,7 @@ export function ProfilePage() {
     if (!username || !profile || isFollowPending) return
 
     setIsFollowPending(true)
+    setError(null)
     const wasFollowing = profile.isFollowedByViewer
 
     setProfile({
@@ -109,6 +110,7 @@ export function ProfilePage() {
     if (!username || !profile || isFollowPending) return
 
     setIsFollowPending(true)
+    setError(null)
     const wasFollowing = profile.isFollowedByViewer
 
     setProfile({
@@ -320,6 +322,14 @@ export function ProfilePage() {
           <div className="tab active">Posts</div>
         </nav>
       </div>
+
+      {error && (
+        <div className="page-error-container" style={{ padding: '16px' }}>
+          <p className="page-error-text" role="alert">
+            {error}
+          </p>
+        </div>
+      )}
 
       <div className="profile-posts-feed" data-testid="profile-posts-feed">
         {posts.length === 0 ? (

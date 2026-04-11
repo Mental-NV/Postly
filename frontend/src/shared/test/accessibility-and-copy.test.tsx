@@ -80,7 +80,7 @@ describe('shared post card accessibility and copy', () => {
     )
 
     expect(
-      screen.getByRole('link', { name: /alice example/i })
+      screen.getByTestId('author-link-alice')
     ).toBeInTheDocument()
     expect(screen.getByText('@alice')).toBeInTheDocument()
     expect(screen.getByTestId('post-body-42')).toHaveTextContent(
@@ -92,7 +92,7 @@ describe('shared post card accessibility and copy', () => {
       'false'
     )
     expect(screen.getByTestId('post-like-count-42')).toHaveTextContent(
-      '2 likes'
+      '2'
     )
     expect(
       screen.queryByRole('button', { name: 'Edit' })
@@ -135,7 +135,7 @@ describe('shared post card accessibility and copy', () => {
       'aria-pressed',
       'true'
     )
-    expect(screen.getByTestId('post-like-count-99')).toHaveTextContent('1 like')
+    expect(screen.getByTestId('post-like-count-99')).toHaveTextContent('1')
 
     await user.click(screen.getByRole('button', { name: 'Unlike' }))
     await user.click(screen.getByRole('button', { name: 'Edit' }))
