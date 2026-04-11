@@ -199,10 +199,10 @@
 **Purpose**: Finalize accessibility, copy consistency, documentation, performance, and release readiness across all stories.
 
 - [x] T074 [P] Add backend unit tests for validation helpers, ownership rules, and error code mapping in `backend/tests/Postly.Api.UnitTests/`
-- [ ] T075 [P] Add frontend accessibility and copy-consistency tests for shared route states and post cards in `frontend/src/shared/test/accessibility-and-copy.test.tsx`
-- [ ] T076 Run and document quickstart validation updates in `specs/001-microblog-mvp/quickstart.md`
-- [ ] T077 Document compatibility, migration, and rollback notes for schema, static-asset sync, and seeded-data behavior in `specs/001-microblog-mvp/quickstart.md`
-- [ ] T078 Perform performance review for auth, timeline, and direct-post flows in `backend/src/Postly.Api/Program.cs` and `backend/src/Postly.Api/Persistence/`
+- [x] T075 [P] Add frontend accessibility and copy-consistency tests for shared route states and post cards in `frontend/src/shared/test/accessibility-and-copy.test.tsx`
+- [x] T076 Run and document quickstart validation updates in `specs/001-microblog-mvp/quickstart.md`
+- [x] T077 Document compatibility, migration, and rollback notes for schema, static-asset sync, and seeded-data behavior in `specs/001-microblog-mvp/quickstart.md`
+- [x] T078 Perform performance review for auth, timeline, and direct-post flows in `backend/src/Postly.Api/Program.cs` and `backend/src/Postly.Api/Persistence/`
 
 ---
 
