@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <SpaRoot>../../../frontend/</SpaRoot>
     <SpaDistPath>$(SpaRoot)dist/</SpaDistPath>
+    <SpaWwwrootPath>wwwroot/</SpaWwwrootPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,28 +18,19 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.4" />
   </ItemGroup>
 
-  <!-- Sync SPA assets to wwwroot for non-Release builds -->
-  <Target Name="SyncSpaAssetsToWwwroot" BeforeTargets="Build" Condition="'$(Configuration)' != 'Release'">
-    <Message Text="Syncing SPA assets from $(SpaDistPath) to wwwroot/" Importance="high" />
+  <!-- Mirror frontend/dist into wwwroot so the backend always serves the built SPA from one place -->
+  <Target Name="SyncSpaAssetsToWwwroot" BeforeTargets="Build;ComputeFilesToPublish" Condition="Exists('$(SpaDistPath)index.html')">
+    <Message Text="Syncing SPA assets from $(SpaDistPath) to $(SpaWwwrootPath)" Importance="high" />
     <ItemGroup>
+      <ExistingSpaFiles Include="$(SpaWwwrootPath)**\*" Exclude="$(SpaWwwrootPath).gitkeep" />
       <SpaDistFiles Include="$(SpaDistPath)**\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(SpaDistFiles)"
-          DestinationFolder="wwwroot\%(RecursiveDir)"
-          SkipUnchangedFiles="true"
-          Condition="Exists('$(SpaDistPath)')" />
-  </Target>
 
-  <!-- Include SPA dist in publish output -->
-  <Target Name="IncludeSpaDistInPublish" BeforeTargets="ComputeFilesToPublish">
-    <Message Text="Including SPA dist files in publish output" Importance="high" />
-    <ItemGroup>
-      <SpaDistFiles Include="$(SpaDistPath)**\*" />
-      <ResolvedFileToPublish Include="@(SpaDistFiles)">
-        <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </ResolvedFileToPublish>
-    </ItemGroup>
+    <Delete Files="@(ExistingSpaFiles)" />
+
+    <Copy SourceFiles="@(SpaDistFiles)"
+          DestinationFiles="@(SpaDistFiles->'$(SpaWwwrootPath)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
   </Target>
 
 </Project>
