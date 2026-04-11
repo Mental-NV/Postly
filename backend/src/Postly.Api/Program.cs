@@ -15,8 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? "Data Source=postly.db";
+    var connectionString = DefaultConnectionString.Resolve(
+        builder.Configuration,
+        builder.Environment.IsDevelopment());
     options.UseSqlite(connectionString);
 });
 

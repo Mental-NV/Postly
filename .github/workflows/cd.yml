@@ -18,6 +18,9 @@ permissions:
   contents: read
 
 env:
+  AZURE_WEBAPP_NAME: Postly
+  AZURE_SQLITE_DB_PATH: /home/data/postly.db
+  MIGRATION_BUNDLE_NAME: postly-efbundle
   PUBLISH_DIR: ./artifacts/publish
 
 jobs:
@@ -44,6 +47,11 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Install dotnet-ef
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.*
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
@@ -58,9 +66,19 @@ jobs:
       - name: Publish app
         run: dotnet publish backend/src/Postly.Api/Postly.Api.csproj --configuration Release --no-restore -o ${{ env.PUBLISH_DIR }}
 
+      - name: Build migration bundle
+        run: dotnet ef migrations bundle --project backend/src/Postly.Api/Postly.Api.csproj --startup-project backend/src/Postly.Api/Postly.Api.csproj --configuration Release --no-build --self-contained -r linux-x64 --output ${{ env.PUBLISH_DIR }}/${{ env.MIGRATION_BUNDLE_NAME }}
+
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
-          app-name: Postly
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ${{ env.PUBLISH_DIR }}
+
+      - name: Apply database migrations
+        env:
+          AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          AZURE_SQLITE_DB_PATH: ${{ env.AZURE_SQLITE_DB_PATH }}
+          MIGRATION_BUNDLE_PATH: /home/site/wwwroot/${{ env.MIGRATION_BUNDLE_NAME }}
+        run: ./scripts/deployment/apply-azure-migrations.sh
