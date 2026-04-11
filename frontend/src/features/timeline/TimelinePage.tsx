@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { Composer } from '../posts/composer/Composer'
 import { PostEditor } from '../posts/editor/PostEditor'
+import { PostCard } from '../posts/post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { apiClient } from '../../shared/api/client'
-import type { PostSummary } from '../../shared/api/contracts'
+import type {
+  PostInteractionState,
+  PostSummary,
+  TimelineResponse,
+} from '../../shared/api/contracts'
 
 export function TimelinePage() {
   const [posts, setPosts] = useState<PostSummary[]>([])
@@ -14,6 +18,7 @@ export function TimelinePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [pendingLikePostId, setPendingLikePostId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,7 +30,7 @@ export function TimelinePage() {
     setError(null)
 
     try {
-      const data = await apiClient.get<{ posts: PostSummary[], nextCursor?: string }>('/timeline')
+      const data = await apiClient.get<TimelineResponse>('/timeline')
 
       setPosts(data.posts)
       setNextCursor(data.nextCursor ?? null)
@@ -42,7 +47,7 @@ export function TimelinePage() {
     setIsLoadingMore(true)
 
     try {
-      const data = await apiClient.get<{ posts: PostSummary[], nextCursor?: string }>(`/timeline?cursor=${nextCursor}`)
+      const data = await apiClient.get<TimelineResponse>(`/timeline?cursor=${nextCursor}`)
 
       setPosts(prev => [...prev, ...data.posts])
       setNextCursor(data.nextCursor ?? null)
@@ -58,22 +63,16 @@ export function TimelinePage() {
     await loadTimeline()
   }
 
-  function getInitials(displayName: string) {
-    return displayName
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
+  function updatePost(postId: number, updater: (post: PostSummary) => PostSummary) {
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => (post.id === postId ? updater(post) : post))
+    )
   }
 
   async function handleEdit(postId: number, newBody: string) {
     await apiClient.patch(`/posts/${postId}`, { body: newBody })
     setEditingPostId(null)
-    // Update local state
-    setPosts(
-      posts.map((p) => (p.id === postId ? { ...p, body: newBody, isEdited: true } : p))
-    )
+    updatePost(postId, (post) => ({ ...post, body: newBody, isEdited: true }))
   }
 
   async function handleDelete(postId: number) {
@@ -81,9 +80,50 @@ export function TimelinePage() {
     try {
       await apiClient.delete(`/posts/${postId}`)
       setDeletingPostId(null)
-      setPosts(posts.filter((p) => p.id !== postId))
+      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId))
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  async function handleLikeToggle(post: PostSummary) {
+    if (pendingLikePostId === post.id) return
+
+    setPendingLikePostId(post.id)
+    setError(null)
+
+    const optimisticLikedByViewer = !post.likedByViewer
+    const optimisticLikeCount = Math.max(0, post.likeCount + (optimisticLikedByViewer ? 1 : -1))
+
+    updatePost(post.id, (currentPost) => ({
+      ...currentPost,
+      likedByViewer: optimisticLikedByViewer,
+      likeCount: optimisticLikeCount,
+    }))
+
+    try {
+      const interactionState = post.likedByViewer
+        ? await apiClient.delete<PostInteractionState>(`/posts/${post.id}/like`)
+        : await apiClient.post<PostInteractionState>(`/posts/${post.id}/like`)
+
+      updatePost(post.id, (currentPost) => ({
+        ...currentPost,
+        likedByViewer: interactionState.likedByViewer,
+        likeCount: interactionState.likeCount,
+      }))
+    } catch (err) {
+      updatePost(post.id, (currentPost) => ({
+        ...currentPost,
+        likedByViewer: post.likedByViewer,
+        likeCount: post.likeCount,
+      }))
+      setError(
+        post.likedByViewer
+          ? 'Failed to unlike post. Please try again.'
+          : 'Failed to like post. Please try again.'
+      )
+    } finally {
+      setPendingLikePostId(null)
     }
   }
 
@@ -113,7 +153,7 @@ export function TimelinePage() {
         </div>
       )}
 
-      <div className="space-y-4 mt-6">
+      <div className="space-y-4 mt-6" data-testid="timeline-feed">
         {posts.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-8 text-center text-gray-600">
             <p className="mb-2">Your timeline is empty.</p>
@@ -130,62 +170,14 @@ export function TimelinePage() {
                   onCancel={() => setEditingPostId(null)}
                 />
               ) : (
-                <div key={post.id} className="bg-white rounded-lg shadow p-4">
-                  <div className="flex items-start space-x-3">
-                    <Link to={`/u/${post.authorUsername}`}>
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold hover:opacity-80">
-                        {getInitials(post.authorDisplayName)}
-                      </div>
-                    </Link>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <Link
-                          to={`/u/${post.authorUsername}`}
-                          className="font-bold hover:underline"
-                        >
-                          {post.authorDisplayName}
-                        </Link>
-                        <Link
-                          to={`/u/${post.authorUsername}`}
-                          className="text-gray-600 hover:underline"
-                        >
-                          @{post.authorUsername}
-                        </Link>
-                        <span className="text-gray-400">·</span>
-                        <span className="text-gray-600 text-sm">
-                          {new Date(post.createdAtUtc).toLocaleDateString()}
-                        </span>
-                        {post.isEdited && (
-                          <span className="text-gray-500 text-sm">(edited)</span>
-                        )}
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap">{post.body}</p>
-                      <div className="mt-2 flex items-center space-x-4 text-sm text-gray-600">
-                        <span>❤️ {post.likeCount}</span>
-                      </div>
-                      {(post.canEdit || post.canDelete) && (
-                        <div className="mt-3 flex space-x-2">
-                          {post.canEdit && (
-                            <button
-                              onClick={() => setEditingPostId(post.id)}
-                              className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded"
-                            >
-                              Edit
-                            </button>
-                          )}
-                          {post.canDelete && (
-                            <button
-                              onClick={() => setDeletingPostId(post.id)}
-                              className="px-3 py-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  isLikePending={pendingLikePostId === post.id}
+                  onLikeToggle={handleLikeToggle}
+                  onEdit={(currentPost) => setEditingPostId(currentPost.id)}
+                  onDelete={(currentPost) => setDeletingPostId(currentPost.id)}
+                />
               )
             )}
 

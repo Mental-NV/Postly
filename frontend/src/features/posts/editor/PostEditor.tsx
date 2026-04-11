@@ -1,19 +1,6 @@
 import { useState } from 'react'
 import { isApiError } from '../../../shared/api/errors'
-
-interface PostSummary {
-  id: number
-  authorUsername: string
-  authorDisplayName: string
-  body: string
-  createdAtUtc: string
-  isEdited: boolean
-  editedAtUtc?: string
-  likeCount: number
-  likedByViewer: boolean
-  canEdit: boolean
-  canDelete: boolean
-}
+import type { PostSummary } from '../../../shared/api/contracts'
 
 interface PostEditorProps {
   post: PostSummary

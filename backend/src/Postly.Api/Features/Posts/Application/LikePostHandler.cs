@@ -1,18 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using Postly.Api.Features.Posts.Contracts;
 using Postly.Api.Features.Shared.Errors;
-using Postly.Api.Features.Timeline.Contracts;
 using Postly.Api.Persistence;
+using Postly.Api.Persistence.Entities;
 using Postly.Api.Security;
 
 namespace Postly.Api.Features.Posts.Application;
 
-public class GetPostHandler
+public class LikePostHandler
 {
     private readonly AppDbContext _dbContext;
     private readonly ICurrentViewerAccessor _currentViewer;
     private readonly HttpContext _httpContext;
 
-    public GetPostHandler(
+    public LikePostHandler(
         AppDbContext dbContext,
         ICurrentViewerAccessor currentViewer,
         IHttpContextAccessor httpContextAccessor)
@@ -25,29 +26,32 @@ public class GetPostHandler
 
     public async Task<IResult> HandleAsync(long postId)
     {
-        var userId = _currentViewer.GetCurrentUserId();
-        if (userId == null)
+        var viewerId = _currentViewer.GetCurrentUserId();
+        if (viewerId == null)
         {
             return Results.Problem(ProblemDetailsFactory.CreateUnauthorizedProblem(_httpContext.TraceIdentifier));
         }
 
-        var post = await _dbContext.Posts
-            .Include(p => p.Author)
-            .FirstOrDefaultAsync(p => p.Id == postId);
-
-        if (post == null)
+        var postExists = await _dbContext.Posts.AnyAsync(post => post.Id == postId);
+        if (!postExists)
         {
             return Results.Problem(ProblemDetailsFactory.CreateNotFoundProblem("Post not found", _httpContext.TraceIdentifier));
         }
 
-        var likeCount = await _dbContext.Likes
-            .CountAsync(l => l.PostId == postId);
+        var existingLike = await _dbContext.Likes.FindAsync(viewerId.Value, postId);
+        if (existingLike == null)
+        {
+            _dbContext.Likes.Add(new Like
+            {
+                UserAccountId = viewerId.Value,
+                PostId = postId,
+                CreatedAtUtc = DateTimeOffset.UtcNow
+            });
 
-        var likedByViewer = await _dbContext.Likes
-            .AnyAsync(l => l.PostId == postId && l.UserAccountId == userId.Value);
+            await _dbContext.SaveChangesAsync();
+        }
 
-        var postSummary = PostSummaryFactory.Create(post, userId.Value, likeCount, likedByViewer);
-
-        return Results.Ok(postSummary);
+        var likeCount = await _dbContext.Likes.CountAsync(like => like.PostId == postId);
+        return Results.Ok(new PostInteractionState(postId, likeCount, true));
     }
 }

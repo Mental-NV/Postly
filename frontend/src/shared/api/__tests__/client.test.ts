@@ -6,7 +6,7 @@ describe('apiClient URL construction', () => {
 
   beforeEach(() => {
     fetchMock = vi.fn()
-    global.fetch = fetchMock
+    globalThis.fetch = fetchMock as typeof fetch
   })
 
   afterEach(() => {
@@ -78,7 +78,7 @@ describe('apiClient URL construction', () => {
     // This should NOT result in /api/api/profiles/alice
     await apiClient.get('/profiles/alice')
 
-    const callUrl = fetchMock.mock.calls[0][0]
+    const callUrl = fetchMock.mock.calls[0]?.[0]
     expect(callUrl).toBe('/api/profiles/alice')
     expect(callUrl).not.toContain('/api/api/')
   })

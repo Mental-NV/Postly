@@ -176,21 +176,21 @@
 
 ### Tests for User Story 5 (REQUIRED) ⚠️
 
-- [ ] T064 [P] [US5] Add contract tests for `GET /api/posts/{postId}` and `POST|DELETE /api/posts/{postId}/like` in `backend/tests/Postly.Api.ContractTests/DirectPostAndLikesContractsTests.cs`
-- [ ] T065 [P] [US5] Add backend integration tests for like/unlike idempotency, direct-post availability, unavailable states after auth, and cross-surface ownership flags in `backend/tests/Postly.Api.IntegrationTests/DirectPostAndLikesFlowTests.cs`
-- [ ] T066 [P] [US5] Add frontend component tests for direct-post rendering, like state, and unavailable-state recovery in `frontend/src/features/posts/__tests__/direct-post-and-likes-ui.test.tsx`
-- [ ] T067 [P] [US5] Add Playwright coverage for like/unlike and direct-post unavailable behavior in `frontend/tests/e2e/us5-likes-and-direct-post.spec.ts`
+- [x] T064 [P] [US5] Add contract tests for `GET /api/posts/{postId}` and `POST|DELETE /api/posts/{postId}/like` in `backend/tests/Postly.Api.ContractTests/DirectPostAndLikesContractsTests.cs`
+- [x] T065 [P] [US5] Add backend integration tests for like/unlike idempotency, direct-post availability, unavailable states after auth, and cross-surface ownership flags in `backend/tests/Postly.Api.IntegrationTests/DirectPostAndLikesFlowTests.cs`
+- [x] T066 [P] [US5] Add frontend component tests for direct-post rendering, like state, and unavailable-state recovery in `frontend/src/features/posts/__tests__/direct-post-and-likes-ui.test.tsx`
+- [x] T067 [P] [US5] Add Playwright coverage for like/unlike and direct-post unavailable behavior in `frontend/tests/e2e/us5-likes-and-direct-post.spec.ts`
 
 ### Implementation for User Story 5
 
-- [ ] T068 [P] [US5] Implement direct-post and like contracts in `backend/src/Postly.Api/Features/Posts/Contracts/DirectPostContracts.cs` and `backend/src/Postly.Api/Features/Posts/Contracts/PostInteractionContracts.cs`
-- [ ] T069 [P] [US5] Implement direct-post read and like/unlike handlers in `backend/src/Postly.Api/Features/Posts/Application/GetDirectPostHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/LikePostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/UnlikePostHandler.cs`
-- [ ] T070 [US5] Implement direct-post and like/unlike endpoints in `backend/src/Postly.Api/Features/Posts/Endpoints/DirectPostEndpoints.cs` and `backend/src/Postly.Api/Features/Posts/Endpoints/PostInteractionEndpoints.cs`
-- [ ] T071 [P] [US5] Implement reusable like/unlike controls and cross-surface post rendering in `frontend/src/features/posts/post-card/PostCard.tsx` and `frontend/src/features/posts/post-card/PostLikeButton.tsx`
-- [ ] T072 [P] [US5] Implement the direct-post route and unavailable fallback screen in `frontend/src/features/posts/direct-post/DirectPostPage.tsx`
-- [ ] T073 [US5] Add cross-surface action availability, unavailable-state messaging, and profile/direct-post consistency updates in `frontend/src/features/posts/`, `frontend/src/features/profiles/`, and `frontend/src/app/routes/`
+- [x] T068 [P] [US5] Implement direct-post and like contracts in `backend/src/Postly.Api/Features/Timeline/Contracts/TimelineContracts.cs` and `backend/src/Postly.Api/Features/Posts/Contracts/PostInteractionContracts.cs`
+- [x] T069 [P] [US5] Implement direct-post read and like/unlike handlers in `backend/src/Postly.Api/Features/Posts/Application/GetPostHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/LikePostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/UnlikePostHandler.cs`
+- [x] T070 [US5] Implement direct-post and like/unlike endpoints in `backend/src/Postly.Api/Features/Posts/Endpoints/PostQueryEndpoints.cs` and `backend/src/Postly.Api/Features/Posts/Endpoints/PostInteractionEndpoints.cs`
+- [x] T071 [P] [US5] Implement reusable like/unlike controls and cross-surface post rendering in `frontend/src/features/posts/post-card/PostCard.tsx` and `frontend/src/features/posts/post-card/PostLikeButton.tsx`
+- [x] T072 [P] [US5] Implement the direct-post route and unavailable fallback screen in `frontend/src/features/posts/DirectPostPage.tsx`
+- [x] T073 [US5] Add cross-surface action availability, unavailable-state messaging, and profile/direct-post consistency updates in `frontend/src/features/posts/`, `frontend/src/features/profiles/`, and `frontend/src/features/timeline/`
 
-**Checkpoint**: User Story 5 is independently functional and testable.
+**Checkpoint**: ✅ User Story 5 is independently functional and testable.
 
 ---
 

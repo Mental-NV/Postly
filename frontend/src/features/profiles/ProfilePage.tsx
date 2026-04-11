@@ -1,127 +1,200 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { apiClient } from '../../shared/api/client';
-import type { UserProfile, PostSummary } from '../../shared/api/contracts';
+import { useEffect, useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import { apiClient } from '../../shared/api/client'
+import type {
+  PostInteractionState,
+  PostSummary,
+  ProfileResponse,
+  UserProfile,
+} from '../../shared/api/contracts'
+import { PostCard } from '../posts/post-card/PostCard'
+import { PostEditor } from '../posts/editor/PostEditor'
+import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 
 export function ProfilePage() {
-  const { username } = useParams<{ username: string }>();
+  const { username } = useParams<{ username: string }>()
 
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [posts, setPosts] = useState<PostSummary[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isFollowPending, setIsFollowPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [posts, setPosts] = useState<PostSummary[]>([])
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [editingPostId, setEditingPostId] = useState<number | null>(null)
+  const [deletingPostId, setDeletingPostId] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [isFollowPending, setIsFollowPending] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [pendingLikePostId, setPendingLikePostId] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadProfile();
-  }, [username]);
+    loadProfile()
+  }, [username])
 
   const loadProfile = async () => {
-    if (!username) return;
+    if (!username) return
 
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
 
     try {
-      const data = await apiClient.get<{ profile: UserProfile, posts: PostSummary[], nextCursor?: string }>(`/profiles/${username}`);
+      const data = await apiClient.get<ProfileResponse>(`/profiles/${username}`)
 
-      setProfile(data.profile);
-      setPosts(data.posts);
-      setNextCursor(data.nextCursor ?? null);
+      setProfile(data.profile)
+      setPosts(data.posts)
+      setNextCursor(data.nextCursor ?? null)
     } catch (err: any) {
       if (err?.status === 404) {
-        setError('User not found');
+        setError('User not found')
       } else {
-        setError('Failed to load profile. Please try again.');
+        setError('Failed to load profile. Please try again.')
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const loadMorePosts = async () => {
-    if (!username || !nextCursor || isLoadingMore) return;
+    if (!username || !nextCursor || isLoadingMore) return
 
-    setIsLoadingMore(true);
+    setIsLoadingMore(true)
 
     try {
-      const data = await apiClient.get<{ profile: UserProfile, posts: PostSummary[], nextCursor?: string }>(`/profiles/${username}?cursor=${nextCursor}`);
+      const data = await apiClient.get<ProfileResponse>(`/profiles/${username}?cursor=${nextCursor}`)
 
-      setPosts(prev => [...prev, ...data.posts]);
-      setNextCursor(data.nextCursor ?? null);
+      setPosts((currentPosts) => [...currentPosts, ...data.posts])
+      setNextCursor(data.nextCursor ?? null)
     } catch (err) {
-      setError('Failed to load more posts');
+      setError('Failed to load more posts')
     } finally {
-      setIsLoadingMore(false);
+      setIsLoadingMore(false)
     }
-  };
+  }
 
   const handleFollow = async () => {
-    if (!username || !profile || isFollowPending) return;
+    if (!username || !profile || isFollowPending) return
 
-    setIsFollowPending(true);
-    const wasFollowing = profile.isFollowedByViewer;
+    setIsFollowPending(true)
+    const wasFollowing = profile.isFollowedByViewer
 
-    // Optimistic update
     setProfile({
       ...profile,
       isFollowedByViewer: true,
-      followerCount: profile.followerCount + 1
-    });
+      followerCount: profile.followerCount + 1,
+    })
 
     try {
-      await apiClient.post(`/profiles/${username}/follow`);
+      await apiClient.post(`/profiles/${username}/follow`)
     } catch (err) {
-      // Revert on error
       setProfile({
         ...profile,
         isFollowedByViewer: wasFollowing,
-        followerCount: profile.followerCount
-      });
-      setError('Failed to follow user. Please try again.');
+        followerCount: profile.followerCount,
+      })
+      setError('Failed to follow user. Please try again.')
     } finally {
-      setIsFollowPending(false);
+      setIsFollowPending(false)
     }
-  };
+  }
 
   const handleUnfollow = async () => {
-    if (!username || !profile || isFollowPending) return;
+    if (!username || !profile || isFollowPending) return
 
-    setIsFollowPending(true);
-    const wasFollowing = profile.isFollowedByViewer;
+    setIsFollowPending(true)
+    const wasFollowing = profile.isFollowedByViewer
 
-    // Optimistic update
     setProfile({
       ...profile,
       isFollowedByViewer: false,
-      followerCount: profile.followerCount - 1
-    });
+      followerCount: profile.followerCount - 1,
+    })
 
     try {
-      await apiClient.delete(`/profiles/${username}/follow`);
+      await apiClient.delete(`/profiles/${username}/follow`)
     } catch (err) {
-      // Revert on error
       setProfile({
         ...profile,
         isFollowedByViewer: wasFollowing,
-        followerCount: profile.followerCount
-      });
-      setError('Failed to unfollow user. Please try again.');
+        followerCount: profile.followerCount,
+      })
+      setError('Failed to unfollow user. Please try again.')
     } finally {
-      setIsFollowPending(false);
+      setIsFollowPending(false)
     }
-  };
+  }
+
+  function updatePost(postId: number, updater: (post: PostSummary) => PostSummary) {
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => (post.id === postId ? updater(post) : post))
+    )
+  }
+
+  const handleEdit = async (postId: number, newBody: string) => {
+    await apiClient.patch(`/posts/${postId}`, { body: newBody })
+    setEditingPostId(null)
+    updatePost(postId, (post) => ({ ...post, body: newBody, isEdited: true }))
+  }
+
+  const handleDelete = async (postId: number) => {
+    setIsDeleting(true)
+
+    try {
+      await apiClient.delete(`/posts/${postId}`)
+      setDeletingPostId(null)
+      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId))
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleLikeToggle = async (post: PostSummary) => {
+    if (pendingLikePostId === post.id) return
+
+    setPendingLikePostId(post.id)
+    setError(null)
+
+    const optimisticLikedByViewer = !post.likedByViewer
+    const optimisticLikeCount = Math.max(0, post.likeCount + (optimisticLikedByViewer ? 1 : -1))
+
+    updatePost(post.id, (currentPost) => ({
+      ...currentPost,
+      likedByViewer: optimisticLikedByViewer,
+      likeCount: optimisticLikeCount,
+    }))
+
+    try {
+      const interactionState = post.likedByViewer
+        ? await apiClient.delete<PostInteractionState>(`/posts/${post.id}/like`)
+        : await apiClient.post<PostInteractionState>(`/posts/${post.id}/like`)
+
+      updatePost(post.id, (currentPost) => ({
+        ...currentPost,
+        likedByViewer: interactionState.likedByViewer,
+        likeCount: interactionState.likeCount,
+      }))
+    } catch (err) {
+      updatePost(post.id, (currentPost) => ({
+        ...currentPost,
+        likedByViewer: post.likedByViewer,
+        likeCount: post.likeCount,
+      }))
+      setError(
+        post.likedByViewer
+          ? 'Failed to unlike post. Please try again.'
+          : 'Failed to like post. Please try again.'
+      )
+    } finally {
+      setPendingLikePostId(null)
+    }
+  }
 
   const getInitials = (displayName: string) => {
     return displayName
       .split(' ')
-      .map(word => word[0])
+      .map((word) => word[0])
       .join('')
       .toUpperCase()
-      .slice(0, 2);
-  };
+      .slice(0, 2)
+  }
 
   if (isLoading) {
     return (
@@ -150,7 +223,7 @@ export function ProfilePage() {
     );
   }
 
-  if (!profile) return null;
+  if (!profile) return null
 
   return (
     <div className="max-w-2xl mx-auto p-4">
@@ -212,7 +285,7 @@ export function ProfilePage() {
       )}
 
       {/* Posts Section */}
-      <div className="space-y-4">
+      <div className="space-y-4" data-testid="profile-posts-feed">
         <h2 className="text-xl font-bold">Posts</h2>
 
         {posts.length === 0 ? (
@@ -230,32 +303,25 @@ export function ProfilePage() {
           </div>
         ) : (
           <>
-            {posts.map(post => (
-              <div key={post.id} className="bg-white rounded-lg shadow p-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
-                    {getInitials(post.authorDisplayName)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold">{post.authorDisplayName}</span>
-                      <span className="text-gray-600">@{post.authorUsername}</span>
-                      <span className="text-gray-400">·</span>
-                      <span className="text-gray-600 text-sm">
-                        {new Date(post.createdAtUtc).toLocaleDateString()}
-                      </span>
-                      {post.isEdited && (
-                        <span className="text-gray-500 text-sm">(edited)</span>
-                      )}
-                    </div>
-                    <p className="mt-2 whitespace-pre-wrap">{post.body}</p>
-                    <div className="mt-2 flex items-center space-x-4 text-sm text-gray-600">
-                      <span>❤️ {post.likeCount}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+            {posts.map((post) =>
+              editingPostId === post.id ? (
+                <PostEditor
+                  key={post.id}
+                  post={post}
+                  onSave={(body) => handleEdit(post.id, body)}
+                  onCancel={() => setEditingPostId(null)}
+                />
+              ) : (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  isLikePending={pendingLikePostId === post.id}
+                  onLikeToggle={handleLikeToggle}
+                  onEdit={(currentPost) => setEditingPostId(currentPost.id)}
+                  onDelete={(currentPost) => setDeletingPostId(currentPost.id)}
+                />
+              )
+            )}
 
             {nextCursor && (
               <button
@@ -269,6 +335,16 @@ export function ProfilePage() {
           </>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={deletingPostId !== null}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={() => deletingPostId && handleDelete(deletingPostId)}
+        onCancel={() => setDeletingPostId(null)}
+        isPending={isDeleting}
+      />
     </div>
-  );
+  )
 }

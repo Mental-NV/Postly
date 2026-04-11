@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 
 export function setupFetchSpy() {
-  const fetchSpy = vi.spyOn(global, 'fetch')
+  const fetchSpy = vi.spyOn(globalThis, 'fetch')
   return fetchSpy
 }
 

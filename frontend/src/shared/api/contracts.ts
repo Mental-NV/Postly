@@ -21,6 +21,12 @@ export interface PostSummary {
   canDelete: boolean
 }
 
+export interface PostInteractionState {
+  postId: number
+  likeCount: number
+  likedByViewer: boolean
+}
+
 export interface SignupRequest {
   username: string
   displayName: string

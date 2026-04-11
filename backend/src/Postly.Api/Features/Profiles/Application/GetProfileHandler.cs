@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Postly.Api.Features.Posts.Application;
 using Postly.Api.Features.Profiles.Contracts;
 using Postly.Api.Features.Shared.Errors;
 using Postly.Api.Features.Timeline.Contracts;
@@ -95,34 +96,10 @@ public class GetProfileHandler
             .ToList();
 
         // 6. Calculate viewer context for posts
-        var postIds = posts.Take(PageSize).Select(p => p.Id).ToList();
+        var visiblePosts = posts.Take(PageSize).ToArray();
+        var postSummaries = await PostSummaryFactory.CreateManyAsync(_dbContext, visiblePosts, currentUserId.Value);
 
-        var likeCounts = await _dbContext.Likes
-            .Where(l => postIds.Contains(l.PostId))
-            .GroupBy(l => l.PostId)
-            .Select(g => new { PostId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.PostId, x => x.Count);
-
-        var likedByViewer = await _dbContext.Likes
-            .Where(l => l.UserAccountId == currentUserId.Value && postIds.Contains(l.PostId))
-            .Select(l => l.PostId)
-            .ToHashSetAsync();
-
-        // 7. Build response
-        var postSummaries = posts.Take(PageSize).Select(p => new PostSummary(
-            p.Id,
-            p.Author.Username,
-            p.Author.DisplayName,
-            p.Body,
-            p.CreatedAtUtc,
-            p.EditedAtUtc != null,
-            likeCounts.GetValueOrDefault(p.Id, 0),
-            likedByViewer.Contains(p.Id),
-            p.AuthorId == currentUserId.Value,
-            p.AuthorId == currentUserId.Value
-        )).ToArray();
-
-        // 8. Generate next cursor if more posts exist
+        // 7. Generate next cursor if more posts exist
         string? nextCursor = null;
         if (posts.Count > PageSize)
         {

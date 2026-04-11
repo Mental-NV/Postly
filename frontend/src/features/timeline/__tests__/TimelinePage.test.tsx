@@ -5,7 +5,8 @@ import { BrowserRouter } from 'react-router-dom'
 import { TimelinePage } from '../TimelinePage'
 import { createMockPost } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
-import { ApiError } from '../../../shared/api/errors'
+
+const processApi = (globalThis as typeof globalThis & { process: any }).process
 
 vi.mock('../../../shared/api/client', () => ({
   apiClient: {
@@ -23,9 +24,9 @@ describe('TimelinePage', () => {
 
   // Suppress unhandled rejections from intentional error tests
   beforeAll(() => {
-    const originalHandler = process.listeners('unhandledRejection')[0]
-    process.removeAllListeners('unhandledRejection')
-    process.on('unhandledRejection', (reason: any) => {
+    const originalHandler = processApi.listeners('unhandledRejection')[0]
+    processApi.removeAllListeners('unhandledRejection')
+    processApi.on('unhandledRejection', (reason: any) => {
       if (reason?.constructor?.name === 'ApiError') {
         return
       }
@@ -334,13 +335,13 @@ describe('TimelinePage', () => {
     })
 
     const deleteButtons = screen.getAllByRole('button', { name: 'Delete' })
-    await user.click(deleteButtons[0])
+    await user.click(deleteButtons[0]!)
 
     await waitFor(() => {
       expect(screen.getByText('Delete Post')).toBeInTheDocument()
     })
 
-    const confirmButton = screen.getAllByRole('button', { name: 'Delete' })[1]
+    const confirmButton = screen.getAllByRole('button', { name: 'Delete' })[1]!
     await user.click(confirmButton)
 
     await waitFor(() => {

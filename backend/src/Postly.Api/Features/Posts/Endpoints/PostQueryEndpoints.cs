@@ -6,8 +6,7 @@ public static class PostQueryEndpoints
 {
     public static void MapPostQueryEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/posts")
-            .RequireAuthorization();
+        var group = app.MapGroup("/api/posts");
 
         group.MapGet("{postId:long}", async (long postId, GetPostHandler handler) =>
             await handler.HandleAsync(postId));

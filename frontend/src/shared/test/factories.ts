@@ -9,7 +9,7 @@ export function createMockPost(overrides?: Partial<PostSummary>): PostSummary {
     createdAtUtc: new Date().toISOString(),
     isEdited: false,
     likeCount: 0,
-    isLikedByViewer: false,
+    likedByViewer: false,
     canEdit: false,
     canDelete: false,
     ...overrides,

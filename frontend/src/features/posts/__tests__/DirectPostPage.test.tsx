@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
@@ -6,6 +6,8 @@ import { DirectPostPage } from '../DirectPostPage'
 import { createMockPost } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
+
+const processApi = (globalThis as typeof globalThis & { process: any }).process
 
 vi.mock('../../../shared/api/client', () => ({
   apiClient: {
@@ -42,11 +44,11 @@ describe('DirectPostPage', () => {
   // Suppress unhandled rejections from intentional error tests
   beforeAll(() => {
     // Store original handler
-    const originalHandler = process.listeners('unhandledRejection')[0]
+    const originalHandler = processApi.listeners('unhandledRejection')[0]
 
     // Add custom handler that ignores ApiError rejections in tests
-    process.removeAllListeners('unhandledRejection')
-    process.on('unhandledRejection', (reason: any) => {
+    processApi.removeAllListeners('unhandledRejection')
+    processApi.on('unhandledRejection', (reason: any) => {
       // Ignore ApiError rejections from our tests
       if (reason?.constructor?.name === 'ApiError') {
         return
@@ -300,7 +302,7 @@ describe('DirectPostPage', () => {
     })
 
     // Find the confirm button in the dialog
-    const confirmButton = screen.getAllByRole('button', { name: 'Delete' })[1]
+    const confirmButton = screen.getAllByRole('button', { name: 'Delete' })[1]!
     await user.click(confirmButton)
 
     await waitFor(() => {
@@ -329,7 +331,7 @@ describe('DirectPostPage', () => {
       expect(screen.getByText('Delete Post')).toBeInTheDocument()
     })
 
-    const confirmButton = screen.getAllByRole('button', { name: 'Delete' })[1]
+    const confirmButton = screen.getAllByRole('button', { name: 'Delete' })[1]!
     await user.click(confirmButton)
 
     // Wait for the delete call and let the error be handled

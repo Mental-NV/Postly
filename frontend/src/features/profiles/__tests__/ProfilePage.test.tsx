@@ -7,6 +7,8 @@ import { createMockProfile, createMockPost } from '../../../shared/test/factorie
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
 
+const processApi = (globalThis as typeof globalThis & { process: any }).process
+
 vi.mock('../../../shared/api/client', () => ({
   apiClient: {
     get: vi.fn(),
@@ -32,9 +34,9 @@ describe('ProfilePage', () => {
 
   // Suppress unhandled rejections from intentional error tests
   beforeAll(() => {
-    const originalHandler = process.listeners('unhandledRejection')[0]
-    process.removeAllListeners('unhandledRejection')
-    process.on('unhandledRejection', (reason: any) => {
+    const originalHandler = processApi.listeners('unhandledRejection')[0]
+    processApi.removeAllListeners('unhandledRejection')
+    processApi.on('unhandledRejection', (reason: any) => {
       if (reason?.constructor?.name === 'ApiError') {
         return
       }

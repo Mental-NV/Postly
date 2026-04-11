@@ -34,6 +34,8 @@ builder.Services.AddScoped<CreatePostHandler>();
 builder.Services.AddScoped<UpdatePostHandler>();
 builder.Services.AddScoped<DeletePostHandler>();
 builder.Services.AddScoped<GetPostHandler>();
+builder.Services.AddScoped<LikePostHandler>();
+builder.Services.AddScoped<UnlikePostHandler>();
 builder.Services.AddScoped<GetTimelineHandler>();
 builder.Services.AddScoped<GetProfileHandler>();
 builder.Services.AddScoped<FollowUserHandler>();
@@ -65,6 +67,7 @@ app.MapSigninEndpoints();
 app.MapSessionEndpoints();
 app.MapPostMutationEndpoints();
 app.MapPostQueryEndpoints();
+app.MapPostInteractionEndpoints();
 app.MapTimelineEndpoints();
 app.MapProfileEndpoints();
 
