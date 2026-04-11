@@ -200,5 +200,72 @@ public class ProfilesFlowTests : IDisposable
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task GetProfileMe_AuthenticatedUser_ReturnsOwnProfile()
+    {
+        // Arrange
+        await SignInAsBob();
+
+        // Act
+        var response = await _client.GetAsync("/api/profiles/me");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var data = await response.Content.ReadFromJsonAsync<ProfileResponse>();
+        Assert.NotNull(data);
+        Assert.Equal("bob", data.Profile.Username);
+        Assert.Equal("Bob Tester", data.Profile.DisplayName);
+        Assert.True(data.Profile.IsSelf);
+        Assert.False(data.Profile.IsFollowedByViewer);
+    }
+
+    [Fact]
+    public async Task GetProfileMe_MatchesUsernameEndpointForSameViewer()
+    {
+        // Arrange
+        await SignInAsBob();
+
+        // Act
+        var meResponse = await _client.GetAsync("/api/profiles/me");
+        var usernameResponse = await _client.GetAsync("/api/profiles/bob");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, meResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, usernameResponse.StatusCode);
+
+        var meData = await meResponse.Content.ReadFromJsonAsync<ProfileResponse>();
+        var usernameData = await usernameResponse.Content.ReadFromJsonAsync<ProfileResponse>();
+
+        Assert.NotNull(meData);
+        Assert.NotNull(usernameData);
+
+        // Assert identical core profile fields
+        Assert.Equal(meData.Profile.Username, usernameData.Profile.Username);
+        Assert.Equal(meData.Profile.DisplayName, usernameData.Profile.DisplayName);
+        Assert.Equal(meData.Profile.Bio, usernameData.Profile.Bio);
+        Assert.Equal(meData.Profile.FollowerCount, usernameData.Profile.FollowerCount);
+        Assert.Equal(meData.Profile.FollowingCount, usernameData.Profile.FollowingCount);
+        Assert.Equal(meData.Profile.IsSelf, usernameData.Profile.IsSelf);
+        Assert.Equal(meData.Profile.IsFollowedByViewer, usernameData.Profile.IsFollowedByViewer);
+
+        // Assert identical returned post ID sequences
+        var mePostIds = meData.Posts.Select(p => p.Id).ToArray();
+        var usernamePostIds = usernameData.Posts.Select(p => p.Id).ToArray();
+        Assert.Equal(mePostIds, usernamePostIds);
+    }
+
+    [Fact]
+    public async Task GetProfileMe_Unauthorized_Returns401()
+    {
+        // Arrange
+        var unauthenticatedClient = _factory.CreateClient();
+
+        // Act
+        var response = await unauthenticatedClient.GetAsync("/api/profiles/me");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     #endregion
 }

@@ -133,6 +133,48 @@ public class ValidationHelpersTests
     }
 
     [Fact]
+    public void ValidateUsername_ReservedMe_ReturnsReservedError()
+    {
+        // Arrange
+        var username = "me";
+
+        // Act
+        var errors = ValidationHelpers.ValidateUsername(username);
+
+        // Assert
+        errors.Should().ContainKey("username");
+        errors["username"].Should().Contain("Username \"me\" is reserved.");
+    }
+
+    [Fact]
+    public void ValidateUsername_ReservedMeCaseInsensitive_ReturnsReservedError()
+    {
+        // Arrange
+        var username = "ME";
+
+        // Act
+        var errors = ValidationHelpers.ValidateUsername(username);
+
+        // Assert
+        errors.Should().ContainKey("username");
+        errors["username"].Should().Contain("Username \"me\" is reserved.");
+    }
+
+    [Fact]
+    public void ValidateUsername_ReservedMeWithSpaces_ReturnsReservedError()
+    {
+        // Arrange
+        var username = " ME ";
+
+        // Act
+        var errors = ValidationHelpers.ValidateUsername(username);
+
+        // Assert
+        errors.Should().ContainKey("username");
+        errors["username"].Should().Contain("Username \"me\" is reserved.");
+    }
+
+    [Fact]
     public void ValidateUsername_ExactlyThreeChars_ReturnsEmptyErrors()
     {
         // Arrange

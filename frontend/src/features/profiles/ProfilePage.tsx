@@ -41,10 +41,10 @@ export function ProfilePage() {
     setIsLoading(true)
     setError(null)
 
+    const apiPath = username === 'me' ? '/profiles/me' : `/profiles/${String(username)}`
+
     try {
-      const data = await apiClient.get<ProfileResponse>(
-        `/profiles/${String(username)}`
-      )
+      const data = await apiClient.get<ProfileResponse>(apiPath)
 
       setProfile(data.profile)
       setPosts(data.posts)
@@ -65,9 +65,11 @@ export function ProfilePage() {
 
     setIsLoadingMore(true)
 
+    const apiPath = username === 'me' ? '/profiles/me' : `/profiles/${String(username)}`
+
     try {
       const data = await apiClient.get<ProfileResponse>(
-        `/profiles/${String(username)}?cursor=${String(nextCursor)}`
+        `${apiPath}?cursor=${String(nextCursor)}`
       )
 
       setPosts((currentPosts) => [...currentPosts, ...data.posts])
@@ -247,7 +249,7 @@ export function ProfilePage() {
   if (!profile) return null
 
   return (
-    <div className="profile-page">
+    <div className="profile-page" data-testid="profile-page">
       <header className="page-header">
         <Button
           variant="ghost"
@@ -259,7 +261,7 @@ export function ProfilePage() {
           ←
         </Button>
         <div className="header-info">
-          <h1 className="page-title">{profile.displayName}</h1>
+          <h1 className="page-title" data-testid="profile-display-name">{profile.displayName}</h1>
           <span className="header-post-count">{posts.length} Posts</span>
         </div>
       </header>
@@ -283,6 +285,7 @@ export function ProfilePage() {
                     : handleFollow())
                 }}
                 disabled={isFollowPending}
+                data-testid="follow-unfollow-button"
               >
                 {isFollowPending
                   ? '...'
@@ -291,7 +294,7 @@ export function ProfilePage() {
                     : 'Follow'}
               </Button>
             ) : (
-              <Button variant="secondary" disabled>
+              <Button variant="secondary" disabled data-testid="edit-profile-button">
                 Edit Profile
               </Button>
             )}

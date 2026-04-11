@@ -208,4 +208,36 @@ public class AuthSignupFlowTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("MixedCase", user.Username);
         Assert.Equal("MIXEDCASE", user.NormalizedUsername);
     }
+
+    [Fact]
+    public async Task Signup_WithReservedUsername_Returns400()
+    {
+        var client = _factory.CreateClient();
+        var request = new
+        {
+            username = "me",
+            displayName = "Reserved Test",
+            password = "TestPassword123"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/auth/signup", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Signup_WithReservedUsernameCaseInsensitive_Returns400()
+    {
+        var client = _factory.CreateClient();
+        var request = new
+        {
+            username = "ME",
+            displayName = "Reserved Test",
+            password = "TestPassword123"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/auth/signup", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

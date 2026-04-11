@@ -445,4 +445,58 @@ describe('ProfilePage', () => {
       '/profiles/alice?cursor=cursor123'
     )
   })
+
+  // Self Profile API Route Tests
+  it('route /u/me calls apiClient.get("/profiles/me")', async () => {
+    const mockData = {
+      profile: createMockProfile({
+        username: 'alice',
+        displayName: 'Alice Example',
+        isSelf: true,
+      }),
+      posts: [],
+      nextCursor: null,
+    }
+    vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
+
+    renderProfilePage('me')
+
+    await waitFor(() => {
+      expect(apiClient.get).toHaveBeenCalledWith('/profiles/me')
+    })
+  })
+
+  it('route /u/me with pagination calls apiClient.get("/profiles/me?cursor=...")', async () => {
+    const initialData = {
+      profile: createMockProfile({ isSelf: true }),
+      posts: [createMockPost({ id: 1, body: 'First post' })],
+      nextCursor: 'cursor456',
+    }
+    const moreData = {
+      profile: createMockProfile({ isSelf: true }),
+      posts: [createMockPost({ id: 2, body: 'Second post' })],
+      nextCursor: null,
+    }
+
+    vi.mocked(apiClient.get).mockResolvedValueOnce(initialData)
+    vi.mocked(apiClient.get).mockResolvedValueOnce(moreData)
+
+    const user = userEvent.setup()
+    renderProfilePage('me')
+
+    await waitFor(() => {
+      expect(screen.getByText('First post')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Load more' })
+      ).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Load more' }))
+
+    await waitFor(() => {
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/profiles/me?cursor=cursor456'
+      )
+    })
+  })
 })

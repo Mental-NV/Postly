@@ -147,6 +147,27 @@ public class SignupHandlerTests
     #region Duplicate Username Tests
 
     [Fact]
+    public async Task HandleAsync_ReservedUsernameMe_Returns400WithValidationError()
+    {
+        // Arrange
+        var dbContext = TestDbContextFactory.CreateInMemoryDbContext();
+        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        mockHttpContextAccessor.Setup(x => x.HttpContext)
+            .Returns(TestHttpContextFactory.CreateMockHttpContext());
+
+        var handler = new SignupHandler(dbContext, mockHttpContextAccessor.Object);
+        var request = new SignupRequest("me", "Reserved User", null, "password123");
+
+        // Act
+        var result = await handler.HandleAsync(request);
+
+        // Assert
+        result.Should().BeOfType<ProblemHttpResult>();
+        var problemResult = result as ProblemHttpResult;
+        problemResult!.StatusCode.Should().Be(400);
+    }
+
+    [Fact]
     public async Task HandleAsync_DuplicateUsername_Returns409Conflict()
     {
         // Arrange

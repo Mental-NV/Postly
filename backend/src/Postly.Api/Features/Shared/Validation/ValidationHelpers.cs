@@ -19,6 +19,12 @@ public static partial class ValidationHelpers
 
         var trimmed = username.Trim();
 
+        if (trimmed.Equals("me", StringComparison.OrdinalIgnoreCase))
+        {
+            errors["username"] = ["Username \"me\" is reserved."];
+            return errors;
+        }
+
         if (trimmed.Length < 3 || trimmed.Length > 20)
         {
             errors["username"] = ["Username must be between 3 and 20 characters."];

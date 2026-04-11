@@ -95,4 +95,28 @@ test.describe('User Story 2: Sign In and Protected Navigation', () => {
     await expect(page.getByTestId('submit-button')).toBeDisabled()
     await expect(page.getByTestId('username-input')).toBeDisabled()
   })
+
+  test('profile navigation lands on /u/me with self profile', async ({ page }) => {
+    // Sign in as bob
+    await page.goto('/signin')
+    await page.getByTestId('username-input').fill('bob')
+    await page.getByTestId('password-input').fill('TestPassword123')
+    await page.getByTestId('submit-button').click()
+    await expect(page).toHaveURL('/')
+
+    // Click the Profile nav link
+    await page.getByRole('link', { name: 'Profile' }).click()
+
+    // Assert URL becomes /u/me
+    await expect(page).toHaveURL('/u/me')
+
+    // Assert the self profile loads
+    await expect(page.getByTestId('profile-display-name')).toBeVisible()
+
+    // Assert Edit Profile is visible
+    await expect(page.getByTestId('edit-profile-button')).toBeVisible()
+
+    // Assert follow/unfollow buttons are absent
+    await expect(page.getByTestId('follow-unfollow-button')).not.toBeVisible()
+  })
 })
