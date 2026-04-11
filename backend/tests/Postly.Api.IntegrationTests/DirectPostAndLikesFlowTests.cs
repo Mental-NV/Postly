@@ -112,8 +112,8 @@ public class DirectPostAndLikesFlowTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, profileResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, directPostResponse.StatusCode);
 
-        var timelinePost = Assert.Single(timeline!.Posts.Where(post => post.Id == alicePostId));
-        var profilePost = Assert.Single(profile!.Posts.Where(post => post.Id == alicePostId));
+        var timelinePost = Assert.Single(timeline!.Posts, post => post.Id == alicePostId);
+        var profilePost = Assert.Single(profile!.Posts, post => post.Id == alicePostId);
 
         Assert.True(timelinePost.LikedByViewer);
         Assert.Equal(1, timelinePost.LikeCount);
@@ -160,10 +160,10 @@ public class DirectPostAndLikesFlowTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, bobDirectResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, aliceDirectResponse.StatusCode);
 
-        var timelineBobPost = Assert.Single(timeline!.Posts.Where(post => post.Id == bobPostId));
-        var timelineAlicePost = Assert.Single(timeline.Posts.Where(post => post.Id == alicePostId));
-        var bobProfilePost = Assert.Single(bobProfile!.Posts.Where(post => post.Id == bobPostId));
-        var aliceProfilePost = Assert.Single(aliceProfile!.Posts.Where(post => post.Id == alicePostId));
+        var timelineBobPost = Assert.Single(timeline!.Posts, post => post.Id == bobPostId);
+        var timelineAlicePost = Assert.Single(timeline.Posts, post => post.Id == alicePostId);
+        var bobProfilePost = Assert.Single(bobProfile!.Posts, post => post.Id == bobPostId);
+        var aliceProfilePost = Assert.Single(aliceProfile!.Posts, post => post.Id == alicePostId);
 
         Assert.True(timelineBobPost.CanEdit);
         Assert.True(timelineBobPost.CanDelete);
