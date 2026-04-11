@@ -21,6 +21,7 @@ env:
   AZURE_WEBAPP_NAME: Postly
   AZURE_SQLITE_DB_PATH: /home/data/postly.db
   MIGRATION_BUNDLE_NAME: postly-efbundle
+  MIGRATION_SCRIPT_NAME: run-migrations.sh
   PUBLISH_DIR: ./artifacts/publish
 
 jobs:
@@ -69,6 +70,11 @@ jobs:
       - name: Build migration bundle
         run: dotnet ef migrations bundle --project backend/src/Postly.Api/Postly.Api.csproj --startup-project backend/src/Postly.Api/Postly.Api.csproj --configuration Release --no-build --self-contained -r linux-x64 --output ${{ env.PUBLISH_DIR }}/${{ env.MIGRATION_BUNDLE_NAME }}
 
+      - name: Add migration runner script
+        run: |
+          cp scripts/deployment/run-azure-migrations.sh ${{ env.PUBLISH_DIR }}/${{ env.MIGRATION_SCRIPT_NAME }}
+          chmod +x ${{ env.PUBLISH_DIR }}/${{ env.MIGRATION_SCRIPT_NAME }}
+
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
@@ -79,6 +85,5 @@ jobs:
       - name: Apply database migrations
         env:
           AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          AZURE_SQLITE_DB_PATH: ${{ env.AZURE_SQLITE_DB_PATH }}
-          MIGRATION_BUNDLE_PATH: /home/site/wwwroot/${{ env.MIGRATION_BUNDLE_NAME }}
+          MIGRATION_SCRIPT_PATH: /home/site/wwwroot/${{ env.MIGRATION_SCRIPT_NAME }}
         run: ./scripts/deployment/apply-azure-migrations.sh

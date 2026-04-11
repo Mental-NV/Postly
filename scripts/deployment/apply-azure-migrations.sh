@@ -6,13 +6,8 @@ if [[ -z "${AZURE_WEBAPP_PUBLISH_PROFILE:-}" ]]; then
   exit 1
 fi
 
-if [[ -z "${AZURE_SQLITE_DB_PATH:-}" ]]; then
-  echo "AZURE_SQLITE_DB_PATH is required" >&2
-  exit 1
-fi
-
-if [[ -z "${MIGRATION_BUNDLE_PATH:-}" ]]; then
-  echo "MIGRATION_BUNDLE_PATH is required" >&2
+if [[ -z "${MIGRATION_SCRIPT_PATH:-}" ]]; then
+  echo "MIGRATION_SCRIPT_PATH is required" >&2
   exit 1
 fi
 
@@ -62,12 +57,12 @@ scm_host="${publish_profile_parts[0]}"
 deploy_username="${publish_profile_parts[1]}"
 deploy_password="${publish_profile_parts[2]}"
 kudu_base_url="https://${scm_host}"
-migration_dir="$(dirname "$MIGRATION_BUNDLE_PATH")"
-connection_string="Data Source=${AZURE_SQLITE_DB_PATH}"
+migration_dir="$(dirname "$MIGRATION_SCRIPT_PATH")"
 
 echo "Applying database migrations through Kudu at ${kudu_base_url}"
+echo "Running remote migration script ${MIGRATION_SCRIPT_PATH}"
 
-export KUDU_COMMAND="mkdir -p \"$(dirname "$AZURE_SQLITE_DB_PATH")\" && cd \"$migration_dir\" && chmod +x \"$MIGRATION_BUNDLE_PATH\" && \"$MIGRATION_BUNDLE_PATH\" --connection \"$connection_string\" --verbose"
+export KUDU_COMMAND="/bin/bash $MIGRATION_SCRIPT_PATH"
 export KUDU_WORKING_DIRECTORY="$migration_dir"
 
 response_path="$temp_dir/kudu-response.json"
