@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
 import type {
   PostInteractionState,
@@ -12,10 +12,13 @@ import { PostEditor } from '../posts/editor/PostEditor'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { Avatar } from '../../shared/components/Avatar'
 import { Button } from '../../shared/components/Button'
+import { useAuth } from '../../app/providers/AuthProvider'
 
 export function ProfilePage() {
   const { username } = useParams<{ username: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [posts, setPosts] = useState<PostSummary[]>([])
@@ -32,8 +35,13 @@ export function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!username) return
+    if (username === 'me' && !isAuthenticated) {
+      return
+    }
+
     void loadProfile()
-  }, [username])
+  }, [isAuthenticated, username])
 
   useEffect(() => {
     if (!profile?.isSelf || username !== 'me') {
@@ -222,6 +230,26 @@ export function ProfilePage() {
     }
   }
 
+  if (username === 'me') {
+    if (isAuthLoading) {
+      return (
+        <div className="page-loading">
+          <div className="text-center py-8">Loading profile...</div>
+        </div>
+      )
+    }
+
+    if (!isAuthenticated) {
+      const returnUrl = location.pathname + location.search
+      return (
+        <Navigate
+          to={`/signin?returnUrl=${encodeURIComponent(returnUrl)}`}
+          replace
+        />
+      )
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="page-loading">
@@ -286,7 +314,7 @@ export function ProfilePage() {
             className="profile-avatar-large"
           />
           <div className="profile-action-area">
-            {!profile.isSelf ? (
+            {isAuthenticated && !profile.isSelf ? (
               <Button
                 variant={profile.isFollowedByViewer ? 'secondary' : 'primary'}
                 onClick={() => {
@@ -303,11 +331,11 @@ export function ProfilePage() {
                     ? 'Unfollow'
                     : 'Follow'}
               </Button>
-            ) : (
+            ) : isAuthenticated && profile.isSelf ? (
               <Button variant="secondary" disabled data-testid="edit-profile-button">
                 Edit Profile
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -371,6 +399,7 @@ export function ProfilePage() {
                   key={post.id}
                   post={post}
                   isLikePending={pendingLikePostId === post.id}
+                  showLikeButton={isAuthenticated}
                   onLikeToggle={(p) => {
                     void handleLikeToggle(p)
                   }}

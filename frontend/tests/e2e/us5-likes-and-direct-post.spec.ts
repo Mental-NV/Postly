@@ -82,19 +82,28 @@ test.describe('User Story 5: Likes and direct post', () => {
     )
   })
 
-  test('signed-out visitor returns to an unavailable direct post after sign-in', async ({ page }) => {
-    await page.goto('/posts/999999')
+  test('signed-out visitor can view public profile and direct post in read-only mode', async ({ page }) => {
+    await page.goto('/u/alice')
+    const publicLikeCounts = page.locator('[data-testid^="post-like-count-"]')
 
-    await expect(page).toHaveURL(/\/signin\?returnUrl=/)
+    await expect(page).toHaveURL('/u/alice')
+    await expect(page.getByTestId('profile-page')).toBeVisible()
+    await expect(page.getByTestId('profile-display-name')).toHaveText('Alice Example')
+    await expect(page.getByTestId('follow-unfollow-button')).toHaveCount(0)
+    await expect(page.locator('[data-testid^="post-like-button-"]')).toHaveCount(0)
+    await expect(publicLikeCounts).toHaveCount(1)
 
-    await page.getByTestId('username-input').fill('bob')
-    await page.getByTestId('password-input').fill('TestPassword123')
-    await page.getByTestId('submit-button').click()
+    await page.locator('[data-testid^="post-permalink-"]').first().click()
+    const directLikeCounts = page.locator('[data-testid^="post-like-count-"]')
 
-    await expect(page).toHaveURL('/posts/999999')
-    await expect(page.getByTestId('post-unavailable-state')).toBeVisible()
+    await expect(page).toHaveURL(/\/posts\/\d+$/)
+    await expect(page.getByTestId('post-page')).toBeVisible()
+    await expect(page.locator('[data-testid^="post-like-button-"]')).toHaveCount(0)
+    await expect(directLikeCounts).toHaveCount(1)
+    await expect(page.locator('[data-testid^="post-edit-button-"]')).toHaveCount(0)
+    await expect(page.locator('[data-testid^="post-delete-button-"]')).toHaveCount(0)
 
-    await page.getByTestId('post-unavailable-home-link').click()
-    await expect(page).toHaveURL('/')
+    await page.getByTestId('brand-link').click()
+    await expect(page).toHaveURL('/signin?returnUrl=%2F')
   })
 })

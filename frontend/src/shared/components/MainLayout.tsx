@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../app/providers/AuthProvider'
 import { Button } from './Button'
 
@@ -9,7 +9,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const navigate = useNavigate()
-  const { session } = useAuth()
+  const { session, isAuthenticated } = useAuth()
 
   const handleSignOut = () => {
     // Basic sign out logic - clear local storage/session and redirect
@@ -21,34 +21,44 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="layout-shell">
       <header className="layout-left">
         <div className="nav-container">
-          <div className="brand">Postly</div>
-          <nav className="nav-links">
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
-              }
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to={session ? `/u/${session.username}` : '/u/me'}
-              className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
-              }
-            >
-              Profile
-            </NavLink>
-          </nav>
-          <div className="nav-footer">
-            <Button
-              variant="ghost"
-              onClick={handleSignOut}
-              className="signout-btn"
-            >
-              Sign Out
-            </Button>
-          </div>
+          <Link
+            to="/"
+            className="brand"
+            data-testid="brand-link"
+          >
+            Postly
+          </Link>
+          {isAuthenticated && (
+            <>
+              <nav className="nav-links">
+                <NavLink
+                  to="/"
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'active' : ''}`
+                  }
+                >
+                  Home
+                </NavLink>
+                <NavLink
+                  to={session ? `/u/${session.username}` : '/u/me'}
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'active' : ''}`
+                  }
+                >
+                  Profile
+                </NavLink>
+              </nav>
+              <div className="nav-footer">
+                <Button
+                  variant="ghost"
+                  onClick={handleSignOut}
+                  className="signout-btn"
+                >
+                  Sign Out
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 

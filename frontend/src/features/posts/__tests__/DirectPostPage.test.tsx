@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
+import { AuthProvider } from '../../../app/providers/AuthProvider'
 import { DirectPostPage } from '../DirectPostPage'
 import { createMockPost } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
+import type { SessionResponse } from '../../../shared/api/contracts'
 
 const processApi = (globalThis as typeof globalThis & { process: any }).process
 
@@ -28,10 +30,14 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-function renderDirectPostPage() {
+function renderDirectPostPage({
+  session = { userId: 2, username: 'bob', displayName: 'Bob Tester' } as SessionResponse | null,
+} = {}) {
   return render(
     <BrowserRouter>
-      <DirectPostPage />
+      <AuthProvider initialSession={session}>
+        <DirectPostPage />
+      </AuthProvider>
     </BrowserRouter>
   )
 }
@@ -186,6 +192,28 @@ describe('DirectPostPage', () => {
     expect(
       screen.queryByRole('button', { name: 'Edit' })
     ).not.toBeInTheDocument()
+  })
+
+  it('hides auth-only controls for unauthenticated visitors', async () => {
+    const mockPost = createMockPost({
+      id: 123,
+      canEdit: false,
+      canDelete: false,
+      likeCount: 2,
+      likedByViewer: false,
+    })
+    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
+
+    renderDirectPostPage({ session: null })
+
+    await waitFor(() => {
+      expect(screen.getByText('Test post content')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByTestId('post-like-button-123')).not.toBeInTheDocument()
+    expect(screen.getByTestId('post-like-count-123')).toHaveTextContent('2')
+    expect(screen.queryByTestId('post-edit-button-123')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('post-delete-button-123')).not.toBeInTheDocument()
   })
 
   it('enters edit mode when edit clicked', async () => {

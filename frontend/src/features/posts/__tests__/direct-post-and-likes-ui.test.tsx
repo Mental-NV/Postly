@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from '../../../app/providers/AuthProvider'
 import { TimelinePage } from '../../timeline/TimelinePage'
 import { ProfilePage } from '../../profiles/ProfilePage'
 import { DirectPostPage } from '../DirectPostPage'
@@ -101,9 +102,11 @@ describe('Direct post and likes UI', () => {
 
     render(
       <MemoryRouter initialEntries={['/u/bob']}>
-        <Routes>
-          <Route path="/u/:username" element={<ProfilePage />} />
-        </Routes>
+        <AuthProvider initialSession={mockAuthenticatedSession()}>
+          <Routes>
+            <Route path="/u/:username" element={<ProfilePage />} />
+          </Routes>
+        </AuthProvider>
       </MemoryRouter>
     )
 
@@ -124,10 +127,12 @@ describe('Direct post and likes UI', () => {
     const user = userEvent.setup()
     render(
       <MemoryRouter initialEntries={['/posts/999999']}>
-        <Routes>
-          <Route path="/" element={<div>Timeline home</div>} />
-          <Route path="/posts/:postId" element={<DirectPostPage />} />
-        </Routes>
+        <AuthProvider initialSession={mockAuthenticatedSession()}>
+          <Routes>
+            <Route path="/" element={<div>Timeline home</div>} />
+            <Route path="/posts/:postId" element={<DirectPostPage />} />
+          </Routes>
+        </AuthProvider>
       </MemoryRouter>
     )
 
@@ -155,9 +160,11 @@ describe('Direct post and likes UI', () => {
 
     render(
       <MemoryRouter initialEntries={['/posts/11']}>
-        <Routes>
-          <Route path="/posts/:postId" element={<DirectPostPage />} />
-        </Routes>
+        <AuthProvider initialSession={mockAuthenticatedSession()}>
+          <Routes>
+            <Route path="/posts/:postId" element={<DirectPostPage />} />
+          </Routes>
+        </AuthProvider>
       </MemoryRouter>
     )
 
@@ -169,5 +176,63 @@ describe('Direct post and likes UI', () => {
     expect(screen.getByRole('button', { name: 'Unlike' })).toBeInTheDocument()
     expect(screen.getByTestId('post-like-count-11')).toHaveTextContent('2')
     expect(screen.getByTestId('post-permalink-11')).toBeInTheDocument()
+  })
+
+  it('renders profile and direct post surfaces in read-only mode for unauthenticated visitors', async () => {
+    vi.mocked(apiClient.get).mockResolvedValueOnce({
+      profile: createMockProfile({ username: 'alice', isSelf: false }),
+      posts: [
+        createMockPost({
+          id: 21,
+          authorUsername: 'alice',
+          authorDisplayName: 'Alice Example',
+          likeCount: 4,
+          canEdit: false,
+          canDelete: false,
+        }),
+      ],
+      nextCursor: null,
+    })
+    vi.mocked(apiClient.get).mockResolvedValueOnce(
+      createMockPost({
+        id: 21,
+        authorUsername: 'alice',
+        authorDisplayName: 'Alice Example',
+        likeCount: 4,
+        canEdit: false,
+        canDelete: false,
+        likedByViewer: false,
+      })
+    )
+
+    render(
+      <MemoryRouter initialEntries={['/u/alice']}>
+        <AuthProvider initialSession={null}>
+          <Routes>
+            <Route path="/u/:username" element={<ProfilePage />} />
+            <Route path="/posts/:postId" element={<DirectPostPage />} />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('profile-page')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByTestId('follow-unfollow-button')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('post-like-button-21')).not.toBeInTheDocument()
+    expect(screen.getByTestId('post-like-count-21')).toHaveTextContent('4')
+
+    await userEvent.setup().click(screen.getByTestId('post-permalink-21'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('post-page')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByTestId('post-like-button-21')).not.toBeInTheDocument()
+    expect(screen.getByTestId('post-like-count-21')).toHaveTextContent('4')
+    expect(screen.queryByTestId('post-edit-button-21')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('post-delete-button-21')).not.toBeInTheDocument()
   })
 })

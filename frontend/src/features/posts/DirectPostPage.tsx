@@ -6,6 +6,7 @@ import type {
   PostSummary,
 } from '../../shared/api/contracts'
 import { isApiError } from '../../shared/api/errors'
+import { useAuth } from '../../app/providers/AuthProvider'
 import { PostEditor } from './editor/PostEditor'
 import { PostCard } from './post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
@@ -14,6 +15,7 @@ import { Button } from '../../shared/components/Button'
 export function DirectPostPage() {
   const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
 
   const [post, setPost] = useState<PostSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -216,6 +218,7 @@ export function DirectPostPage() {
           <PostCard
             post={post}
             isLikePending={isLikePending}
+            showLikeButton={isAuthenticated}
             onLikeToggle={(p) => {
               void handleLikeToggle(p)
             }}

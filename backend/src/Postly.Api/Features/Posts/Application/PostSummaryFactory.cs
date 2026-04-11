@@ -10,7 +10,7 @@ internal static class PostSummaryFactory
     public static async Task<PostSummary[]> CreateManyAsync(
         AppDbContext dbContext,
         IReadOnlyList<Post> posts,
-        long viewerId)
+        long? viewerId)
     {
         if (posts.Count == 0)
         {
@@ -25,10 +25,15 @@ internal static class PostSummaryFactory
             .Select(group => new { PostId = group.Key, Count = group.Count() })
             .ToDictionaryAsync(result => result.PostId, result => result.Count);
 
-        var likedPostIds = await dbContext.Likes
-            .Where(like => like.UserAccountId == viewerId && postIds.Contains(like.PostId))
-            .Select(like => like.PostId)
-            .ToHashSetAsync();
+        HashSet<long> likedPostIds = [];
+
+        if (viewerId != null)
+        {
+            likedPostIds = await dbContext.Likes
+                .Where(like => like.UserAccountId == viewerId.Value && postIds.Contains(like.PostId))
+                .Select(like => like.PostId)
+                .ToHashSetAsync();
+        }
 
         return posts
             .Select(post => Create(
@@ -41,10 +46,12 @@ internal static class PostSummaryFactory
 
     public static PostSummary Create(
         Post post,
-        long viewerId,
+        long? viewerId,
         int likeCount,
         bool likedByViewer)
     {
+        var isOwnedByViewer = viewerId != null && post.AuthorId == viewerId.Value;
+
         return new PostSummary(
             post.Id,
             post.Author.Username,
@@ -54,8 +61,8 @@ internal static class PostSummaryFactory
             post.EditedAtUtc != null,
             likeCount,
             likedByViewer,
-            post.AuthorId == viewerId,
-            post.AuthorId == viewerId
+            isOwnedByViewer,
+            isOwnedByViewer
         );
     }
 }

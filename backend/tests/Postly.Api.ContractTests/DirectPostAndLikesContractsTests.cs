@@ -86,17 +86,25 @@ public class DirectPostAndLikesContractsTests : IClassFixture<TestWebApplication
     }
 
     [Fact]
-    public async Task GetDirectPost_Unauthenticated_Returns401Problem()
+    public async Task GetDirectPost_Unauthenticated_Returns200WithReadOnlyPostSummary()
     {
         var freshClient = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false
         });
 
-        var response = await freshClient.GetAsync("/api/posts/1");
+        var postId = await GetAliceSeedPostIdAsync();
+        var response = await freshClient.GetAsync($"/api/posts/{postId}");
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+
+        var post = await response.Content.ReadFromJsonAsync<PostSummary>();
+        Assert.NotNull(post);
+        Assert.Equal(postId, post.Id);
+        Assert.False(post.LikedByViewer);
+        Assert.False(post.CanEdit);
+        Assert.False(post.CanDelete);
     }
 
     [Fact]

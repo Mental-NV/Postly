@@ -145,4 +145,25 @@ describe('shared post card accessibility and copy', () => {
     expect(onEdit).toHaveBeenCalledOnce()
     expect(onDelete).toHaveBeenCalledOnce()
   })
+
+  it('renders a read-only like count without a like button when requested', () => {
+    render(
+      <MemoryRouter>
+        <PostCard
+          post={createMockPost({
+            id: 77,
+            authorUsername: 'alice',
+            authorDisplayName: 'Alice Example',
+            likeCount: 5,
+            likedByViewer: false,
+          })}
+          showLikeButton={false}
+        />
+      </MemoryRouter>
+    )
+
+    expect(screen.queryByRole('button', { name: 'Like' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Unlike' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('post-like-count-77')).toHaveTextContent('5')
+  })
 })

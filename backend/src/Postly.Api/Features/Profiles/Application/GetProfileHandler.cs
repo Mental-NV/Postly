@@ -29,14 +29,8 @@ public class GetProfileHandler
 
     public async Task<IResult> HandleAsync(string username, string? cursor)
     {
-        // 1. Get current user
         var currentUserId = _currentViewer.GetCurrentUserId();
-        if (currentUserId == null)
-        {
-            return Results.Problem(ProblemDetailsFactory.CreateUnauthorizedProblem(_httpContext.TraceIdentifier));
-        }
 
-        // 2. Find target user by username (case-insensitive)
         var normalizedUsername = username.ToUpperInvariant();
         var targetUser = await _dbContext.UserAccounts
             .FirstOrDefaultAsync(u => u.NormalizedUsername == normalizedUsername);
@@ -46,8 +40,7 @@ public class GetProfileHandler
             return Results.NotFound(new { error = "User not found" });
         }
 
-        // 3. Build and return profile response using shared logic
-        return await BuildProfileResponseAsync(targetUser, currentUserId.Value, cursor);
+        return await BuildProfileResponseAsync(targetUser, currentUserId, cursor);
     }
 
     public async Task<IResult> HandleSelfAsync(string? cursor)
@@ -72,19 +65,18 @@ public class GetProfileHandler
         return await BuildProfileResponseAsync(targetUser, currentUserId.Value, cursor);
     }
 
-    private async Task<IResult> BuildProfileResponseAsync(UserAccount targetUser, long currentViewerId, string? cursor)
+    private async Task<IResult> BuildProfileResponseAsync(UserAccount targetUser, long? currentViewerId, string? cursor)
     {
-        // 1. Calculate profile context
         var followerCount = await _dbContext.Follows
             .CountAsync(f => f.FollowedId == targetUser.Id);
 
         var followingCount = await _dbContext.Follows
             .CountAsync(f => f.FollowerId == targetUser.Id);
 
-        var isSelf = targetUser.Id == currentViewerId;
+        var isSelf = currentViewerId != null && targetUser.Id == currentViewerId.Value;
 
-        var isFollowedByViewer = await _dbContext.Follows
-            .AnyAsync(f => f.FollowerId == currentViewerId && f.FollowedId == targetUser.Id);
+        var isFollowedByViewer = currentViewerId != null && await _dbContext.Follows
+            .AnyAsync(f => f.FollowerId == currentViewerId.Value && f.FollowedId == targetUser.Id);
 
         var profile = new UserProfile(
             targetUser.Username,
@@ -96,7 +88,6 @@ public class GetProfileHandler
             isFollowedByViewer
         );
 
-        // 2. Parse cursor for posts
         DateTimeOffset cursorTime = DateTimeOffset.MaxValue;
         long cursorId = long.MaxValue;
 
@@ -108,7 +99,6 @@ public class GetProfileHandler
             }
         }
 
-        // 3. Query posts by this user and load into memory
         var allPosts = await _dbContext.Posts
             .Include(p => p.Author)
             .Where(p => p.AuthorId == targetUser.Id)
@@ -124,11 +114,9 @@ public class GetProfileHandler
             .Take(PageSize + 1)
             .ToList();
 
-        // 4. Calculate viewer context for posts
         var visiblePosts = posts.Take(PageSize).ToArray();
         var postSummaries = await PostSummaryFactory.CreateManyAsync(_dbContext, visiblePosts, currentViewerId);
 
-        // 5. Generate next cursor if more posts exist
         string? nextCursor = null;
         if (posts.Count > PageSize)
         {

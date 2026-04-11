@@ -188,16 +188,25 @@ public class ProfilesFlowTests : IDisposable
     }
 
     [Fact]
-    public async Task GetProfile_Unauthorized_Returns401()
+    public async Task GetProfile_Unauthenticated_ReturnsReadOnlyPublicProfile()
     {
-        // Arrange
         var unauthenticatedClient = _factory.CreateClient();
 
-        // Act
         var response = await unauthenticatedClient.GetAsync("/api/profiles/alice");
 
-        // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var data = await response.Content.ReadFromJsonAsync<ProfileResponse>();
+        Assert.NotNull(data);
+        Assert.Equal("alice", data.Profile.Username);
+        Assert.False(data.Profile.IsSelf);
+        Assert.False(data.Profile.IsFollowedByViewer);
+        Assert.All(data.Posts, post =>
+        {
+            Assert.False(post.LikedByViewer);
+            Assert.False(post.CanEdit);
+            Assert.False(post.CanDelete);
+        });
     }
 
     [Fact]

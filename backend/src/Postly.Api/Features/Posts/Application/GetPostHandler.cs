@@ -26,10 +26,6 @@ public class GetPostHandler
     public async Task<IResult> HandleAsync(long postId)
     {
         var userId = _currentViewer.GetCurrentUserId();
-        if (userId == null)
-        {
-            return Results.Problem(ProblemDetailsFactory.CreateUnauthorizedProblem(_httpContext.TraceIdentifier));
-        }
 
         var post = await _dbContext.Posts
             .Include(p => p.Author)
@@ -43,10 +39,10 @@ public class GetPostHandler
         var likeCount = await _dbContext.Likes
             .CountAsync(l => l.PostId == postId);
 
-        var likedByViewer = await _dbContext.Likes
+        var likedByViewer = userId != null && await _dbContext.Likes
             .AnyAsync(l => l.PostId == postId && l.UserAccountId == userId.Value);
 
-        var postSummary = PostSummaryFactory.Create(post, userId.Value, likeCount, likedByViewer);
+        var postSummary = PostSummaryFactory.Create(post, userId, likeCount, likedByViewer);
 
         return Results.Ok(postSummary);
     }

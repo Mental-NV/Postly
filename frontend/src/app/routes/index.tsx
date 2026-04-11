@@ -25,21 +25,17 @@ export function AppRoutes() {
       <Route
         path="/u/:username"
         element={
-          <ProtectedRoute>
-            <MainLayout>
-              <ProfilePage />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <ProfilePage />
+          </MainLayout>
         }
       />
       <Route
         path="/posts/:postId"
         element={
-          <ProtectedRoute>
-            <MainLayout>
-              <DirectPostPage />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <DirectPostPage />
+          </MainLayout>
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />

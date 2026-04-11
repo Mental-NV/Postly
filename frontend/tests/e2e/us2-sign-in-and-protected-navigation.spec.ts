@@ -119,4 +119,24 @@ test.describe('User Story 2: Sign In and Protected Navigation', () => {
     // Assert follow/unfollow buttons are absent
     await expect(page.getByTestId('follow-unfollow-button')).not.toBeVisible()
   })
+
+  test('unauthenticated /u/me redirects to signin with return URL', async ({ page }) => {
+    await page.goto('/u/me')
+
+    await expect(page).toHaveURL('/signin?returnUrl=%2Fu%2Fme')
+  })
+
+  test('logo sends authenticated users to home', async ({ page }) => {
+    await page.goto('/signin')
+    await page.getByTestId('username-input').fill('bob')
+    await page.getByTestId('password-input').fill('TestPassword123')
+    await page.getByTestId('submit-button').click()
+    await expect(page).toHaveURL('/')
+
+    await page.goto('/u/bob')
+    await expect(page.getByTestId('profile-page')).toBeVisible()
+
+    await page.getByTestId('brand-link').click()
+    await expect(page).toHaveURL('/')
+  })
 })

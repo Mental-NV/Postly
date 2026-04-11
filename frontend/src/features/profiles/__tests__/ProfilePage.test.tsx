@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { AuthProvider } from '../../../app/providers/AuthProvider'
 import { ProfilePage } from '../ProfilePage'
 import {
   createMockProfile,
@@ -9,6 +10,7 @@ import {
 } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
+import type { SessionResponse } from '../../../shared/api/contracts'
 
 const processApi = (globalThis as typeof globalThis & { process: any }).process
 
@@ -20,13 +22,19 @@ vi.mock('../../../shared/api/client', () => ({
   },
 }))
 
-function renderProfilePage(username: string) {
+function renderProfilePage(
+  username: string,
+  { session = { userId: 2, username: 'bob', displayName: 'Bob Tester' } as SessionResponse | null } = {}
+) {
   return render(
     <MemoryRouter initialEntries={[`/u/${username}`]}>
-      <LocationDisplay />
-      <Routes>
-        <Route path="/u/:username" element={<ProfilePage />} />
-      </Routes>
+      <AuthProvider initialSession={session}>
+        <LocationDisplay />
+        <Routes>
+          <Route path="/u/:username" element={<ProfilePage />} />
+          <Route path="/signin" element={<div>Signin page</div>} />
+        </Routes>
+      </AuthProvider>
     </MemoryRouter>
   )
 }
@@ -535,5 +543,48 @@ describe('ProfilePage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('current-pathname')).toHaveTextContent('/u/alice')
     })
+  })
+
+  it('hides auth-only controls for unauthenticated visitors viewing a public profile', async () => {
+    const mockData = {
+      profile: createMockProfile({
+        username: 'alice',
+        displayName: 'Alice Example',
+        isSelf: false,
+      }),
+      posts: [
+        createMockPost({
+          id: 1,
+          authorUsername: 'alice',
+          canEdit: false,
+          canDelete: false,
+          likeCount: 3,
+        }),
+      ],
+      nextCursor: null,
+    }
+    vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
+
+    renderProfilePage('alice', { session: null })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('profile-page')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByTestId('follow-unfollow-button')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('edit-profile-button')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('post-like-button-1')).not.toBeInTheDocument()
+    expect(screen.getByTestId('post-like-count-1')).toHaveTextContent('3')
+  })
+
+  it('redirects unauthenticated /u/me visits to signin', async () => {
+    renderProfilePage('me', { session: null })
+
+    await waitFor(() => {
+      expect(screen.getByText('Signin page')).toBeInTheDocument()
+      expect(screen.getByTestId('current-pathname')).toHaveTextContent('/signin')
+    })
+
+    expect(apiClient.get).not.toHaveBeenCalled()
   })
 })

@@ -7,6 +7,8 @@ import { Button } from '../../../shared/components/Button'
 interface PostCardProps {
   post: PostSummary
   isLikePending?: boolean
+  showLikeButton?: boolean
+  showLikeCount?: boolean
   onLikeToggle?: (post: PostSummary) => void
   onEdit?: (post: PostSummary) => void
   onDelete?: (post: PostSummary) => void
@@ -15,6 +17,8 @@ interface PostCardProps {
 export function PostCard({
   post,
   isLikePending = false,
+  showLikeButton = true,
+  showLikeCount = true,
   onLikeToggle,
   onEdit,
   onDelete,
@@ -110,15 +114,30 @@ export function PostCard({
         </div>
 
         <div className="post-actions">
-          <PostLikeButton
-            postId={post.id}
-            likedByViewer={post.likedByViewer}
-            likeCount={post.likeCount}
-            isPending={isLikePending}
-            onToggle={() => {
-              onLikeToggle?.(post)
-            }}
-          />
+          {showLikeButton ? (
+            <PostLikeButton
+              postId={post.id}
+              likedByViewer={post.likedByViewer}
+              likeCount={post.likeCount}
+              isPending={isLikePending}
+              onToggle={() => {
+                onLikeToggle?.(post)
+              }}
+            />
+          ) : showLikeCount ? (
+            <div className="post-action-item like-action">
+              <div className="post-action-btn" aria-hidden="true">
+                <span className="action-icon">🤍</span>
+                <span
+                  aria-live="polite"
+                  data-testid={`post-like-count-${String(post.id)}`}
+                  className="action-count"
+                >
+                  {post.likeCount > 0 ? post.likeCount : ''}
+                </span>
+              </div>
+            </div>
+          ) : null}
 
           {post.canEdit && (
             <div className="post-action-item">
