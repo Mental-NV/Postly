@@ -96,7 +96,7 @@ describe('DirectPostPage', () => {
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(apiClient.get).toHaveBeenCalledWith('/api/posts/123')
+      expect(apiClient.get).toHaveBeenCalledWith('/posts/123')
     })
   })
 
@@ -215,7 +215,7 @@ describe('DirectPostPage', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => {
-      expect(apiClient.patch).toHaveBeenCalledWith('/api/posts/123', { body: 'Updated content' })
+      expect(apiClient.patch).toHaveBeenCalledWith('/posts/123', { body: 'Updated content' })
     })
 
     await waitFor(() => {
@@ -304,7 +304,7 @@ describe('DirectPostPage', () => {
     await user.click(confirmButton)
 
     await waitFor(() => {
-      expect(apiClient.delete).toHaveBeenCalledWith('/api/posts/123')
+      expect(apiClient.delete).toHaveBeenCalledWith('/posts/123')
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
   })
@@ -334,7 +334,7 @@ describe('DirectPostPage', () => {
 
     // Wait for the delete call and let the error be handled
     await waitFor(() => {
-      expect(apiClient.delete).toHaveBeenCalledWith('/api/posts/123')
+      expect(apiClient.delete).toHaveBeenCalledWith('/posts/123')
     })
 
     // Give time for the error to propagate and be handled

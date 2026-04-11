@@ -29,7 +29,7 @@ export function DirectPostPage() {
     setNotFound(false);
 
     try {
-      const data = await apiClient.get<PostSummary>(`/api/posts/${postId}`);
+      const data = await apiClient.get<PostSummary>(`/posts/${postId}`);
       setPost(data);
     } catch (err: any) {
       if (err?.status === 404) {
@@ -43,7 +43,7 @@ export function DirectPostPage() {
   };
 
   const handleEdit = async (postId: number, newBody: string) => {
-    await apiClient.patch(`/api/posts/${postId}`, { body: newBody });
+    await apiClient.patch(`/posts/${postId}`, { body: newBody });
     setEditingPostId(null);
     if (post) {
       setPost({ ...post, body: newBody, isEdited: true });
@@ -53,7 +53,7 @@ export function DirectPostPage() {
   const handleDelete = async (postId: number) => {
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/api/posts/${postId}`);
+      await apiClient.delete(`/posts/${postId}`);
       navigate('/');
     } finally {
       setIsDeleting(false);

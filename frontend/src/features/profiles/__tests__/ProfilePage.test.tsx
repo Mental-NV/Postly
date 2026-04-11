@@ -73,7 +73,7 @@ describe('ProfilePage', () => {
     renderProfilePage('alice')
 
     await waitFor(() => {
-      expect(apiClient.get).toHaveBeenCalledWith('/api/profiles/alice')
+      expect(apiClient.get).toHaveBeenCalledWith('/profiles/alice')
     })
   })
 
@@ -177,7 +177,7 @@ describe('ProfilePage', () => {
       expect(screen.getByText('6')).toBeInTheDocument()
     })
 
-    expect(apiClient.post).toHaveBeenCalledWith('/api/profiles/alice/follow')
+    expect(apiClient.post).toHaveBeenCalledWith('/profiles/alice/follow')
   })
 
   it('reverts follow on error', async () => {
@@ -235,7 +235,7 @@ describe('ProfilePage', () => {
       expect(screen.getByText('5')).toBeInTheDocument()
     })
 
-    expect(apiClient.delete).toHaveBeenCalledWith('/api/profiles/alice/follow')
+    expect(apiClient.delete).toHaveBeenCalledWith('/profiles/alice/follow')
   })
 
   it('reverts unfollow on error', async () => {
@@ -400,6 +400,6 @@ describe('ProfilePage', () => {
       expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
     })
 
-    expect(apiClient.get).toHaveBeenCalledWith('/api/profiles/alice?cursor=cursor123')
+    expect(apiClient.get).toHaveBeenCalledWith('/profiles/alice?cursor=cursor123')
   })
 })

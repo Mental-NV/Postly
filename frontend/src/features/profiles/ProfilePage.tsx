@@ -25,7 +25,7 @@ export function ProfilePage() {
     setError(null);
 
     try {
-      const data = await apiClient.get<{ profile: UserProfile, posts: PostSummary[], nextCursor?: string }>(`/api/profiles/${username}`);
+      const data = await apiClient.get<{ profile: UserProfile, posts: PostSummary[], nextCursor?: string }>(`/profiles/${username}`);
 
       setProfile(data.profile);
       setPosts(data.posts);
@@ -47,7 +47,7 @@ export function ProfilePage() {
     setIsLoadingMore(true);
 
     try {
-      const data = await apiClient.get<{ profile: UserProfile, posts: PostSummary[], nextCursor?: string }>(`/api/profiles/${username}?cursor=${nextCursor}`);
+      const data = await apiClient.get<{ profile: UserProfile, posts: PostSummary[], nextCursor?: string }>(`/profiles/${username}?cursor=${nextCursor}`);
 
       setPosts(prev => [...prev, ...data.posts]);
       setNextCursor(data.nextCursor ?? null);
@@ -72,7 +72,7 @@ export function ProfilePage() {
     });
 
     try {
-      await apiClient.post(`/api/profiles/${username}/follow`);
+      await apiClient.post(`/profiles/${username}/follow`);
     } catch (err) {
       // Revert on error
       setProfile({
@@ -100,7 +100,7 @@ export function ProfilePage() {
     });
 
     try {
-      await apiClient.delete(`/api/profiles/${username}/follow`);
+      await apiClient.delete(`/profiles/${username}/follow`);
     } catch (err) {
       // Revert on error
       setProfile({
