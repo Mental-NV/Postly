@@ -1,4 +1,10 @@
+import os from 'node:os'
+import path from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
+
+const e2eDatabasePath =
+  process.env.PLAYWRIGHT_E2E_DB_PATH ??
+  path.join(os.tmpdir(), `postly-e2e-${process.pid}.db`)
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -21,6 +27,12 @@ export default defineConfig({
 
   webServer: {
     command: 'dotnet run --project ../backend/src/Postly.Api/Postly.Api.csproj',
+    env: {
+      ...process.env,
+      ASPNETCORE_ENVIRONMENT: 'Development',
+      DOTNET_ENVIRONMENT: 'Development',
+      ConnectionStrings__DefaultConnection: `Data Source=${e2eDatabasePath}`,
+    },
     url: 'http://localhost:5000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
