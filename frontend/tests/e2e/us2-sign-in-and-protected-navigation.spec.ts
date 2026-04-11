@@ -96,7 +96,7 @@ test.describe('User Story 2: Sign In and Protected Navigation', () => {
     await expect(page.getByTestId('username-input')).toBeDisabled()
   })
 
-  test('profile navigation lands on /u/me with self profile', async ({ page }) => {
+  test('profile navigation lands on the public self profile URL', async ({ page }) => {
     // Sign in as bob
     await page.goto('/signin')
     await page.getByTestId('username-input').fill('bob')
@@ -107,8 +107,8 @@ test.describe('User Story 2: Sign In and Protected Navigation', () => {
     // Click the Profile nav link
     await page.getByRole('link', { name: 'Profile' }).click()
 
-    // Assert URL becomes /u/me
-    await expect(page).toHaveURL('/u/me')
+    // Assert URL becomes the public profile URL
+    await expect(page).toHaveURL('/u/bob')
 
     // Assert the self profile loads
     await expect(page.getByTestId('profile-display-name')).toBeVisible()

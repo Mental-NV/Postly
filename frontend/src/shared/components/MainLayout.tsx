@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../app/providers/AuthProvider'
 import { Button } from './Button'
 
 interface MainLayoutProps {
@@ -8,6 +9,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const navigate = useNavigate()
+  const { session } = useAuth()
 
   const handleSignOut = () => {
     // Basic sign out logic - clear local storage/session and redirect
@@ -30,7 +32,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               Home
             </NavLink>
             <NavLink
-              to="/u/me"
+              to={session ? `/u/${session.username}` : '/u/me'}
               className={({ isActive }) =>
                 `nav-link ${isActive ? 'active' : ''}`
               }

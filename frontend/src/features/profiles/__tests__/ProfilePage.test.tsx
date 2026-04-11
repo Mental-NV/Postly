@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { ProfilePage } from '../ProfilePage'
 import {
   createMockProfile,
@@ -23,11 +23,18 @@ vi.mock('../../../shared/api/client', () => ({
 function renderProfilePage(username: string) {
   return render(
     <MemoryRouter initialEntries={[`/u/${username}`]}>
+      <LocationDisplay />
       <Routes>
         <Route path="/u/:username" element={<ProfilePage />} />
       </Routes>
     </MemoryRouter>
   )
+}
+
+function LocationDisplay() {
+  const location = useLocation()
+
+  return <div data-testid="current-pathname">{location.pathname}</div>
 }
 
 describe('ProfilePage', () => {
@@ -447,7 +454,7 @@ describe('ProfilePage', () => {
   })
 
   // Self Profile API Route Tests
-  it('route /u/me calls apiClient.get("/profiles/me")', async () => {
+  it('route /u/me calls apiClient.get("/profiles/me") and canonicalizes the URL', async () => {
     const mockData = {
       profile: createMockProfile({
         username: 'alice',
@@ -464,27 +471,38 @@ describe('ProfilePage', () => {
     await waitFor(() => {
       expect(apiClient.get).toHaveBeenCalledWith('/profiles/me')
     })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('current-pathname')).toHaveTextContent('/u/alice')
+    })
   })
 
-  it('route /u/me with pagination calls apiClient.get("/profiles/me?cursor=...")', async () => {
+  it('route /u/me with pagination loads more posts using the canonical username route', async () => {
     const initialData = {
-      profile: createMockProfile({ isSelf: true }),
+      profile: createMockProfile({ isSelf: true, username: 'alice' }),
+      posts: [createMockPost({ id: 1, body: 'First post' })],
+      nextCursor: 'cursor456',
+    }
+    const canonicalData = {
+      profile: createMockProfile({ isSelf: true, username: 'alice' }),
       posts: [createMockPost({ id: 1, body: 'First post' })],
       nextCursor: 'cursor456',
     }
     const moreData = {
-      profile: createMockProfile({ isSelf: true }),
+      profile: createMockProfile({ isSelf: true, username: 'alice' }),
       posts: [createMockPost({ id: 2, body: 'Second post' })],
       nextCursor: null,
     }
 
     vi.mocked(apiClient.get).mockResolvedValueOnce(initialData)
+    vi.mocked(apiClient.get).mockResolvedValueOnce(canonicalData)
     vi.mocked(apiClient.get).mockResolvedValueOnce(moreData)
 
     const user = userEvent.setup()
     renderProfilePage('me')
 
     await waitFor(() => {
+      expect(screen.getByTestId('current-pathname')).toHaveTextContent('/u/alice')
       expect(screen.getByText('First post')).toBeInTheDocument()
       expect(
         screen.getByRole('button', { name: 'Load more' })
@@ -495,8 +513,27 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(apiClient.get).toHaveBeenCalledWith(
-        '/profiles/me?cursor=cursor456'
+        '/profiles/alice?cursor=cursor456'
       )
+    })
+  })
+
+  it('does not redirect other users away from their public profile URL', async () => {
+    const mockData = {
+      profile: createMockProfile({
+        username: 'alice',
+        displayName: 'Alice Example',
+        isSelf: false,
+      }),
+      posts: [],
+      nextCursor: null,
+    }
+    vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
+
+    renderProfilePage('alice')
+
+    await waitFor(() => {
+      expect(screen.getByTestId('current-pathname')).toHaveTextContent('/u/alice')
     })
   })
 })

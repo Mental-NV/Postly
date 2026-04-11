@@ -35,13 +35,22 @@ export function ProfilePage() {
     void loadProfile()
   }, [username])
 
+  useEffect(() => {
+    if (!profile?.isSelf || username !== 'me') {
+      return
+    }
+
+    navigate(`/u/${profile.username}`, { replace: true })
+  }, [navigate, profile, username])
+
   const loadProfile = async () => {
     if (!username) return
 
     setIsLoading(true)
     setError(null)
 
-    const apiPath = username === 'me' ? '/profiles/me' : `/profiles/${String(username)}`
+    const apiPath =
+      username === 'me' ? '/profiles/me' : `/profiles/${String(username)}`
 
     try {
       const data = await apiClient.get<ProfileResponse>(apiPath)
@@ -65,7 +74,8 @@ export function ProfilePage() {
 
     setIsLoadingMore(true)
 
-    const apiPath = username === 'me' ? '/profiles/me' : `/profiles/${String(username)}`
+    const apiPath =
+      username === 'me' ? '/profiles/me' : `/profiles/${String(username)}`
 
     try {
       const data = await apiClient.get<ProfileResponse>(
