@@ -34,6 +34,7 @@ frontend/coverage/
 # .NET
 bin/
 obj/
+TestResults/
 
 # Backend wwwroot (SPA assets synced from frontend/dist)
 backend/src/Postly.Api/wwwroot/*
