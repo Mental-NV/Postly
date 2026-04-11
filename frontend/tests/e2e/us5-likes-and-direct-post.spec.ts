@@ -36,8 +36,8 @@ test.describe('User Story 5: Likes and direct post', () => {
     await signInAsBob(page)
 
     await page.goto('/u/alice')
-    await expect(page.locator('.profile-page')).toBeVisible()
-    await expect(page.locator('.profile-display-name')).toHaveText('Alice Example')
+    await expect(page.getByTestId('profile-page')).toBeVisible()
+    await expect(page.getByTestId('profile-display-name')).toHaveText('Alice Example')
 
     const likeButton = page.locator('[data-testid^="post-like-button-"]').first()
     const likeCount = page.locator('[data-testid^="post-like-count-"]').first()

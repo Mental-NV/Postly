@@ -88,6 +88,7 @@ export function Composer({ onPostCreated }: ComposerProps) {
         <div className="composer-footer">
           <div className="composer-stats">
             <span
+              data-testid="composer-char-counter"
               className={`char-counter ${isOverLimit ? 'over-limit' : ''}`}
               style={{ opacity: isEmpty ? 0 : 1 }}
             >

@@ -16,11 +16,12 @@ test.describe('User Story 3: Own Posts', () => {
 
   test('create post with character counter', async ({ page }) => {
     const textarea = page.getByTestId('composer-textarea')
+    const charCounter = page.getByTestId('composer-char-counter')
     const postBody = `Hello world! ${Date.now()}`
 
     // Type and verify counter
     await textarea.fill(postBody)
-    await expect(page.getByText(String(280 - postBody.length))).toBeVisible()
+    await expect(charCounter).toHaveText(String(280 - postBody.length))
 
     // Submit
     await page.getByTestId('composer-submit').click()
@@ -33,6 +34,7 @@ test.describe('User Story 3: Own Posts', () => {
   test('character limit validation', async ({ page }) => {
     const textarea = page.getByTestId('composer-textarea')
     const submitButton = page.getByTestId('composer-submit')
+    const charCounter = page.getByTestId('composer-char-counter')
 
     // Empty post - submit disabled
     await expect(submitButton).toBeDisabled()
@@ -40,17 +42,18 @@ test.describe('User Story 3: Own Posts', () => {
     // Valid post - submit enabled
     await textarea.fill('Valid post')
     await expect(submitButton).toBeEnabled()
-    await expect(page.getByText('270')).toBeVisible()
+    await expect(charCounter).toHaveText('270')
 
     // Over limit - submit disabled and counter goes negative
     await textarea.fill('a'.repeat(281))
     await expect(submitButton).toBeDisabled()
-    await expect(page.getByText('-1')).toBeVisible()
+    await expect(charCounter).toHaveText('-1')
   })
 
   test('draft preservation on error', async ({ page }) => {
     const textarea = page.getByTestId('composer-textarea')
     const submitButton = page.getByTestId('composer-submit')
+    const charCounter = page.getByTestId('composer-char-counter')
 
     await page.route('**/api/posts', async (route) => {
       await route.fulfill({
@@ -70,7 +73,7 @@ test.describe('User Story 3: Own Posts', () => {
     // Verify textarea preserves content
     await expect(textarea).toHaveValue('Test post content')
     await expect(page.getByRole('alert')).toContainText('Failed to create post')
-    await expect(page.getByText('263')).toBeVisible()
+    await expect(charCounter).toHaveText('263')
   })
 
   test('composer shows correct initial state', async ({ page }) => {
@@ -85,15 +88,16 @@ test.describe('User Story 3: Own Posts', () => {
 
   test('character counter updates in real-time', async ({ page }) => {
     const textarea = page.getByTestId('composer-textarea')
+    const charCounter = page.getByTestId('composer-char-counter')
 
     await textarea.fill('H')
-    await expect(page.getByText('279')).toBeVisible()
+    await expect(charCounter).toHaveText('279')
 
     await textarea.fill('He')
-    await expect(page.getByText('278')).toBeVisible()
+    await expect(charCounter).toHaveText('278')
 
     await textarea.fill('Hello')
-    await expect(page.getByText('275')).toBeVisible()
+    await expect(charCounter).toHaveText('275')
   })
 
   test('submit button shows pending state', async ({ page }) => {
