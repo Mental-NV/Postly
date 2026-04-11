@@ -147,22 +147,22 @@
 
 ### Tests for User Story 4 (REQUIRED) ⚠️
 
-- [ ] T053 [P] [US4] Add contract tests for `GET /api/timeline`, `GET /api/profiles/{username}`, `GET /api/profiles/{username}/posts`, and `POST|DELETE /api/profiles/{username}/follow` in `backend/tests/Postly.Api.ContractTests/TimelineAndProfilesContractsTests.cs`
-- [ ] T054 [P] [US4] Add backend integration tests for follow, unfollow, self-follow rejection, timeline composition, and zero-state transitions in `backend/tests/Postly.Api.IntegrationTests/TimelineAndFollowFlowTests.cs`
-- [ ] T055 [P] [US4] Add frontend component tests for profile headers, follow state, and home/profile empty/error states in `frontend/src/features/profiles/__tests__/profiles-and-follow-state.test.tsx` and `frontend/src/features/timeline/__tests__/timeline-states.test.tsx`
-- [ ] T056 [P] [US4] Add Playwright coverage for profile navigation, follow/unfollow, and timeline updates in `frontend/tests/e2e/us4-timeline-and-follows.spec.ts`
+- [x] T053 [P] [US4] Add contract tests for `GET /api/timeline`, `GET /api/profiles/{username}`, `GET /api/profiles/{username}/posts`, and `POST|DELETE /api/profiles/{username}/follow` in `backend/tests/Postly.Api.ContractTests/TimelineAndProfilesContractsTests.cs`
+- [x] T054 [P] [US4] Add backend integration tests for follow, unfollow, self-follow rejection, timeline composition, and zero-state transitions in `backend/tests/Postly.Api.IntegrationTests/TimelineAndFollowFlowTests.cs`
+- [x] T055 [P] [US4] Add frontend component tests for profile headers, follow state, and home/profile empty/error states in `frontend/src/features/profiles/__tests__/profiles-and-follow-state.test.tsx` and `frontend/src/features/timeline/__tests__/timeline-states.test.tsx`
+- [x] T056 [P] [US4] Add Playwright coverage for profile navigation, follow/unfollow, and timeline updates in `frontend/tests/e2e/us4-timeline-and-follows.spec.ts`
 
 ### Implementation for User Story 4
 
-- [ ] T057 [P] [US4] Implement timeline read contracts and profile contracts in `backend/src/Postly.Api/Features/Timeline/Contracts/TimelineContracts.cs` and `backend/src/Postly.Api/Features/Profiles/Contracts/ProfileContracts.cs`
-- [ ] T058 [P] [US4] Implement timeline query handling in `backend/src/Postly.Api/Features/Timeline/Application/GetTimelineHandler.cs`
-- [ ] T059 [P] [US4] Implement profile read and follow/unfollow handlers in `backend/src/Postly.Api/Features/Profiles/Application/GetProfileHandler.cs`, `backend/src/Postly.Api/Features/Profiles/Application/GetProfilePostsHandler.cs`, and `backend/src/Postly.Api/Features/Profiles/Application/FollowProfileHandler.cs`
-- [ ] T060 [US4] Implement timeline and profile endpoints in `backend/src/Postly.Api/Features/Timeline/Endpoints/TimelineEndpoints.cs` and `backend/src/Postly.Api/Features/Profiles/Endpoints/ProfileEndpoints.cs`
-- [ ] T061 [P] [US4] Implement the home timeline feed and author navigation in `frontend/src/features/timeline/TimelinePage.tsx` and `frontend/src/features/timeline/TimelineFeed.tsx`
-- [ ] T062 [P] [US4] Implement own-profile and other-profile screens with follow/unfollow controls in `frontend/src/features/profiles/ProfilePage.tsx` and `frontend/src/features/profiles/ProfileHeader.tsx`
-- [ ] T063 [US4] Add zero-post, zero-follow, retry, and relationship-count update behavior across home and profile surfaces in `frontend/src/features/timeline/` and `frontend/src/features/profiles/`
+- [x] T057 [P] [US4] Implement timeline read contracts and profile contracts in `backend/src/Postly.Api/Features/Timeline/Contracts/TimelineContracts.cs` and `backend/src/Postly.Api/Features/Profiles/Contracts/ProfileContracts.cs`
+- [x] T058 [P] [US4] Implement timeline query handling in `backend/src/Postly.Api/Features/Timeline/Application/GetTimelineHandler.cs`
+- [x] T059 [P] [US4] Implement profile read and follow/unfollow handlers in `backend/src/Postly.Api/Features/Profiles/Application/GetProfileHandler.cs`, `backend/src/Postly.Api/Features/Profiles/Application/GetProfilePostsHandler.cs`, and `backend/src/Postly.Api/Features/Profiles/Application/FollowProfileHandler.cs`
+- [x] T060 [US4] Implement timeline and profile endpoints in `backend/src/Postly.Api/Features/Timeline/Endpoints/TimelineEndpoints.cs` and `backend/src/Postly.Api/Features/Profiles/Endpoints/ProfileEndpoints.cs`
+- [x] T061 [P] [US4] Implement the home timeline feed and author navigation in `frontend/src/features/timeline/TimelinePage.tsx` and `frontend/src/features/timeline/TimelineFeed.tsx`
+- [x] T062 [P] [US4] Implement own-profile and other-profile screens with follow/unfollow controls in `frontend/src/features/profiles/ProfilePage.tsx` and `frontend/src/features/profiles/ProfileHeader.tsx`
+- [x] T063 [US4] Add zero-post, zero-follow, retry, and relationship-count update behavior across home and profile surfaces in `frontend/src/features/timeline/` and `frontend/src/features/profiles/`
 
-**Checkpoint**: User Story 4 is independently functional and testable.
+**Checkpoint**: ✅ User Story 4 is independently functional and testable.
 
 ---
 
@@ -198,7 +198,7 @@
 
 **Purpose**: Finalize accessibility, copy consistency, documentation, performance, and release readiness across all stories.
 
-- [ ] T074 [P] Add backend unit tests for validation helpers, ownership rules, and error code mapping in `backend/tests/Postly.Api.UnitTests/`
+- [x] T074 [P] Add backend unit tests for validation helpers, ownership rules, and error code mapping in `backend/tests/Postly.Api.UnitTests/`
 - [ ] T075 [P] Add frontend accessibility and copy-consistency tests for shared route states and post cards in `frontend/src/shared/test/accessibility-and-copy.test.tsx`
 - [ ] T076 Run and document quickstart validation updates in `specs/001-microblog-mvp/quickstart.md`
 - [ ] T077 Document compatibility, migration, and rollback notes for schema, static-asset sync, and seeded-data behavior in `specs/001-microblog-mvp/quickstart.md`
