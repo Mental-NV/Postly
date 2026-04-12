@@ -27,28 +27,52 @@ Postly is built for real-time conversation. The design is minimal, prioritizing 
 
 ## 2. Shared Layout Pattern
 
-### 2.1 The 3-Column Shell (Desktop)
-- **Left Column (275px):** Navigation (Brand, Home, Profile, Sign Out). Fixed positioning.
-- **Middle Column (600px):** Main feed and content. Bordered left and right (1px).
-- **Right Column (350px):** "What's happening" and "Who to follow" placeholders.
+The layout is **mobile-first** and adapts dynamically to the viewport width.
 
-### 2.2 Mobile Shell
-- **Top Bar:** Page title and user avatar.
-- **Bottom Bar:** Primary navigation (Home, Profile, Composer FAB).
+### 2.1 Breakpoints
+- **Mobile:** `< 500px`
+- **Tablet:** `500px` to `1000px`
+- **Desktop:** `> 1000px`
+
+### 2.2 Layout Behavior by Breakpoint
+
+#### Desktop (> 1000px)
+- **Left Column (275px):** Full sidebar navigation with icons and text (Home, Profile, Sign Out). Fixed positioning.
+- **Middle Column (600px):** Main feed and content. Bordered left and right (1px).
+- **Right Column (350px):** "What's happening" and "Who to follow" sections. Visible.
+
+#### Tablet (500px - 1000px)
+- **Left Column (88px):** Narrow sidebar showing **icons only**. Fixed positioning.
+- **Middle Column (Max 600px):** Main feed and content. Centered with 1px side borders.
+- **Right Column:** Hidden (`display: none`).
+
+#### Mobile (< 500px)
+- **Bottom Navigation (64px height):** Fixed at the bottom of the screen. Horizontal layout with icons only.
+- **Middle Column (100% width):** Full-width feed. Side borders are removed. Includes `padding-bottom` to prevent content overlap with the navigation bar.
+- **Right Column:** Hidden (`display: none`).
 
 ---
 
 ## 3. Component Inventory
 
-### 3.1 Button Variants
+### 3.1 Navigation Icons
+- **Library:** `lucide-react`
+- **Icons:** `Home` (🏠), `User` (👤), `LogOut` (📤).
+- **Behavior:** Text labels are hidden on Mobile and Tablet, shown only on Desktop.
+
+### 3.2 Button Variants
 - **Primary:** `Postly Blue` background, white text, bold, rounded-pill.
 - **Secondary:** White background, `Postly Blue` border, `Postly Blue` text, rounded-pill.
 - **Ghost:** Transparent background, `Secondary Text` color, no border, hover effect.
 
-### 3.2 Avatar System
+### 3.3 Avatar System
 - **Deterministic Colors:** A palette of 8 colors assigned based on the hash of the username.
 - **Rendering:** High-contrast initials centered on the background.
-- **Sizes:** `40x40` (Feed), `48x48` (Composer), `134x134` (Profile Page).
+- **Sizes:** 
+    - `40x40` (Feed)
+    - `48x48` (Composer)
+    - `80x80` (Profile Page - Mobile)
+    - `134x134` (Profile Page - Desktop)
 
 ### 3.3 PostCard (The Atomic Unit)
 - **Layout:** Horizontal (Avatar on left, content on right).
@@ -67,8 +91,12 @@ Postly is built for real-time conversation. The design is minimal, prioritizing 
 - **Feed:** "Infinite" style scroll with 1px border-bottom separators.
 
 ### 4.2 FE-04 Profile Page
-- **Banner:** A fixed-height (200px) gradient banner using the user's deterministic color.
-- **Profile Info:** Avatar overlaps the banner by 50%.
+- **Banner:** 
+    - **Mobile:** `120px` height.
+    - **Desktop:** `200px` height.
+    - Gradient banner using the user's deterministic color.
+- **Profile Info:** 
+    - Avatar overlaps the banner by `40px` on mobile and `67px` on desktop.
 - **Bio & Stats:** Clean, vertical stack with prominent Follower/Following counts.
 - **Tabs:** "Posts" tab (default) underlined with `Postly Blue`.
 

@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
+import { Home, User, LogOut } from 'lucide-react'
 import { useAuth } from '../../app/providers/AuthProvider'
 import { Button } from './Button'
 
@@ -21,11 +22,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="layout-shell">
       <header className="layout-left">
         <div className="nav-container">
-          <Link
-            to="/"
-            className="brand"
-            data-testid="brand-link"
-          >
+          <Link to="/" className="brand" data-testid="brand-link">
             Postly
           </Link>
           {isAuthenticated && (
@@ -36,16 +33,20 @@ export function MainLayout({ children }: MainLayoutProps) {
                   className={({ isActive }) =>
                     `nav-link ${isActive ? 'active' : ''}`
                   }
+                  data-testid="nav-home-link"
                 >
-                  Home
+                  <Home size={24} />
+                  <span className="nav-link-text">Home</span>
                 </NavLink>
                 <NavLink
                   to={session ? `/u/${session.username}` : '/u/me'}
                   className={({ isActive }) =>
                     `nav-link ${isActive ? 'active' : ''}`
                   }
+                  data-testid="nav-profile-link"
                 >
-                  Profile
+                  <User size={24} />
+                  <span className="nav-link-text">Profile</span>
                 </NavLink>
               </nav>
               <div className="nav-footer">
@@ -53,8 +54,10 @@ export function MainLayout({ children }: MainLayoutProps) {
                   variant="ghost"
                   onClick={handleSignOut}
                   className="signout-btn"
+                  data-testid="nav-signout-button"
                 >
-                  Sign Out
+                  <LogOut size={24} />
+                  <span className="signout-btn-text">Sign Out</span>
                 </Button>
               </div>
             </>
