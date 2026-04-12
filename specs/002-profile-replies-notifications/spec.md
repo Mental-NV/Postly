@@ -29,37 +29,68 @@
   automatically when the user reaches the end; on failure, keep visible content
   and show a clear retry action near the failure point; end of list shows a
   clear final state.
+- Q: What makes User Story 1 profile edits valid, and where must successful
+  updates appear? → A: Display name edits are valid when the trimmed result is
+  1 to 50 characters and not empty; bio edits are valid when the bio is blank
+  or 160 characters or fewer; an avatar replacement is valid for Round 2 when
+  Postly accepts it as the user's current profile avatar. Successful profile
+  identity updates appear on the user's own profile, in places that already
+  show that user's identity in the home timeline, and on direct-post or
+  conversation surfaces where that user's identity is shown.
+- Q: What is the continuation point for automatic loading, and what exact
+  notification destination outcomes must User Story 3 define? → A: The
+  continuation point is when the user reaches the last currently visible item
+  on the home timeline, the last currently visible post in a profile post list,
+  or the last currently visible item in a conversation view. For notifications,
+  selecting a notification MUST open that notification's associated profile,
+  post, or conversation when it is available; MUST open a clear
+  not-available destination for that same notification when the target later
+  becomes unavailable; MUST mark that selected notification as read when its
+  destination opens; and MUST NOT mark any notification as read when the user
+  only views the notifications list.
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Update Profile Identity (Priority: P1)
 
 A signed-in user updates their display name, bio, and avatar so their current
-identity is shown consistently wherever Postly already presents them on profile,
-timeline, and direct-post surfaces.
+identity is shown consistently on their own profile, in places that already
+show that user's identity in the home timeline, and on direct-post or
+conversation surfaces where that user's identity is shown.
 
 **Why this priority**: Identity editing is the foundation for user-controlled
 presence and must work consistently before new engagement features build on top
 of it.
 
 **Independent Test**: A signed-in user updates their display name, bio, and
-avatar, then confirms the updated identity appears on their profile and on
-existing surfaces that already show their authored content.
+avatar, then confirms the updated identity appears on their own profile, in
+places that already show that user's identity in the home timeline, and on
+direct-post or conversation surfaces where that user's identity is shown.
 
 **Acceptance Scenarios**:
 
 1. **Given** a signed-in user viewing their own profile settings,
-   **When** they submit a valid new display name and bio, **Then** the changes
-   are saved and the updated profile details appear consistently on their
-   profile and on in-scope surfaces that already display their identity.
+   **When** they submit a display name whose trimmed result is 1 to 50
+   characters and not empty, together with a bio that is blank or 160
+   characters or fewer, **Then** the changes are saved and the updated profile
+   details appear consistently on their own profile, in places that already
+   show that user's identity in the home timeline, and on direct-post or
+   conversation surfaces where that user's identity is shown.
 2. **Given** a signed-in user viewing their own profile settings,
-   **When** they upload a new valid avatar, **Then** the new avatar replaces the
-   previous one and the updated avatar appears consistently on their profile
-   and on in-scope surfaces that already display their identity.
+   **When** they replace their avatar with one that Postly accepts as that
+   user's current profile avatar, **Then** the new avatar replaces the previous
+   one and appears consistently on their own profile, in places that already
+   show that user's identity in the home timeline, and on direct-post or
+   conversation surfaces where that user's identity is shown.
 3. **Given** a user's custom avatar does not exist or later becomes
-   unavailable, **When** their identity is shown on an in-scope surface,
+   unavailable, **When** their identity is shown on their own profile, in
+   places that already show that user's identity in the home timeline, or on
+   direct-post or conversation surfaces where that user's identity is shown,
    **Then** the system-generated default avatar for that user is shown instead.
-4. **Given** a signed-in user submits invalid profile changes,
+4. **Given** a signed-in user submits a display name whose trimmed result is
+   empty or longer than 50 characters, a bio longer than 160 characters, or an
+   avatar replacement that Postly does not accept as that user's current
+   profile avatar,
    **When** validation fails, **Then** the user receives clear guidance, their
    in-progress edits are preserved where possible, and their previously saved
    profile remains unchanged.
@@ -69,10 +100,17 @@ existing surfaces that already show their authored content.
 
 **Edge Cases**:
 
-- Clearing an existing bio MUST be supported if the resulting profile still
-  meets the product's profile rules.
+- A display name edit whose trimmed result is empty or longer than 50
+  characters MUST fail with clear guidance and MUST preserve the user's
+  previously saved profile identity.
+- Clearing an existing bio MUST be supported.
+- A bio edit longer than 160 characters MUST fail with clear guidance and MUST
+  preserve the user's previously saved profile identity.
 - If an avatar replacement fails validation or cannot be processed, the user's
   current avatar MUST remain unchanged.
+- If a proposed avatar replacement is not accepted as the user's current
+  profile avatar for Round 2, the attempted replacement MUST fail and the
+  previously shown custom or default avatar MUST remain in place.
 - If a custom avatar is missing or later becomes unavailable after a successful
   upload, the user's system-generated default avatar MUST be shown instead.
 - If updated profile details appear on multiple visible surfaces at once, those
@@ -162,13 +200,22 @@ destination.
 2. **Given** a signed-in user has new notifications,
    **When** they open their notifications view, **Then** unread notifications
    are clearly distinguishable from notifications they have already read.
-3. **Given** a signed-in user selects a notification,
-   **When** the destination opens, **Then** the user is taken to the relevant
-   profile, post, or conversation associated with that notification and that
-   notification becomes read.
-4. **Given** a signed-in user has opened or otherwise consumed a notification,
-   **When** they return to the notifications view, **Then** only notifications
-   whose destinations have been opened are shown as read.
+3. **Given** a signed-in user selects a notification whose associated profile,
+   post, or conversation is available, **When** that destination opens,
+   **Then** the user is taken to that associated destination and that selected
+   notification is shown as read.
+4. **Given** a signed-in user selects a notification whose associated profile,
+   post, or conversation later becomes unavailable, **When** that destination
+   opens, **Then** the user is taken to a clear not-available destination for
+   that same notification instead of unrelated or stale content, and that
+   selected notification is shown as read.
+5. **Given** a signed-in user opens the notifications view without selecting a
+   notification, **When** they leave or refresh the list, **Then** every
+   notification that was unread before the list was opened remains unread.
+6. **Given** a signed-in user has opened one notification destination but not
+   another unread notification, **When** they return to the notifications view,
+   **Then** only the notification whose destination was opened is shown as
+   read.
 
 **Edge Cases**:
 
@@ -181,6 +228,8 @@ destination.
   empty state that explains there is nothing to review yet.
 - Merely opening the notifications list MUST not mark notifications as read
   until the user opens a specific notification's destination.
+- Opening one notification destination MUST not change the read state of other
+  unread notifications that were not selected.
 
 ---
 
@@ -202,9 +251,11 @@ attempt.
 **Acceptance Scenarios**:
 
 1. **Given** a signed-in user reaches the end of the initial set of items on
-   the timeline, a profile post list, or a conversation view, **When** the
-   user reaches the continuation point, **Then** additional older items are
-   loaded automatically without removing or duplicating items already shown.
+   the home timeline, the end of the currently visible posts on a profile post
+   list, or the end of the currently visible items in a conversation view,
+   **When** the user reaches that surface's continuation point, **Then**
+   additional older items are loaded automatically without removing or
+   duplicating items already shown.
 2. **Given** a signed-in user requests more content and additional items are
    available, **When** loading succeeds, **Then** the newly revealed items are
    appended in a way that preserves the user's current reading context.
@@ -222,6 +273,9 @@ attempt.
   can tell whether a list never had content or has simply reached the end.
 - A failed attempt to load more content MUST not erase, reorder, or duplicate
   items the user has already loaded successfully.
+- The continuation point MUST mean the last currently visible item on the home
+  timeline, the last currently visible post in a profile post list, or the
+  last currently visible item in a conversation view.
 - Automatic continuation loading MUST not hide the retry action or the final
   end-of-list state.
 - If new activity occurs while a user is browsing older content, the already
@@ -256,9 +310,15 @@ attempt.
   default rules for replies unless this round explicitly changes them.
 - **BR-003**: Only the signed-in owner of a profile may edit that profile's
   display name, bio, or avatar.
+- **BR-003a**: A display name edit is valid only when the trimmed result is 1
+  to 50 characters and not empty. A bio edit is valid only when the bio is
+  blank or 160 characters or fewer.
+- **BR-003b**: An avatar replacement is valid for Round 2 only when Postly
+  accepts it as the user's current profile avatar.
 - **BR-004**: Successful profile identity changes MUST be reflected
-  consistently across all in-scope surfaces that already show that user's
-  identity.
+  consistently on the user's own profile, in places that already show that
+  user's identity in the home timeline, and on direct-post or conversation
+  surfaces where that user's identity is shown.
 - **BR-004a**: If no custom avatar exists or a custom avatar later becomes
   unavailable, the user's system-generated default avatar MUST be used.
 - **BR-005**: A reply belongs to its author and to a specific target post; only
@@ -280,6 +340,9 @@ attempt.
 - **BR-009**: Notification destinations MUST lead to the relevant profile, post,
   or conversation context, or to a clear not-available destination if that
   content is no longer available.
+- **BR-009a**: Opening one notification destination MUST mark only that
+  selected notification as read and MUST NOT change the read state of other
+  unread notifications.
 - **BR-010**: Continuation loading on long lists MUST preserve already visible
   content, avoid duplicates, and keep loading, empty, error, and retry behavior
   explicit and consistent.
@@ -287,6 +350,9 @@ attempt.
   automatically at the continuation point, expose a retry action near the
   failure point when loading fails, and show a clear final state when no more
   items remain.
+- **BR-010b**: The continuation point is the last currently visible item on the
+  home timeline, the last currently visible post in a profile post list, and
+  the last currently visible item in a conversation view.
 
 ## Edge Cases
 
@@ -320,14 +386,21 @@ attempt.
 
 - **FR-001**: The system MUST allow a signed-in user to edit their own display
   name.
+- **FR-001a**: The system MUST accept a display name edit only when the trimmed
+  result is 1 to 50 characters and not empty.
 - **FR-002**: The system MUST allow a signed-in user to edit their own bio.
+- **FR-002a**: The system MUST accept a bio edit only when the bio is blank or
+  160 characters or fewer.
 - **FR-003**: The system MUST allow a signed-in user to upload or replace their
   own profile avatar.
 - **FR-003a**: The system MUST show the user's system-generated default avatar
   whenever no custom avatar exists or a custom avatar becomes unavailable.
+- **FR-003b**: The system MUST accept an avatar replacement for Round 2 only
+  when Postly accepts it as the user's current profile avatar.
 - **FR-004**: The system MUST reflect successful profile identity updates
-  consistently across the signed-in user's profile and across in-scope timeline
-  and direct-post surfaces that already show that user's identity.
+  consistently on the signed-in user's own profile, in places that already show
+  that user's identity in the home timeline, and on direct-post or
+  conversation surfaces where that user's identity is shown.
 - **FR-005**: The system MUST prevent a user from editing another user's
   profile identity.
 - **FR-006**: The system MUST allow a signed-in user to reply to a post they
@@ -355,6 +428,9 @@ attempt.
 - **FR-014a**: The system MUST mark a notification as read when the user opens
   that notification's destination, not merely when the notifications list is
   viewed.
+- **FR-014b**: The system MUST leave all unread notifications unchanged when
+  the user only views the notifications list without opening a notification
+  destination.
 - **FR-015**: The system MUST provide a clear not-available outcome when a
   notification or conversation references content that is no longer available.
 - **FR-016**: The system MUST allow users to retrieve additional content beyond
@@ -364,6 +440,10 @@ attempt.
   additional content fails and MUST provide a clear retry path.
 - **FR-017a**: The system MUST trigger continuation loading automatically when
   the user reaches the continuation point on in-scope long-list surfaces.
+- **FR-017b**: The system MUST treat the continuation point as the last
+  currently visible item on the home timeline, the last currently visible post
+  in a profile post list, and the last currently visible item in a
+  conversation view.
 - **FR-018**: The system MUST make loading, empty, error, retry, and end-of-list
   outcomes explicit and consistent on the home timeline, profile post lists,
   and conversation views.
