@@ -10,30 +10,30 @@ on feature context and requirements.
 
 ## Requirement Completeness
 
-- [ ] CHK002 Are profile-editing requirements fully specified for display name,
+- [x] CHK002 Are profile-editing requirements fully specified for display name,
   bio, avatar replacement, invalid edits, and cross-surface identity
   reflection? [Completeness, Spec §User Story 1, Spec §FR-001-FR-005]
 
 ## Requirement Clarity
 
-- [ ] CHK006 Is the phrase "in-scope surfaces" precise enough to identify
+- [x] CHK006 Is the phrase "in-scope surfaces" precise enough to identify
   exactly which profile, timeline, and direct-post contexts must reflect
   updated identity without reviewers inferring extra surfaces? [Clarity,
   Ambiguity, Spec §User Story 1, Spec §Scope Boundaries]
-- [ ] CHK009 Is "continuation point" defined clearly enough for reviewers to
+- [x] CHK009 Is "continuation point" defined clearly enough for reviewers to
   judge the intended trigger for automatic loading on each long-list surface?
   [Clarity, Ambiguity, Spec §User Story 4, Spec §FR-017a]
 
 ## Acceptance Criteria Quality
 
-- [ ] CHK016 Are notification destination outcomes measurable enough for both
+- [x] CHK016 Are notification destination outcomes measurable enough for both
   available and unavailable targets, or do terms such as "relevant destination"
   and "clear not-available" still need sharper acceptance language? [Acceptance
   Criteria, Clarity, Spec §User Story 3, Spec §FR-014-FR-015]
 
 ## Scenario Coverage
 
-- [ ] CHK020 Are notification scenarios complete for empty-state viewing,
+- [x] CHK020 Are notification scenarios complete for empty-state viewing,
   unread-state visibility, read-state transition, and unavailable-destination
   recovery? [Coverage, Spec §User Story 3 Edge Cases, Spec §FR-012-FR-015]
 
