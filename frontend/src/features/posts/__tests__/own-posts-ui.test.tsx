@@ -25,14 +25,15 @@ describe('Composer', () => {
     vi.clearAllMocks()
   })
 
-  it('renders textarea and submit button', () => {
+  it('renders an empty composer with submission disabled', () => {
     renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
     expect(screen.getByTestId('composer-textarea')).toBeInTheDocument()
     expect(screen.getByTestId('composer-submit')).toBeInTheDocument()
+    expect(screen.getByTestId('composer-submit')).toBeDisabled()
   })
 
-  it('shows character count', async () => {
+  it('updates the remaining character count as the draft changes', async () => {
     const user = userEvent.setup()
     renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
@@ -42,25 +43,7 @@ describe('Composer', () => {
     expect(screen.getByText('275')).toBeInTheDocument()
   })
 
-  it('disables submit when empty', () => {
-    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
-
-    const submitButton = screen.getByTestId('composer-submit')
-    expect(submitButton).toBeDisabled()
-  })
-
-  it('disables submit when over limit', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
-
-    const textarea = screen.getByTestId('composer-textarea')
-    await user.type(textarea, 'a'.repeat(281))
-
-    expect(screen.getByTestId('composer-submit')).toBeDisabled()
-    expect(screen.getByText('-1')).toBeInTheDocument()
-  })
-
-  it('shows error message for over 280 chars', async () => {
+  it('prevents submission when the draft exceeds the character limit', async () => {
     const user = userEvent.setup()
     renderWithProviders(<Composer />, { session: mockAuthenticatedSession() })
 
@@ -161,17 +144,12 @@ describe('PostEditor', () => {
     vi.clearAllMocks()
   })
 
-  it('renders with existing post content', () => {
+  it('renders the existing post content and remaining character count', () => {
     render(<PostEditor post={mockPost} onSave={vi.fn()} onCancel={vi.fn()} />)
 
     expect(screen.getByTestId('editor-textarea')).toHaveValue(
       'Original content'
     )
-  })
-
-  it('shows character count', () => {
-    render(<PostEditor post={mockPost} onSave={vi.fn()} onCancel={vi.fn()} />)
-
     expect(screen.getByText('264')).toBeInTheDocument()
   })
 

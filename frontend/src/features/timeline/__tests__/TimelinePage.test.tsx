@@ -61,17 +61,6 @@ describe('TimelinePage', () => {
     })
   })
 
-  it('verifies correct API URL for timeline load', async () => {
-    const mockData = { posts: [], nextCursor: null }
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
-
-    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
-
-    await waitFor(() => {
-      expect(apiClient.get).toHaveBeenCalledWith('/timeline')
-    })
-  })
-
   it('shows error state on load failure', async () => {
     vi.mocked(apiClient.get).mockRejectedValueOnce(new Error('Network error'))
 

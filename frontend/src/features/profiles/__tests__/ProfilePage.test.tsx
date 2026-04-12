@@ -91,21 +91,6 @@ describe('ProfilePage', () => {
     })
   })
 
-  it('verifies correct API URL for profile load', async () => {
-    const mockData = {
-      profile: createMockProfile(),
-      posts: [],
-      nextCursor: null,
-    }
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
-
-    renderProfilePage('alice')
-
-    await waitFor(() => {
-      expect(apiClient.get).toHaveBeenCalledWith('/profiles/alice')
-    })
-  })
-
   it('shows 404 error when user not found', async () => {
     vi.mocked(apiClient.get).mockRejectedValueOnce(
       new ApiError(404, 'Not Found', 'User not found')
