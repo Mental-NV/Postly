@@ -1,12 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-
-async function signInAsBob(page: Page) {
-  await page.goto('/signin')
-  await page.getByTestId('username-input').fill('bob')
-  await page.getByTestId('password-input').fill('TestPassword123')
-  await page.getByTestId('submit-button').click()
-  await expect(page).toHaveURL('/')
-}
+import { signIn } from './helpers'
 
 function readLikeCount(locatorText: string | null) {
   const match = locatorText?.match(/\d+/)
@@ -33,7 +26,7 @@ async function expectLikeState(
 
 test.describe('User Story 5: Likes and direct post', () => {
   test('likes or unlikes from profile, opens direct post, and toggles again there', async ({ page }) => {
-    await signInAsBob(page)
+    await signIn(page, { username: 'bob' })
 
     await page.goto('/u/alice')
     await expect(page.getByTestId('profile-page')).toBeVisible()

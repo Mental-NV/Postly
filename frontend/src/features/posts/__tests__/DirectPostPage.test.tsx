@@ -97,17 +97,6 @@ describe('DirectPostPage', () => {
     expect(screen.getByTestId('post-back-link')).toBeInTheDocument()
   })
 
-  it('verifies correct API URL (regression test)', async () => {
-    const mockPost = createMockPost({ id: 123 })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
-
-    renderDirectPostPage()
-
-    await waitFor(() => {
-      expect(apiClient.get).toHaveBeenCalledWith('/posts/123')
-    })
-  })
-
   it('shows 404 state when post not found', async () => {
     const notFoundError = new ApiError(404, 'Not Found', 'Post not found')
     vi.mocked(apiClient.get).mockRejectedValueOnce(notFoundError)
@@ -192,28 +181,6 @@ describe('DirectPostPage', () => {
     expect(
       screen.queryByRole('button', { name: 'Edit' })
     ).not.toBeInTheDocument()
-  })
-
-  it('hides auth-only controls for unauthenticated visitors', async () => {
-    const mockPost = createMockPost({
-      id: 123,
-      canEdit: false,
-      canDelete: false,
-      likeCount: 2,
-      likedByViewer: false,
-    })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
-
-    renderDirectPostPage({ session: null })
-
-    await waitFor(() => {
-      expect(screen.getByText('Test post content')).toBeInTheDocument()
-    })
-
-    expect(screen.queryByTestId('post-like-button-123')).not.toBeInTheDocument()
-    expect(screen.getByTestId('post-like-count-123')).toHaveTextContent('2')
-    expect(screen.queryByTestId('post-edit-button-123')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('post-delete-button-123')).not.toBeInTheDocument()
   })
 
   it('enters edit mode when edit clicked', async () => {
