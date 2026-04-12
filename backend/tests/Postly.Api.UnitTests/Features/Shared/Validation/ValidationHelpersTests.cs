@@ -8,590 +8,200 @@ public class ValidationHelpersTests
 {
     #region ValidateUsername Tests
 
-    [Fact]
-    public void ValidateUsername_ValidUsername_ReturnsEmptyErrors()
+    [Theory]
+    [InlineData("valid_user123")]
+    [InlineData("abc")] // exactly 3 chars (min boundary)
+    [InlineData("aaaaaaaaaaaaaaaaaaaa")] // exactly 20 chars (max boundary)
+    [InlineData("  validuser  ")] // leading/trailing spaces (should be trimmed)
+    public void ValidateUsername_ValidInputs_ReturnsEmptyErrors(string username)
     {
-        // Arrange
-        var username = "valid_user123";
-
-        // Act
         var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
         errors.Should().BeEmpty();
     }
 
-    [Fact]
-    public void ValidateUsername_NullUsername_ReturnsRequiredError()
+    [Theory]
+    [InlineData(null, "Username is required.")]
+    [InlineData("", "Username is required.")]
+    [InlineData("   ", "Username is required.")]
+    public void ValidateUsername_RequiredValidation_ReturnsError(string? username, string expectedError)
     {
-        // Arrange
-        string? username = null;
-
-        // Act
         var errors = ValidationHelpers.ValidateUsername(username!);
-
-        // Assert
         errors.Should().ContainKey("username");
-        errors["username"].Should().Contain("Username is required.");
+        errors["username"].Should().Contain(expectedError);
     }
 
-    [Fact]
-    public void ValidateUsername_EmptyString_ReturnsRequiredError()
+    [Theory]
+    [InlineData("ab")] // too short
+    [InlineData("aaaaaaaaaaaaaaaaaaaaa")] // 21 chars, too long
+    public void ValidateUsername_LengthValidation_ReturnsError(string username)
     {
-        // Arrange
-        var username = "";
-
-        // Act
         var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
-        errors.Should().ContainKey("username");
-        errors["username"].Should().Contain("Username is required.");
-    }
-
-    [Fact]
-    public void ValidateUsername_WhitespaceOnly_ReturnsRequiredError()
-    {
-        // Arrange
-        var username = "   ";
-
-        // Act
-        var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
-        errors.Should().ContainKey("username");
-        errors["username"].Should().Contain("Username is required.");
-    }
-
-    [Fact]
-    public void ValidateUsername_TooShort_ReturnsLengthError()
-    {
-        // Arrange
-        var username = "ab";
-
-        // Act
-        var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
         errors.Should().ContainKey("username");
         errors["username"].Should().Contain("Username must be between 3 and 20 characters.");
     }
 
-    [Fact]
-    public void ValidateUsername_TooLong_ReturnsLengthError()
+    [Theory]
+    [InlineData("user@name!")]
+    [InlineData("user name")]
+    public void ValidateUsername_FormatValidation_ReturnsError(string username)
     {
-        // Arrange
-        var username = "a".PadRight(21, 'a');
-
-        // Act
         var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
-        errors.Should().ContainKey("username");
-        errors["username"].Should().Contain("Username must be between 3 and 20 characters.");
-    }
-
-    [Fact]
-    public void ValidateUsername_SpecialCharacters_ReturnsFormatError()
-    {
-        // Arrange
-        var username = "user@name!";
-
-        // Act
-        var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
         errors.Should().ContainKey("username");
         errors["username"].Should().Contain("Username can only contain letters, digits, and underscores.");
     }
 
-    [Fact]
-    public void ValidateUsername_WithSpaces_ReturnsFormatError()
+    [Theory]
+    [InlineData("me")]
+    [InlineData("ME")]
+    [InlineData(" ME ")]
+    public void ValidateUsername_ReservedUsername_ReturnsError(string username)
     {
-        // Arrange
-        var username = "user name";
-
-        // Act
         var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
-        errors.Should().ContainKey("username");
-        errors["username"].Should().Contain("Username can only contain letters, digits, and underscores.");
-    }
-
-    [Fact]
-    public void ValidateUsername_WithLeadingTrailingSpaces_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var username = "  validuser  ";
-
-        // Act
-        var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
-        errors.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void ValidateUsername_ReservedMe_ReturnsReservedError()
-    {
-        // Arrange
-        var username = "me";
-
-        // Act
-        var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
         errors.Should().ContainKey("username");
         errors["username"].Should().Contain("Username \"me\" is reserved.");
-    }
-
-    [Fact]
-    public void ValidateUsername_ReservedMeCaseInsensitive_ReturnsReservedError()
-    {
-        // Arrange
-        var username = "ME";
-
-        // Act
-        var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
-        errors.Should().ContainKey("username");
-        errors["username"].Should().Contain("Username \"me\" is reserved.");
-    }
-
-    [Fact]
-    public void ValidateUsername_ReservedMeWithSpaces_ReturnsReservedError()
-    {
-        // Arrange
-        var username = " ME ";
-
-        // Act
-        var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
-        errors.Should().ContainKey("username");
-        errors["username"].Should().Contain("Username \"me\" is reserved.");
-    }
-
-    [Fact]
-    public void ValidateUsername_ExactlyThreeChars_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var username = "abc";
-
-        // Act
-        var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
-        errors.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void ValidateUsername_ExactlyTwentyChars_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var username = "a".PadRight(20, 'a');
-
-        // Act
-        var errors = ValidationHelpers.ValidateUsername(username);
-
-        // Assert
-        errors.Should().BeEmpty();
     }
 
     #endregion
 
     #region ValidatePassword Tests
 
-    [Fact]
-    public void ValidatePassword_ValidPassword_ReturnsEmptyErrors()
+    [Theory]
+    [InlineData("password123")]
+    [InlineData("pass1234")] // exactly 8 chars (min boundary)
+    [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")] // exactly 64 chars (max boundary)
+    public void ValidatePassword_ValidInputs_ReturnsEmptyErrors(string password)
     {
-        // Arrange
-        var password = "password123";
-
-        // Act
         var errors = ValidationHelpers.ValidatePassword(password);
-
-        // Assert
         errors.Should().BeEmpty();
     }
 
-    [Fact]
-    public void ValidatePassword_NullPassword_ReturnsRequiredError()
+    [Theory]
+    [InlineData(null, "Password is required.")]
+    [InlineData("", "Password is required.")]
+    [InlineData("   ", "Password is required.")]
+    public void ValidatePassword_RequiredValidation_ReturnsError(string? password, string expectedError)
     {
-        // Arrange
-        string? password = null;
-
-        // Act
         var errors = ValidationHelpers.ValidatePassword(password!);
-
-        // Assert
         errors.Should().ContainKey("password");
-        errors["password"].Should().Contain("Password is required.");
+        errors["password"].Should().Contain(expectedError);
     }
 
-    [Fact]
-    public void ValidatePassword_EmptyString_ReturnsRequiredError()
+    [Theory]
+    [InlineData("pass123")] // 7 chars, too short
+    [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")] // 65 chars, too long
+    public void ValidatePassword_LengthValidation_ReturnsError(string password)
     {
-        // Arrange
-        var password = "";
-
-        // Act
         var errors = ValidationHelpers.ValidatePassword(password);
-
-        // Assert
-        errors.Should().ContainKey("password");
-        errors["password"].Should().Contain("Password is required.");
-    }
-
-    [Fact]
-    public void ValidatePassword_WhitespaceOnly_ReturnsRequiredError()
-    {
-        // Arrange
-        var password = "   ";
-
-        // Act
-        var errors = ValidationHelpers.ValidatePassword(password);
-
-        // Assert
-        errors.Should().ContainKey("password");
-        errors["password"].Should().Contain("Password is required.");
-    }
-
-    [Fact]
-    public void ValidatePassword_TooShort_ReturnsLengthError()
-    {
-        // Arrange
-        var password = "pass123";
-
-        // Act
-        var errors = ValidationHelpers.ValidatePassword(password);
-
-        // Assert
         errors.Should().ContainKey("password");
         errors["password"].Should().Contain("Password must be between 8 and 64 characters.");
-    }
-
-    [Fact]
-    public void ValidatePassword_TooLong_ReturnsLengthError()
-    {
-        // Arrange
-        var password = "a".PadRight(65, 'a');
-
-        // Act
-        var errors = ValidationHelpers.ValidatePassword(password);
-
-        // Assert
-        errors.Should().ContainKey("password");
-        errors["password"].Should().Contain("Password must be between 8 and 64 characters.");
-    }
-
-    [Fact]
-    public void ValidatePassword_ExactlyEightChars_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var password = "pass1234";
-
-        // Act
-        var errors = ValidationHelpers.ValidatePassword(password);
-
-        // Assert
-        errors.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void ValidatePassword_ExactlySixtyFourChars_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var password = "a".PadRight(64, 'a');
-
-        // Act
-        var errors = ValidationHelpers.ValidatePassword(password);
-
-        // Assert
-        errors.Should().BeEmpty();
     }
 
     #endregion
 
     #region ValidateDisplayName Tests
 
-    [Fact]
-    public void ValidateDisplayName_ValidDisplayName_ReturnsEmptyErrors()
+    [Theory]
+    [InlineData("John Doe")]
+    [InlineData("A")] // exactly 1 char (min boundary)
+    [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")] // exactly 50 chars (max boundary)
+    [InlineData("  John Doe  ")] // leading/trailing spaces (should be trimmed)
+    public void ValidateDisplayName_ValidInputs_ReturnsEmptyErrors(string displayName)
     {
-        // Arrange
-        var displayName = "John Doe";
-
-        // Act
         var errors = ValidationHelpers.ValidateDisplayName(displayName);
-
-        // Assert
         errors.Should().BeEmpty();
     }
 
-    [Fact]
-    public void ValidateDisplayName_NullDisplayName_ReturnsRequiredError()
+    [Theory]
+    [InlineData(null, "Display name is required.")]
+    [InlineData("", "Display name is required.")]
+    [InlineData("   ", "Display name is required.")]
+    public void ValidateDisplayName_RequiredValidation_ReturnsError(string? displayName, string expectedError)
     {
-        // Arrange
-        string? displayName = null;
-
-        // Act
         var errors = ValidationHelpers.ValidateDisplayName(displayName!);
-
-        // Assert
         errors.Should().ContainKey("displayName");
-        errors["displayName"].Should().Contain("Display name is required.");
+        errors["displayName"].Should().Contain(expectedError);
     }
 
     [Fact]
-    public void ValidateDisplayName_EmptyString_ReturnsRequiredError()
+    public void ValidateDisplayName_TooLong_ReturnsError()
     {
-        // Arrange
-        var displayName = "";
-
-        // Act
+        var displayName = new string('a', 51);
         var errors = ValidationHelpers.ValidateDisplayName(displayName);
-
-        // Assert
-        errors.Should().ContainKey("displayName");
-        errors["displayName"].Should().Contain("Display name is required.");
-    }
-
-    [Fact]
-    public void ValidateDisplayName_WhitespaceOnly_ReturnsRequiredError()
-    {
-        // Arrange
-        var displayName = "   ";
-
-        // Act
-        var errors = ValidationHelpers.ValidateDisplayName(displayName);
-
-        // Assert
-        errors.Should().ContainKey("displayName");
-        errors["displayName"].Should().Contain("Display name is required.");
-    }
-
-    [Fact]
-    public void ValidateDisplayName_TooLong_ReturnsLengthError()
-    {
-        // Arrange
-        var displayName = "a".PadRight(51, 'a');
-
-        // Act
-        var errors = ValidationHelpers.ValidateDisplayName(displayName);
-
-        // Assert
         errors.Should().ContainKey("displayName");
         errors["displayName"].Should().Contain("Display name must be between 1 and 50 characters.");
-    }
-
-    [Fact]
-    public void ValidateDisplayName_WithLeadingTrailingSpaces_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var displayName = "  John Doe  ";
-
-        // Act
-        var errors = ValidationHelpers.ValidateDisplayName(displayName);
-
-        // Assert
-        errors.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void ValidateDisplayName_ExactlyOneChar_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var displayName = "A";
-
-        // Act
-        var errors = ValidationHelpers.ValidateDisplayName(displayName);
-
-        // Assert
-        errors.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void ValidateDisplayName_ExactlyFiftyChars_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var displayName = "a".PadRight(50, 'a');
-
-        // Act
-        var errors = ValidationHelpers.ValidateDisplayName(displayName);
-
-        // Assert
-        errors.Should().BeEmpty();
     }
 
     #endregion
 
     #region ValidateBio Tests
 
-    [Fact]
-    public void ValidateBio_NullBio_ReturnsEmptyErrors()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("Valid bio text")]
+    public void ValidateBio_ValidInputs_ReturnsEmptyErrors(string? bio)
     {
-        // Arrange
-        string? bio = null;
-
-        // Act
         var errors = ValidationHelpers.ValidateBio(bio);
-
-        // Assert
         errors.Should().BeEmpty();
     }
 
     [Fact]
-    public void ValidateBio_EmptyString_ReturnsEmptyErrors()
+    public void ValidateBio_ExactlyMaxLength_ReturnsEmptyErrors()
     {
-        // Arrange
-        var bio = "";
-
-        // Act
+        var bio = new string('a', 160);
         var errors = ValidationHelpers.ValidateBio(bio);
-
-        // Assert
         errors.Should().BeEmpty();
     }
 
     [Fact]
-    public void ValidateBio_ExactlyOneHundredSixtyChars_ReturnsEmptyErrors()
+    public void ValidateBio_TooLong_ReturnsError()
     {
-        // Arrange
-        var bio = "a".PadRight(160, 'a');
-
-        // Act
+        var bio = new string('a', 161);
         var errors = ValidationHelpers.ValidateBio(bio);
-
-        // Assert
-        errors.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void ValidateBio_TooLong_ReturnsLengthError()
-    {
-        // Arrange
-        var bio = "a".PadRight(161, 'a');
-
-        // Act
-        var errors = ValidationHelpers.ValidateBio(bio);
-
-        // Assert
         errors.Should().ContainKey("bio");
         errors["bio"].Should().Contain("Bio cannot exceed 160 characters.");
-    }
-
-    [Fact]
-    public void ValidateBio_WhitespaceOnly_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var bio = "   ";
-
-        // Act
-        var errors = ValidationHelpers.ValidateBio(bio);
-
-        // Assert
-        errors.Should().BeEmpty();
     }
 
     #endregion
 
     #region ValidatePostBody Tests
 
-    [Fact]
-    public void ValidatePostBody_ValidBody_ReturnsEmptyErrors()
+    [Theory]
+    [InlineData("This is a valid post body.")]
+    [InlineData("a")] // exactly 1 char (min boundary)
+    public void ValidatePostBody_ValidInputs_ReturnsEmptyErrors(string body)
     {
-        // Arrange
-        var body = "This is a valid post body.";
-
-        // Act
         var errors = ValidationHelpers.ValidatePostBody(body);
-
-        // Assert
         errors.Should().BeEmpty();
     }
 
     [Fact]
-    public void ValidatePostBody_NullBody_ReturnsRequiredError()
+    public void ValidatePostBody_ExactlyMaxLength_ReturnsEmptyErrors()
     {
-        // Arrange
-        string? body = null;
+        var body = new string('a', 280);
+        var errors = ValidationHelpers.ValidatePostBody(body);
+        errors.Should().BeEmpty();
+    }
 
-        // Act
+    [Theory]
+    [InlineData(null, "Post body is required.")]
+    [InlineData("", "Post body is required.")]
+    [InlineData("   ", "Post body is required.")]
+    public void ValidatePostBody_RequiredValidation_ReturnsError(string? body, string expectedError)
+    {
         var errors = ValidationHelpers.ValidatePostBody(body!);
-
-        // Assert
         errors.Should().ContainKey("body");
-        errors["body"].Should().Contain("Post body is required.");
+        errors["body"].Should().Contain(expectedError);
     }
 
     [Fact]
-    public void ValidatePostBody_EmptyString_ReturnsRequiredError()
+    public void ValidatePostBody_TooLong_ReturnsError()
     {
-        // Arrange
-        var body = "";
-
-        // Act
+        var body = new string('a', 281);
         var errors = ValidationHelpers.ValidatePostBody(body);
-
-        // Assert
-        errors.Should().ContainKey("body");
-        errors["body"].Should().Contain("Post body is required.");
-    }
-
-    [Fact]
-    public void ValidatePostBody_WhitespaceOnly_ReturnsRequiredError()
-    {
-        // Arrange
-        var body = "   ";
-
-        // Act
-        var errors = ValidationHelpers.ValidatePostBody(body);
-
-        // Assert
-        errors.Should().ContainKey("body");
-        errors["body"].Should().Contain("Post body is required.");
-    }
-
-    [Fact]
-    public void ValidatePostBody_TooLong_ReturnsLengthError()
-    {
-        // Arrange
-        var body = "a".PadRight(281, 'a');
-
-        // Act
-        var errors = ValidationHelpers.ValidatePostBody(body);
-
-        // Assert
         errors.Should().ContainKey("body");
         errors["body"].Should().Contain("Post body must be between 1 and 280 characters.");
-    }
-
-    [Fact]
-    public void ValidatePostBody_ExactlyOneChar_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var body = "a";
-
-        // Act
-        var errors = ValidationHelpers.ValidatePostBody(body);
-
-        // Assert
-        errors.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void ValidatePostBody_ExactlyTwoHundredEightyChars_ReturnsEmptyErrors()
-    {
-        // Arrange
-        var body = "a".PadRight(280, 'a');
-
-        // Act
-        var errors = ValidationHelpers.ValidatePostBody(body);
-
-        // Assert
-        errors.Should().BeEmpty();
     }
 
     #endregion
@@ -599,40 +209,8 @@ public class ValidationHelpersTests
     #region MergeErrors Tests
 
     [Fact]
-    public void MergeErrors_EmptyDictionaries_ReturnsEmptyResult()
-    {
-        // Arrange
-        var dict1 = new Dictionary<string, string[]>();
-        var dict2 = new Dictionary<string, string[]>();
-
-        // Act
-        var result = ValidationHelpers.MergeErrors(dict1, dict2);
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public void MergeErrors_SingleDictionary_ReturnsSameDictionary()
-    {
-        // Arrange
-        var dict = new Dictionary<string, string[]>
-        {
-            ["username"] = ["Username is required."]
-        };
-
-        // Act
-        var result = ValidationHelpers.MergeErrors(dict);
-
-        // Assert
-        result.Should().ContainKey("username");
-        result["username"].Should().Contain("Username is required.");
-    }
-
-    [Fact]
     public void MergeErrors_MultipleDictionariesWithDifferentKeys_MergesCorrectly()
     {
-        // Arrange
         var dict1 = new Dictionary<string, string[]>
         {
             ["username"] = ["Username is required."]
@@ -642,10 +220,8 @@ public class ValidationHelpersTests
             ["password"] = ["Password is required."]
         };
 
-        // Act
         var result = ValidationHelpers.MergeErrors(dict1, dict2);
 
-        // Assert
         result.Should().HaveCount(2);
         result.Should().ContainKey("username");
         result.Should().ContainKey("password");
@@ -656,7 +232,6 @@ public class ValidationHelpersTests
     [Fact]
     public void MergeErrors_MultipleDictionariesWithSameKey_ConcatenatesErrorArrays()
     {
-        // Arrange
         var dict1 = new Dictionary<string, string[]>
         {
             ["username"] = ["Username is required."]
@@ -666,10 +241,8 @@ public class ValidationHelpersTests
             ["username"] = ["Username must be between 3 and 20 characters."]
         };
 
-        // Act
         var result = ValidationHelpers.MergeErrors(dict1, dict2);
 
-        // Assert
         result.Should().ContainKey("username");
         result["username"].Should().HaveCount(2);
         result["username"].Should().Contain("Username is required.");

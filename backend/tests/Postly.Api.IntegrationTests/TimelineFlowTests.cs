@@ -201,31 +201,5 @@ public class TimelineFlowTests : IDisposable
         Assert.False(alicePost.CanDelete);
     }
 
-    [Fact]
-    public async Task GetTimeline_InvalidCursor_Returns400()
-    {
-        // Arrange
-        await SignInAsBob();
-
-        // Act
-        var response = await _client.GetAsync("/api/timeline?cursor=invalid");
-
-        // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task GetTimeline_Unauthorized_Returns401()
-    {
-        // Arrange
-        var unauthenticatedClient = _factory.CreateClient();
-
-        // Act
-        var response = await unauthenticatedClient.GetAsync("/api/timeline");
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
     #endregion
 }

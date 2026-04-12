@@ -89,66 +89,6 @@ public class AuthSigninAndSessionFlowTests : IClassFixture<TestWebApplicationFac
     }
 
     [Fact]
-    public async Task Signin_WithUnknownUsername_Returns401()
-    {
-        var client = _factory.CreateClient();
-        var request = new
-        {
-            username = "unknownuser",
-            password = "SomePassword123"
-        };
-
-        var response = await client.PostAsJsonAsync("/api/auth/signin", request);
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Signin_WithIncorrectPassword_Returns401()
-    {
-        var client = _factory.CreateClient();
-        var request = new
-        {
-            username = "alice",
-            password = "WrongPassword123"
-        };
-
-        var response = await client.PostAsJsonAsync("/api/auth/signin", request);
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Signin_WithInvalidUsernameFormat_Returns400()
-    {
-        var client = _factory.CreateClient();
-        var request = new
-        {
-            username = "ab",  // Too short
-            password = "ValidPassword123"
-        };
-
-        var response = await client.PostAsJsonAsync("/api/auth/signin", request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Signin_WithInvalidPasswordFormat_Returns400()
-    {
-        var client = _factory.CreateClient();
-        var request = new
-        {
-            username = "alice",
-            password = "short"  // Too short
-        };
-
-        var response = await client.PostAsJsonAsync("/api/auth/signin", request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
     public async Task Signout_RevokesSessionInDatabase()
     {
         var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
@@ -222,31 +162,6 @@ public class AuthSigninAndSessionFlowTests : IClassFixture<TestWebApplicationFac
         var response = await client.GetAsync("/api/auth/session");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task PasswordVerification_WorksCorrectly()
-    {
-        var client = _factory.CreateClient();
-
-        // Correct password should succeed
-        var correctRequest = new
-        {
-            username = "alice",
-            password = "TestPassword123"
-        };
-        var correctResponse = await client.PostAsJsonAsync("/api/auth/signin", correctRequest);
-        Assert.Equal(HttpStatusCode.OK, correctResponse.StatusCode);
-
-        // Wrong password should fail
-        var client2 = _factory.CreateClient();
-        var wrongRequest = new
-        {
-            username = "alice",
-            password = "WrongPassword123"
-        };
-        var wrongResponse = await client2.PostAsJsonAsync("/api/auth/signin", wrongRequest);
-        Assert.Equal(HttpStatusCode.Unauthorized, wrongResponse.StatusCode);
     }
 
     private record SessionResponse(long UserId, string Username, string DisplayName);

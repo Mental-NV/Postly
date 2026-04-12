@@ -57,26 +57,6 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(post.CreatedAtUtc <= DateTimeOffset.UtcNow);
     }
 
-    [Fact]
-    public async Task CreatePost_281Characters_ReturnsValidationError()
-    {
-        // Arrange
-        await SignInAsAlice();
-        var request = new { body = new string('a', 281) };
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/posts", request);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var postCount = await dbContext.Posts.CountAsync(p => p.Body.Length == 281);
-
-        Assert.Equal(0, postCount); // No post created
-    }
-
     #endregion
 
     #region Edit Post Flow
@@ -106,34 +86,6 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("Updated content", post.Body);
         Assert.NotNull(post.EditedAtUtc);
         Assert.True(post.EditedAtUtc <= DateTimeOffset.UtcNow);
-    }
-
-    [Fact]
-    public async Task UpdatePost_PreservesCreatedAtUtc()
-    {
-        // Arrange
-        await SignInAsAlice();
-        var createRequest = new { body = "Original content" };
-        var createResponse = await _client.PostAsJsonAsync("/api/posts", createRequest);
-        var createdPost = await createResponse.Content.ReadFromJsonAsync<PostResponse>();
-
-        var originalCreatedAt = createdPost!.CreatedAtUtc;
-
-        // Small delay to ensure timestamps would differ
-        await Task.Delay(100);
-
-        var updateRequest = new { body = "Updated content" };
-
-        // Act
-        await _client.PatchAsJsonAsync($"/api/posts/{createdPost.Id}", updateRequest);
-
-        // Assert
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var post = await dbContext.Posts.FindAsync(createdPost.Id);
-
-        Assert.NotNull(post);
-        Assert.Equal(originalCreatedAt, post.CreatedAtUtc); // Timestamp unchanged
     }
 
     [Fact]

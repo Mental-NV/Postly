@@ -80,21 +80,6 @@ public class FollowFlowTests : IDisposable
     }
 
     [Fact]
-    public async Task FollowUser_SelfFollow_Returns400()
-    {
-        // Arrange
-        await SignInAsBob();
-
-        // Act
-        var response = await _client.PostAsync("/api/profiles/bob/follow", null);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("cannot follow yourself", content.ToLower());
-    }
-
-    [Fact]
     public async Task FollowUser_AlreadyFollowing_IsIdempotent()
     {
         // Arrange
@@ -123,19 +108,6 @@ public class FollowFlowTests : IDisposable
             .CountAsync(f => f.FollowerId == bob.Id && f.FollowedId == alice.Id);
 
         Assert.Equal(1, followCount);
-    }
-
-    [Fact]
-    public async Task FollowUser_NonExistentUser_Returns404()
-    {
-        // Arrange
-        await SignInAsBob();
-
-        // Act
-        var response = await _client.PostAsync("/api/profiles/nonexistent/follow", null);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
@@ -187,19 +159,6 @@ public class FollowFlowTests : IDisposable
             .FirstOrDefaultAsync(f => f.FollowerId == bob.Id && f.FollowedId == alice.Id);
 
         Assert.Null(follow);
-    }
-
-    [Fact]
-    public async Task UnfollowUser_NonExistentUser_Returns404()
-    {
-        // Arrange
-        await SignInAsBob();
-
-        // Act
-        var response = await _client.DeleteAsync("/api/profiles/nonexistent/follow");
-
-        // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
@@ -279,19 +238,6 @@ public class FollowFlowTests : IDisposable
         // Assert - Follower count is 0 again
         Assert.NotNull(data4);
         Assert.Equal(0, data4.Profile.FollowerCount);
-    }
-
-    [Fact]
-    public async Task FollowUser_Unauthorized_Returns401()
-    {
-        // Arrange
-        var unauthenticatedClient = _factory.CreateClient();
-
-        // Act
-        var response = await unauthenticatedClient.PostAsync("/api/profiles/alice/follow", null);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     #endregion

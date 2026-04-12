@@ -37,56 +37,38 @@ public class CurrentViewerAccessorTests
         result.Should().Be(userId);
     }
 
-    [Fact]
-    public void GetCurrentUserId_HttpContextIsNull_ReturnsNull()
+    [Theory]
+    [InlineData("null_context")] // HttpContext is null
+    [InlineData("empty_principal")] // User has no claims
+    [InlineData("missing_claim")] // NameIdentifier claim missing
+    public void GetCurrentUserId_InvalidContextOrClaims_ReturnsNull(string scenario)
     {
         // Arrange
         var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext?)null);
 
-        var accessor = new CurrentViewerAccessor(mockHttpContextAccessor.Object);
-
-        // Act
-        var result = accessor.GetCurrentUserId();
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public void GetCurrentUserId_UserIsNull_ReturnsNull()
-    {
-        // Arrange
-        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        var mockHttpContext = new Mock<HttpContext>();
-        var emptyPrincipal = new ClaimsPrincipal();
-        mockHttpContext.Setup(x => x.User).Returns(emptyPrincipal);
-        mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext.Object);
-
-        var accessor = new CurrentViewerAccessor(mockHttpContextAccessor.Object);
-
-        // Act
-        var result = accessor.GetCurrentUserId();
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public void GetCurrentUserId_NameIdentifierClaimMissing_ReturnsNull()
-    {
-        // Arrange
-        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        var mockHttpContext = new Mock<HttpContext>();
-        var claims = new List<Claim>
+        if (scenario == "null_context")
         {
-            new Claim(ClaimTypes.Name, "testuser")
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        var claimsPrincipal = new ClaimsPrincipal(identity);
+            mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext?)null);
+        }
+        else
+        {
+            var mockHttpContext = new Mock<HttpContext>();
 
-        mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
-        mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext.Object);
+            if (scenario == "empty_principal")
+            {
+                var emptyPrincipal = new ClaimsPrincipal();
+                mockHttpContext.Setup(x => x.User).Returns(emptyPrincipal);
+            }
+            else if (scenario == "missing_claim")
+            {
+                var claims = new List<Claim> { new Claim(ClaimTypes.Name, "testuser") };
+                var identity = new ClaimsIdentity(claims, "TestAuth");
+                var claimsPrincipal = new ClaimsPrincipal(identity);
+                mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+            }
+
+            mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext.Object);
+        }
 
         var accessor = new CurrentViewerAccessor(mockHttpContextAccessor.Object);
 
@@ -148,34 +130,27 @@ public class CurrentViewerAccessorTests
         result.Should().BeTrue();
     }
 
-    [Fact]
-    public void IsAuthenticated_HttpContextIsNull_ReturnsFalse()
+    [Theory]
+    [InlineData(true)] // HttpContext is null
+    [InlineData(false)] // User is not authenticated
+    public void IsAuthenticated_InvalidContextOrNotAuthenticated_ReturnsFalse(bool isNullContext)
     {
         // Arrange
         var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext?)null);
 
-        var accessor = new CurrentViewerAccessor(mockHttpContextAccessor.Object);
-
-        // Act
-        var result = accessor.IsAuthenticated();
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsAuthenticated_UserIsNotAuthenticated_ReturnsFalse()
-    {
-        // Arrange
-        var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        var mockHttpContext = new Mock<HttpContext>();
-        var mockIdentity = new Mock<ClaimsIdentity>();
-        mockIdentity.Setup(x => x.IsAuthenticated).Returns(false);
-        var claimsPrincipal = new ClaimsPrincipal(mockIdentity.Object);
-
-        mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
-        mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext.Object);
+        if (isNullContext)
+        {
+            mockHttpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext?)null);
+        }
+        else
+        {
+            var mockHttpContext = new Mock<HttpContext>();
+            var mockIdentity = new Mock<ClaimsIdentity>();
+            mockIdentity.Setup(x => x.IsAuthenticated).Returns(false);
+            var claimsPrincipal = new ClaimsPrincipal(mockIdentity.Object);
+            mockHttpContext.Setup(x => x.User).Returns(claimsPrincipal);
+            mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(mockHttpContext.Object);
+        }
 
         var accessor = new CurrentViewerAccessor(mockHttpContextAccessor.Object);
 

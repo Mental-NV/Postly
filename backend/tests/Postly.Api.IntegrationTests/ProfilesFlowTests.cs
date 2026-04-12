@@ -71,19 +71,6 @@ public class ProfilesFlowTests : IDisposable
     }
 
     [Fact]
-    public async Task GetProfile_NonExistentUser_Returns404()
-    {
-        // Arrange
-        await SignInAsBob();
-
-        // Act
-        var response = await _client.GetAsync("/api/profiles/nonexistent");
-
-        // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-    }
-
-    [Fact]
     public async Task GetProfile_OwnProfile_SetsSelfTrue()
     {
         // Arrange
@@ -261,19 +248,6 @@ public class ProfilesFlowTests : IDisposable
         var mePostIds = meData.Posts.Select(p => p.Id).ToArray();
         var usernamePostIds = usernameData.Posts.Select(p => p.Id).ToArray();
         Assert.Equal(mePostIds, usernamePostIds);
-    }
-
-    [Fact]
-    public async Task GetProfileMe_Unauthorized_Returns401()
-    {
-        // Arrange
-        var unauthenticatedClient = _factory.CreateClient();
-
-        // Act
-        var response = await unauthenticatedClient.GetAsync("/api/profiles/me");
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     #endregion

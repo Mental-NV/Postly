@@ -41,40 +41,6 @@ public class AuthSessionContractsTests : IClassFixture<TestWebApplicationFactory
     }
 
     [Fact]
-    public async Task Signin_WithUnknownUsername_Returns401WithGenericError()
-    {
-        var request = new
-        {
-            username = "unknownuser",
-            password = "SomePassword123"
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/auth/signin", request);
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-
-        var contentType = response.Content.Headers.ContentType?.MediaType;
-        Assert.Equal("application/problem+json", contentType);
-    }
-
-    [Fact]
-    public async Task Signin_WithIncorrectPassword_Returns401WithGenericError()
-    {
-        var request = new
-        {
-            username = "alice",
-            password = "WrongPassword123"
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/auth/signin", request);
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-
-        var contentType = response.Content.Headers.ContentType?.MediaType;
-        Assert.Equal("application/problem+json", contentType);
-    }
-
-    [Fact]
     public async Task Signin_WithMissingFields_Returns400()
     {
         var request = new

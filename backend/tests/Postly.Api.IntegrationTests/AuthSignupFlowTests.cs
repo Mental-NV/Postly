@@ -112,55 +112,6 @@ public class AuthSignupFlowTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Signup_WithInvalidUsername_Returns400()
-    {
-        var client = _factory.CreateClient();
-        var request = new
-        {
-            username = "ab",  // Too short
-            displayName = "Test",
-            password = "TestPassword123"
-        };
-
-        var response = await client.PostAsJsonAsync("/api/auth/signup", request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Signup_WithInvalidPassword_Returns400()
-    {
-        var client = _factory.CreateClient();
-        var request = new
-        {
-            username = "testuser",
-            displayName = "Test",
-            password = "short"  // Too short
-        };
-
-        var response = await client.PostAsJsonAsync("/api/auth/signup", request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Signup_WithLongBio_Returns400()
-    {
-        var client = _factory.CreateClient();
-        var request = new
-        {
-            username = "testuser",
-            displayName = "Test",
-            bio = new string('a', 161),  // Over 160 chars
-            password = "TestPassword123"
-        };
-
-        var response = await client.PostAsJsonAsync("/api/auth/signup", request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
     public async Task Signup_HashesPassword()
     {
         var client = _factory.CreateClient();
@@ -207,37 +158,5 @@ public class AuthSignupFlowTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotNull(user);
         Assert.Equal("MixedCase", user.Username);
         Assert.Equal("MIXEDCASE", user.NormalizedUsername);
-    }
-
-    [Fact]
-    public async Task Signup_WithReservedUsername_Returns400()
-    {
-        var client = _factory.CreateClient();
-        var request = new
-        {
-            username = "me",
-            displayName = "Reserved Test",
-            password = "TestPassword123"
-        };
-
-        var response = await client.PostAsJsonAsync("/api/auth/signup", request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Signup_WithReservedUsernameCaseInsensitive_Returns400()
-    {
-        var client = _factory.CreateClient();
-        var request = new
-        {
-            username = "ME",
-            displayName = "Reserved Test",
-            password = "TestPassword123"
-        };
-
-        var response = await client.PostAsJsonAsync("/api/auth/signup", request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

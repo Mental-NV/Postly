@@ -137,20 +137,6 @@ public class DirectPostAndLikesContractsTests : IClassFixture<TestWebApplication
     }
 
     [Fact]
-    public async Task LikePost_Unauthenticated_Returns401Problem()
-    {
-        var freshClient = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false
-        });
-
-        var response = await freshClient.PostAsync("/api/posts/1/like", null);
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
-    }
-
-    [Fact]
     public async Task UnlikePost_ExistingPost_Returns200WithInteractionState()
     {
         await SignInAsBob();

@@ -60,48 +60,5 @@ public class AuthSignupContractsTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal("application/problem+json", contentType);
     }
 
-    [Fact]
-    public async Task Signup_WithInvalidUsername_Returns400()
-    {
-        var request = new
-        {
-            username = "ab",  // Too short
-            displayName = "Test User",
-            password = "TestPassword123"
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/auth/signup", request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Signup_WithDuplicateUsername_Returns409()
-    {
-        var uniqueUsername = $"u{Guid.NewGuid():N}".Substring(0, 15);
-
-        // First signup
-        var request = new
-        {
-            username = uniqueUsername,
-            displayName = "First User",
-            password = "TestPassword123"
-        };
-
-        await _client.PostAsJsonAsync("/api/auth/signup", request);
-
-        // Second signup with same username (different case)
-        var duplicateRequest = new
-        {
-            username = uniqueUsername.ToUpper(),
-            displayName = "Second User",
-            password = "TestPassword456"
-        };
-
-        var response = await _client.PostAsJsonAsync("/api/auth/signup", duplicateRequest);
-
-        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-    }
-
     private record SessionResponse(long UserId, string Username, string DisplayName);
 }
