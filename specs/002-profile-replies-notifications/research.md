@@ -1,71 +1,85 @@
 # Research: Postly Round 2
 
-## Decision 1: Persist custom avatars in the existing SQLite database and deliver them through the backend
+## Decision 1: Persist the current avatar on `UserAccount` and serve it through backend-owned projection
 
-- **Decision**: Store the current custom avatar as profile-owned persisted data
-  in the existing SQLite database and expose it through a backend-owned avatar
-  endpoint or projected avatar URL, while preserving the current generated
-  fallback avatar when no custom avatar exists.
-- **Rationale**: Round 2 only needs avatar replacement for profile identity, not
-  a general media platform. Keeping avatar persistence inside the existing EF
-  Core + SQLite stack avoids new infrastructure, stays compatible with the
-  backend-served SPA model, and keeps authorization and cache behavior local to
-  the current application.
+- **Decision**: Store only the current custom avatar on `UserAccount` and
+  expose it via backend-owned avatar metadata plus a current-avatar endpoint.
+- **Rationale**: Round 2 needs avatar replacement, fallback, and cross-surface
+  identity reflection, not a general media system. Keeping the current avatar in
+  the existing SQLite + EF Core model avoids new storage infrastructure and
+  keeps authorization local to the existing profile feature.
 - **Alternatives considered**:
-  - Filesystem storage under `wwwroot`: rejected because it complicates cleanup,
-    deployment portability, and replacement semantics without providing a clear
-    product win.
-  - External object storage: rejected because it adds infrastructure and secret
-    management far beyond Round 2 scope.
+  - Files under `wwwroot`: rejected because cleanup, replacement, and publish
+    portability become harder without solving a product requirement.
+  - External blob/object storage: rejected as unnecessary infrastructure for
+    this scope.
 
-## Decision 2: Model replies as posts with a nullable parent reference and soft-delete support
+## Decision 2: Reuse `Post` for replies and soft-delete replies to preserve conversation placeholders
 
-- **Decision**: Extend the existing `Post` entity with a nullable parent-post
-  reference for replies and add a soft-delete marker so deleted replies can
-  remain as non-interactive placeholders in conversation views when the spec
-  requires context to persist.
-- **Rationale**: Replies share most behavior with existing posts: author
-  ownership, timestamps, edit/delete permissions, identity rendering, and
-  profile/timeline projection rules. Reusing the `Post` model keeps contracts
-  and UI hooks consistent. Soft-delete support is the smallest viable way to
-  satisfy the required deleted-reply and unavailable-parent conversation states
-  without a separate placeholder table.
+- **Decision**: Model replies as normal posts with nullable `ReplyToPostId`,
+  and represent deleted replies with `DeletedAtUtc` so the conversation can keep
+  a non-interactive placeholder at the same position.
+- **Rationale**: Replies share author ownership, timestamps, edit/delete rules,
+  and most projection requirements with existing posts. Reusing `Post` keeps the
+  smallest possible domain model while meeting the clarified placeholder
+  semantics.
 - **Alternatives considered**:
-  - Separate `Reply` entity: rejected because it duplicates post behavior and
-    would force avoidable divergence in contracts and authorization logic.
-  - Hard-deleting replies as in the MVP: rejected because it cannot preserve the
-    required conversation placeholders.
+  - Separate `Reply` table: rejected because it duplicates existing post
+    behavior and increases contract drift.
+  - Hard delete: rejected because it cannot preserve the required placeholder.
 
-## Decision 3: Generate notifications synchronously inside existing follow, like, and reply write paths
+## Decision 3: Resolve notification destination and selected-item read transition through one notification-open endpoint
 
-- **Decision**: Add a first-class `Notification` entity and create notifications
-  synchronously inside the existing request pipeline when follow, like, or
-  reply mutations succeed. Track read state with `ReadAtUtc` and expose an
-  explicit mark-read endpoint used after destination open.
-- **Rationale**: The current app has no queue, worker, or outbox infrastructure,
-  and Round 2 does not require one. Synchronous creation keeps behavior easy to
-  reason about, deterministic in tests, and aligned with the same transaction
-  boundaries already used for current mutations.
+- **Decision**: Add a `POST /api/notifications/{notificationId}/open` endpoint
+  that resolves the destination for the selected notification and marks only
+  that notification as read as part of the open action.
+- **Rationale**: The clarified spec ties the read transition to opening the
+  destination, not to viewing the list. A dedicated open endpoint keeps that
+  lifecycle explicit, supports both available and unavailable destinations, and
+  avoids race-prone client sequences such as “navigate first, then separately
+  mark read”.
 - **Alternatives considered**:
-  - Background job or message bus delivery: rejected because it introduces
-    unnecessary operational complexity.
-  - Implicitly marking notifications read when the list is fetched: rejected
-    because it conflicts with the clarified lifecycle in the spec.
+  - Mark-read-on-list-fetch: rejected because it violates the clarified spec.
+  - Separate resolve and mark-read endpoints: rejected because it makes the
+    lifecycle easier to desynchronize and harder to test deterministically.
 
-## Decision 4: Reuse existing cursor semantics and add a shared frontend continuation contract
+## Decision 4: Keep synchronous notification creation inside successful follow/like/reply writes
 
-- **Decision**: Keep the existing cursor pattern based on newest-first
-  `CreatedAtUtc` plus stable tie-breaker ordering for timeline and profile
-  collections, and extend that same pattern to conversation replies. On the
-  frontend, add one shared continuation contract for automatic loading,
-  continuation failure, retry, and end-of-list behavior.
-- **Rationale**: The backend already uses cursor semantics, and the user
-  explicitly asked to reuse them where possible. Aligning conversation replies
-  to the same pattern minimizes new concepts, and a shared frontend contract
-  prevents timeline/profile/conversation from drifting into three different
-  loading behaviors.
+- **Decision**: Create notifications synchronously within the existing follow,
+  like, and reply mutation handlers when the actor and recipient differ.
+- **Rationale**: The current app has no queue/outbox infrastructure and Round 2
+  does not need one. Synchronous creation keeps tests deterministic and keeps
+  notification persistence in the same transactional boundary as the triggering
+  action.
 - **Alternatives considered**:
-  - Offset pagination for replies or notifications: rejected because it adds a
-    second pagination model and is less stable under concurrent writes.
-  - Surface-specific continuation implementations: rejected because it increases
-    UI inconsistency and test maintenance cost.
+  - Background processing or outbox pattern: rejected as unnecessary operational
+    complexity for this scope.
+
+## Decision 5: Reuse the existing newest-first opaque cursor model for all continuation surfaces
+
+- **Decision**: Preserve the existing cursor semantics for timeline and profile
+  collections and extend the same opaque newest-first cursor pattern to
+  conversation replies.
+- **Rationale**: The user explicitly asked to reuse existing cursor semantics
+  where possible. One pagination model across all long-list surfaces reduces
+  backend/frontend branching and keeps continuation logic reviewable.
+- **Alternatives considered**:
+  - Offset pagination for replies: rejected because it introduces a second
+    paging model and is more fragile under concurrent writes.
+  - Surface-specific continuation contracts: rejected because it would create
+    avoidable UI inconsistency and extra Playwright complexity.
+
+## Decision 6: Keep notification unavailable destinations explicit instead of falling back to generic 404 handling
+
+- **Decision**: When a notification target becomes unavailable, route the user
+  to a destination state explicitly tied to the selected notification rather
+  than silently redirecting to a generic error page or a stale route.
+- **Rationale**: The clarified spec requires a clear not-available destination
+  for that same notification. Making the state notification-specific prevents
+  ambiguity about whether the app failed or the target genuinely no longer
+  exists.
+- **Alternatives considered**:
+  - Redirect to home or notifications list: rejected because it obscures the
+    destination outcome.
+  - Reuse generic route-level 404 only: rejected because it makes notification
+    outcome less explicit and harder to test.

@@ -2,189 +2,444 @@
 
 ## Purpose
 
-This document translates the approved Round 2 stories into deterministic,
-browser-automation-friendly flows. Each flow names the route transitions,
-required UI elements, visible states, and the verification outcome that
-Playwright should prove.
+This document is a normative companion to `plan.md`. It translates each
+approved Round 2 user story into deterministic, browser-automation-friendly
+flows with explicit routes, visible states, required UI elements, and
+verification intent.
 
-## Conventions
+## Flow Conventions
 
-- `UI element` values reference required controls from
-  [frontend-requirements.md](./frontend-requirements.md).
-- Existing Round 1 post-card selectors remain authoritative on conversation
-  surfaces where replies are still rendered as posts.
-- Route transitions are explicit even when the route does not change so
-  continuation and mutation state changes remain reviewable.
-
-## Deterministic Test Preconditions
-
-- `bob` is the default signed-in actor unless a flow says otherwise.
-- `alice` exists as another visible user whose profile and posts remain
-  reachable in the seeded dataset.
-- `charlie` exists as an additional seeded user so notification, reply, and
-  continuation flows can cover multi-user state transitions without creating
-  every dependency through the UI.
-- The non-production seed includes:
-  - at least one conversation target with visible replies
-  - at least one reply authored by `bob`
-  - at least one unread follow, like, or reply notification for `bob`
-  - enough timeline, profile, and conversation data to trigger continuation
-    behavior beyond the first page
-- Protected flows may establish the signed-in state through UI sign-in or a
-  storage-state helper backed by the same deterministic seed data.
+- Route transitions are listed even when the path does not change so
+  mutation-state and continuation-state changes remain testable.
+- Existing MVP read routes remain baseline behavior; these flows cover only the
+  new Round 2 behaviors layered onto them.
+- Repeated controls keep the same logical `data-testid` across surfaces.
+- Seeded users:
+  - `bob`: default signed-in actor
+  - `alice`: visible user with reachable profile/posts
+  - `charlie`: additional actor for notification/reply scenarios
 
 ## Flow Index
 
-| Flow ID | Story | Outcome |
-|---------|-------|---------|
-| `UF-01` | US1 | Signed-in user edits display name, bio, and avatar successfully |
-| `UF-02` | US1 | Invalid profile edits are rejected without changing visible identity |
-| `UF-03` | US2 | Signed-in user replies to a post and sees the reply in conversation |
-| `UF-04` | US2 | Reply author edits and deletes their own reply, leaving a placeholder |
-| `UF-05` | US2 | Conversation remains open when parent post is unavailable |
-| `UF-06` | US3 | Opening an available notification destination marks only that notification read |
-| `UF-07` | US3 | Viewing notifications without opening a destination leaves read state unchanged |
-| `UF-08` | US4 | Home timeline loads more items automatically at the continuation point |
-| `UF-09` | US4 | Profile post list retries after continuation failure without losing visible items |
-| `UF-10` | US4 | Conversation replies reach an explicit end-of-list state |
+| Flow ID | Story | Type | Outcome |
+|---------|-------|------|---------|
+| `UF-01` | US1 | Primary | Successful profile edit updates identity on all in-scope surfaces |
+| `UF-02` | US1 | Recovery | Invalid profile edits preserve the saved identity and draft inputs |
+| `UF-03` | US1 | Recovery | Missing custom avatar falls back to the generated default avatar |
+| `UF-04` | US2 | Primary | Signed-in user creates a reply from the conversation route |
+| `UF-05` | US2 | Primary | Reply author edits and deletes their own reply, leaving a placeholder |
+| `UF-06` | US2 | Recovery | Conversation stays open when the parent post is unavailable |
+| `UF-07` | US2 | Recovery | Non-authors are not offered edit or delete actions for replies |
+| `UF-08` | US3 | Primary | Opening an available notification destination marks only that notification read |
+| `UF-09` | US3 | Recovery | Opening an unavailable notification still lands on a truthful unavailable destination and marks only that notification read |
+| `UF-10` | US3 | Recovery | Viewing the notifications list alone does not change unread state |
+| `UF-11` | US4 | Primary | Home timeline automatically loads additional items at the continuation point |
+| `UF-12` | US4 | Recovery | Profile continuation failure preserves visible items and recovers through retry |
+| `UF-13` | US4 | Primary | Conversation continuation reaches an explicit end-of-list state |
+
+## Deterministic Preconditions
+
+- Non-production seeded data includes:
+  - a Bob-owned profile at `/u/bob`
+  - at least one Bob-authored post visible on `/`
+  - at least one conversation under `/posts/:postId` where Bob identity is
+    visible and replies span more than one page
+  - at least one Bob-authored reply
+  - at least one reply authored by another user in the same conversation
+  - at least one notification with an available destination
+  - at least one notification with an unavailable destination
+  - enough data on timeline, profile, and conversation surfaces to require at
+    least one continuation request
+- Protected flows may use UI sign-in or seeded Playwright storage state as long
+  as they hit the same backend-hosted app.
 
 ## Detailed Flows
 
 ### UF-01 Successful Profile Edit
 
-**Start route**: `/u/bob`
-**Preconditions**: Signed in as `bob`
+**Story**: US1  
+**Start route**: `/u/bob`  
+**Trigger**: Bob enters edit mode on his own profile  
+**Route transitions**:
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 1 | `profile-page` | Observe own profile | Own profile identity is visible in read state |
-| 2 | `profile-edit-button` | Click edit | Profile enters editable state on the same route |
-| 3 | `profile-display-name-input` | Enter a valid updated display name | Updated value is visible in the input |
-| 4 | `profile-bio-input` | Enter a valid updated bio | Updated value is visible in the input |
-| 4a | `profile-bio-counter` | Observe character count | Count reflects the current bio length (e.g. "50/160") |
-| 5 | `profile-avatar-edit-overlay` | Click the edit overlay | File picker opens |
-| 5a | `profile-avatar-input` | Choose a valid replacement avatar | Selected file is accepted by the form |
-| 6 | `profile-save-button` | Click save | Save enters pending state and duplicate submits are prevented |
-| 7 | `profile-display-name` | Observe profile header | Updated display name is visible on `/u/bob` |
-| 8 | `nav-home-link` | Navigate to home | Route changes to `/` |
-| 9 | `post-avatar-<postId>` or `author-link-bob` | Observe Bob-authored identity surfaces | Updated identity is visible on the home timeline |
-| 10 | `post-permalink-<postId>` | Open a Bob-authored conversation | Route changes to `/posts/:postId` |
-| 11 | `conversation-page` | Observe author identity | Updated identity is visible on conversation surfaces where Bob appears |
+- `/u/bob` read state -> `/u/bob` edit state
+- `/u/bob` -> `/`
+- `/` -> `/posts/:postId`
 
-### UF-02 Invalid Profile Edit
+**Visible states**:
 
-**Start route**: `/u/bob`
-**Preconditions**: Signed in as `bob`
+- profile read state
+- profile edit state
+- pending save state
+- save success state
+- updated identity on profile/timeline/conversation surfaces
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 1 | `profile-edit-button` | Click edit | Edit state opens on the same route |
-| 2 | `profile-display-name-input` | Enter an invalid display name | Input reflects the invalid draft |
-| 3 | `profile-bio-input` | Enter an invalid bio value | Input reflects the invalid draft |
-| 4 | `profile-save-button` | Click save | Save is rejected and the route remains `/u/bob` |
-| 5 | `profile-form-status` | Observe error state | Validation feedback is visible and reviewable |
-| 6 | `profile-display-name` | Exit or refresh form state | Previously saved identity remains unchanged |
+**Required UI elements**:
 
-### UF-03 Create Reply in Conversation
+- `profile-page`
+- `profile-edit-button`
+- `profile-display-name-input`
+- `profile-bio-input`
+- `profile-avatar-input`
+- `profile-save-button`
+- `profile-display-name`
+- `timeline-feed`
+- `conversation-page`
 
-**Start route**: `/posts/:postId`
-**Preconditions**: Signed in as `bob`; seeded target post is available
+**Verification intent**:
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 1 | `conversation-target` | Observe target post | Target post is visible |
-| 2 | `reply-composer-input` | Enter valid reply text | Draft text is visible |
-| 3 | `reply-submit-button` | Click submit | Composer enters pending state |
-| 4 | `conversation-replies` | Observe reply list | New reply appears in the conversation replies collection |
-| 4a | `conversation-thread-line` | Observe threading | A vertical thread line connects the parent avatar to the new reply avatar |
-| 5 | `post-body-<postId>` | Observe new reply body | Saved reply text is visible in its reply card |
+- Prove a valid display name, bio, and avatar save succeeds.
+- Prove the updated identity appears on:
+  - Bob's own profile
+  - places on `/` that already show Bob's identity
+  - direct-post/conversation surfaces where Bob's identity is shown
 
-### UF-04 Edit and Delete Own Reply
+### UF-02 Invalid Profile Edit Rejection
 
-**Start route**: `/posts/:postId`
-**Preconditions**: Signed in as `bob`; Bob has a visible reply in this conversation
+**Story**: US1  
+**Start route**: `/u/bob`  
+**Trigger**: Bob submits an invalid display name, bio, or avatar  
+**Route transitions**:
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 1 | `post-edit-button-<replyId>` | Click edit on Bob's reply | Reply enters inline edit state |
-| 2 | `post-editor-body-input-<replyId>` | Replace text with valid edited reply text | Updated draft is visible |
-| 3 | `post-editor-save-button-<replyId>` | Click save | Save enters pending state |
-| 4 | `post-edited-badge-<replyId>` | Observe saved reply | Edited indicator becomes visible |
-| 5 | `post-delete-button-<replyId>` | Click delete | Delete confirmation appears |
-| 6 | `confirm-dialog-confirm` | Confirm delete | Delete enters pending state |
-| 7 | `deleted-reply-placeholder-<replyId>` | Observe conversation | Deleted reply remains as a non-interactive placeholder |
+- `/u/bob` read state -> `/u/bob` edit state
+- `/u/bob` edit state -> `/u/bob` edit state with validation errors
 
-### UF-05 Unavailable Parent Conversation
+**Visible states**:
 
-**Start route**: `/posts/:postId`
-**Preconditions**: Signed in as `bob`; seeded route resolves to an unavailable parent with at least one visible reply
+- edit state
+- inline validation error state
+- preserved draft state
+- unchanged saved identity state
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 1 | `conversation-target-unavailable` | Observe target region | Route stays open and shows the unavailable-parent placeholder |
-| 2 | `conversation-replies` | Observe reply list | Any still-visible replies remain visible below the placeholder |
-| 3 | `reply-composer` | Observe availability | Reply composer is hidden or unavailable according to target availability rules |
+**Required UI elements**:
 
-### UF-06 Notification Opens Available Destination
+- `profile-display-name-input`
+- `profile-bio-input`
+- `profile-save-button`
+- `profile-form-status`
+- `profile-display-name`
+- `profile-avatar-image` or `profile-avatar-fallback`
 
-**Start route**: `/notifications`
-**Preconditions**: Signed in as `bob`; at least one unread notification has an available destination
+**Verification intent**:
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 0 | `nav-notifications-badge` | Observe navigation | Unread badge shows a count (e.g. "1") |
-| 1 | `notifications-list` | Observe list | At least one unread notification is visible |
-| 2 | `notification-unread-indicator-<notificationId>` | Observe unread state | Notification has a light-blue background and blue accent bar |
-| 3 | `notification-item-<notificationId>` | Open the notification destination | App navigates to the route associated with the notification |
-| 4 | Destination surface | Observe route content | The relevant profile or conversation route loads successfully |
-| 5 | `nav-notifications-link` | Return to notifications | Route changes back to `/notifications` |
-| 6 | `notification-read-indicator-<notificationId>` | Observe updated state | The opened notification background is now neutral |
-| 7 | `nav-notifications-badge` | Observe navigation | Unread badge count has decreased or is hidden if no more unread items remain |
+- Prove invalid saves do not mutate the persisted profile.
+- Prove the user gets clear validation feedback.
+- Prove in-progress edits remain available where possible after failure.
 
-### UF-07 Notifications List-Only View
+### UF-03 Avatar Fallback After Missing Custom Avatar
 
-**Start route**: `/notifications`
-**Preconditions**: Signed in as `bob`; at least one unread notification exists
+**Story**: US1  
+**Start route**: `/u/alice` or `/u/bob` depending on seeded fallback case  
+**Trigger**: The viewed user has no custom avatar or the custom avatar is
+unavailable  
+**Route transitions**:
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 1 | `notifications-list` | Observe list | Notifications route loads successfully |
-| 2 | `notification-unread-indicator-<notificationId>` | Observe one unread item | Unread state is visible |
-| 3 | `notifications-heading` | Remain on the list without opening a destination | No destination route is opened |
-| 4 | `notification-unread-indicator-<notificationId>` | Re-check the same item | The notification remains unread |
+- `/u/:username` -> `/`
+- `/` -> `/posts/:postId`
 
-### UF-08 Home Timeline Automatic Continuation
+**Visible states**:
 
-**Start route**: `/`
-**Preconditions**: Signed in as `bob`; home timeline has more than one page of results
+- fallback avatar on profile
+- fallback avatar on timeline identity surface
+- fallback avatar on conversation identity surface
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 1 | `timeline-feed` | Observe initial page | First page of posts is visible |
-| 2 | `collection-continuation-sentinel` | Scroll until the last currently visible item is the continuation point | Automatic continuation begins without a full route reload |
-| 3 | `collection-continuation-loading` | Observe loading state | Continuation loading is explicit and visible |
-| 4 | `timeline-feed` | Observe appended items | Additional posts appear below the initial page without removing visible content |
+**Required UI elements**:
 
-### UF-09 Profile Continuation Retry
+- `profile-avatar-fallback`
+- `post-avatar-<postId>`
+- `conversation-page`
 
-**Start route**: `/u/alice`
-**Preconditions**: Signed in as `bob`; profile has additional pages; test harness can force one continuation failure
+**Verification intent**:
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 1 | `profile-posts` | Observe initial posts | Initial page is visible |
-| 2 | `collection-continuation-sentinel` | Scroll to continuation point | Automatic continuation attempt begins |
-| 3 | `collection-continuation-error` | Observe failure state | Existing visible posts remain on screen and retry is offered |
-| 4 | `collection-continuation-retry` | Click retry | Continuation re-runs from the same route |
-| 5 | `profile-posts` | Observe collection | Additional posts append after retry succeeds |
+- Prove the same generated default avatar is used instead of a broken image on
+  all in-scope identity surfaces.
 
-### UF-10 Conversation End of List
+### UF-04 Create Reply in Conversation
 
-**Start route**: `/posts/:postId`
-**Preconditions**: Signed in as `bob`; conversation has multiple reply pages and a deterministic final page
+**Story**: US2  
+**Start route**: `/posts/:postId`  
+**Trigger**: Bob submits a valid reply on an available conversation target  
+**Route transitions**:
 
-| Step | UI element | Interaction | Expected result |
-|------|------------|-------------|-----------------|
-| 1 | `conversation-replies` | Observe initial replies | First reply page is visible |
-| 2 | `collection-continuation-sentinel` | Continue scrolling until no more replies remain | Additional replies load as needed |
-| 3 | `collection-end-state` | Observe final collection state | Explicit end-of-list state is visible and no further continuation occurs |
+- `/posts/:postId` read state -> `/posts/:postId` reply pending state
+- `/posts/:postId` reply pending state -> `/posts/:postId` updated conversation
+
+**Visible states**:
+
+- conversation target available
+- reply composer idle
+- reply submit pending
+- reply saved in conversation list
+
+**Required UI elements**:
+
+- `conversation-page`
+- `conversation-target`
+- `reply-composer`
+- `reply-composer-input`
+- `reply-submit-button`
+- `conversation-replies`
+
+**Verification intent**:
+
+- Prove a valid reply is created from the direct-post route and appears in the
+  visible conversation with author identity and timestamp.
+
+### UF-05 Edit and Delete Own Reply
+
+**Story**: US2  
+**Start route**: `/posts/:postId`  
+**Trigger**: Bob edits and then deletes his own reply  
+**Route transitions**:
+
+- `/posts/:postId` reply read state -> inline edit state
+- `/posts/:postId` inline edit state -> saved edited state
+- `/posts/:postId` saved edited state -> delete confirmation -> placeholder
+  state
+
+**Visible states**:
+
+- reply inline edit
+- reply pending save
+- edited reply state
+- delete confirmation state
+- deleted placeholder state
+
+**Required UI elements**:
+
+- `post-edit-button-<replyId>`
+- `post-editor-body-input-<replyId>`
+- `post-editor-save-button-<replyId>`
+- `post-delete-button-<replyId>`
+- `confirm-dialog-confirm`
+- `deleted-reply-placeholder-<replyId>`
+
+**Verification intent**:
+
+- Prove authors can edit and delete only their own reply.
+- Prove deleted replies remain as non-interactive placeholders in the
+  conversation instead of disappearing.
+
+### UF-06 Unavailable Parent Conversation
+
+**Story**: US2  
+**Start route**: `/posts/:postId`  
+**Trigger**: The conversation target is unavailable when the route loads  
+**Route transitions**:
+
+- `/posts/:postId` -> `/posts/:postId` unavailable-parent state
+
+**Visible states**:
+
+- unavailable parent placeholder
+- still-visible replies below the placeholder
+- composer unavailable or hidden
+
+**Required UI elements**:
+
+- `conversation-target-unavailable`
+- `conversation-replies`
+- `reply-composer-unavailable` or absence of `reply-submit-button`
+
+**Verification intent**:
+
+- Prove the route stays open and truthful.
+- Prove visible replies remain accessible in context.
+
+### UF-07 Non-Author Reply Controls Are Absent
+
+**Story**: US2  
+**Start route**: `/posts/:postId`  
+**Trigger**: Bob views a reply authored by someone else  
+**Route transitions**:
+
+- `/posts/:postId` -> `/posts/:postId`
+
+**Visible states**:
+
+- reply visible
+- no edit control
+- no delete control
+
+**Required UI elements**:
+
+- `post-card-<replyId>`
+- absence of `post-edit-button-<replyId>`
+- absence of `post-delete-button-<replyId>`
+
+**Verification intent**:
+
+- Prove non-authors are not offered reply edit/delete actions.
+
+### UF-08 Open Available Notification Destination
+
+**Story**: US3  
+**Start route**: `/notifications`  
+**Trigger**: Bob selects an unread notification with an available destination  
+**Route transitions**:
+
+- `/notifications` -> destination route (`/u/:username` or `/posts/:postId`)
+- destination route -> `/notifications`
+
+**Visible states**:
+
+- unread notification list state
+- destination loading state
+- available destination success state
+- returned notification row now read
+
+**Required UI elements**:
+
+- `notifications-list`
+- `notification-item-<notificationId>`
+- `notification-unread-indicator-<notificationId>`
+- `notification-read-indicator-<notificationId>`
+- `notifications-empty-state` when not applicable
+
+**Verification intent**:
+
+- Prove selecting one notification opens the correct available destination.
+- Prove only the selected notification becomes read.
+
+### UF-09 Open Unavailable Notification Destination
+
+**Story**: US3  
+**Start route**: `/notifications`  
+**Trigger**: Bob selects an unread notification whose target is unavailable  
+**Route transitions**:
+
+- `/notifications` -> `/notifications/:notificationId/unavailable`
+  or equivalent unavailable destination state
+- unavailable destination -> `/notifications`
+
+**Visible states**:
+
+- unread notification list state
+- destination unavailable state
+- selected row now read after open
+
+**Required UI elements**:
+
+- `notification-item-<notificationId>`
+- `notification-unread-indicator-<notificationId>`
+- `notification-unavailable-destination`
+- `notification-read-indicator-<notificationId>`
+
+**Verification intent**:
+
+- Prove unavailable targets still route to a clear, truthful destination for
+  that same notification.
+- Prove the selected notification is marked read only after the destination-open
+  action.
+
+### UF-10 Notifications List-Only View
+
+**Story**: US3  
+**Start route**: `/notifications`  
+**Trigger**: Bob opens the notifications list and leaves without selecting an
+item  
+**Route transitions**:
+
+- `/notifications` -> `/`
+  or another route without any notification destination open
+
+**Visible states**:
+
+- unread notification visible before leaving
+- same notification remains unread after returning
+
+**Required UI elements**:
+
+- `notifications-list`
+- `notification-unread-indicator-<notificationId>`
+- `nav-home-link`
+
+**Verification intent**:
+
+- Prove viewing the list alone never marks notifications read.
+
+### UF-11 Home Timeline Automatic Continuation
+
+**Story**: US4  
+**Start route**: `/`  
+**Trigger**: Bob scrolls until the last currently visible timeline item is the
+continuation point  
+**Route transitions**:
+
+- `/` -> `/` continuation loading state -> `/` appended state
+
+**Visible states**:
+
+- initial timeline page
+- continuation loading indicator
+- appended timeline page
+
+**Required UI elements**:
+
+- `timeline-feed`
+- `collection-continuation-sentinel`
+- `collection-continuation-loading`
+
+**Verification intent**:
+
+- Prove continuation starts automatically at the continuation point and appends
+  older items without removing or duplicating visible ones.
+
+### UF-12 Profile Continuation Failure and Retry
+
+**Story**: US4  
+**Start route**: `/u/alice`  
+**Trigger**: Continuation fails once on the profile post list, then the user
+retries  
+**Route transitions**:
+
+- `/u/alice` -> `/u/alice` continuation error state
+- `/u/alice` continuation error state -> `/u/alice` retry pending state
+- `/u/alice` retry pending state -> `/u/alice` appended state
+
+**Visible states**:
+
+- initial profile posts
+- continuation failure with retry
+- preserved visible items during failure
+- successful append after retry
+
+**Required UI elements**:
+
+- `profile-posts`
+- `collection-continuation-sentinel`
+- `collection-continuation-error`
+- `collection-continuation-retry`
+
+**Verification intent**:
+
+- Prove failure does not erase, reorder, or duplicate the visible list.
+- Prove retry resumes from the failed continuation point.
+
+### UF-13 Conversation End-of-List State
+
+**Story**: US4  
+**Start route**: `/posts/:postId`  
+**Trigger**: Bob keeps scrolling through replies until no additional pages
+remain  
+**Route transitions**:
+
+- `/posts/:postId` -> repeated continuation appends -> `/posts/:postId`
+  explicit end state
+
+**Visible states**:
+
+- initial replies page
+- one or more continuation loading states
+- explicit end-of-list state
+
+**Required UI elements**:
+
+- `conversation-replies`
+- `collection-continuation-sentinel`
+- `collection-end-state`
+
+**Verification intent**:
+
+- Prove end-of-list is explicit and distinct from initial empty or failure
+  states.

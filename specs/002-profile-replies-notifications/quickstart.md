@@ -2,165 +2,196 @@
 
 ## Purpose
 
-This quickstart extends the MVP runbook for the Round 2 planning bundle. The
-backend ASP.NET Core app remains the single runtime entry point, the frontend
-still builds separately and is served from backend `wwwroot`, and Round 2
-verification adds profile editing, conversation replies, notifications, and
-automatic continuation states.
+This quickstart extends the MVP runbook for the Round 2 planning bundle. It is
+intended to validate that the implementation matches the clarified spec before
+task generation and delivery.
 
 ## Prerequisites
 
 - .NET 10 SDK
-- Node.js and npm compatible with the existing Vite toolchain
-- SQLite available through the application runtime
+- Node.js/npm compatible with the current Vite setup
+- SQLite available through the backend runtime
 
-## Expected Repository Layout
+## Repository Layout
 
-- Backend project: `backend/src/Postly.Api`
-- Frontend app source: `frontend/`
+- Backend runtime: `backend/src/Postly.Api`
+- Frontend source: `frontend/`
 - Backend tests: `backend/tests/`
-- Playwright tests: `frontend/tests/e2e/`
+- Frontend e2e tests: `frontend/tests/e2e/`
 - Feature docs: `specs/002-profile-replies-notifications/`
 
-## Local Startup Workflow
+## Local Setup
 
-1. Restore and install dependencies:
+1. Restore backend dependencies.
 
-   ```bash
-   dotnet restore Postly.sln
-   cd frontend
-   npm ci
-   cd ..
-   ```
+```bash
+dotnet restore Postly.sln
+```
 
-2. Build frontend assets before starting the backend-hosted app:
+2. Install frontend dependencies.
 
-   ```bash
-   cd frontend
-   npm run build
-   cd ..
-   ```
+```bash
+cd frontend
+npm ci
+cd ..
+```
 
-3. Start the full application through the backend entry point:
+3. Build the frontend for backend-hosted serving.
 
-   ```bash
-   dotnet run --project backend/src/Postly.Api/Postly.Api.csproj
-   ```
+```bash
+cd frontend
+npm run build
+cd ..
+```
 
-4. Open the backend base URL and verify the app is being served by the backend:
+4. Start the backend entry point.
 
-   - `/signin`
-   - `/`
-   - `/u/alice`
-   - `/posts/{seededPostId}`
-   - `/notifications`
+```bash
+dotnet run --project backend/src/Postly.Api/Postly.Api.csproj
+```
 
-## Seeded Non-Production Data Expectations
+## Deterministic Seed Expectations
 
-Round 2 assumes the deterministic non-production seed now includes:
+The non-production seed should provide:
 
 - users `bob`, `alice`, and `charlie`
-- at least one Bob-authored profile and conversation identity surface
-- at least one available conversation with replies
-- at least one unavailable-parent conversation scenario
-- unread notifications for `bob` covering follow, like, and reply events
-- enough timeline, profile, and conversation items to exercise continuation
-  beyond the initial page
+- Bob-owned profile data at `/u/bob`
+- at least one Bob identity surface on `/`
+- at least one conversation where Bob identity appears on `/posts/:postId`
+- one available conversation with multi-page replies
+- one unavailable-parent conversation with at least one visible reply
+- unread notifications for Bob with:
+  - one available destination
+  - one unavailable destination
+- enough timeline, profile-post, and conversation-reply data to hit both
+  continuation retry and explicit end states
 
 ## Manual Validation Paths
 
-### 1. Profile Edit and Avatar Replacement
+### 1. Profile Editing and Identity Reflection
 
 - Sign in as `bob`
 - Open `/u/bob`
-- Enter edit mode, update display name and bio, replace the avatar, and save
-- Verify the updated identity is visible on:
+- Enter edit mode
+- Save:
+  - a valid trimmed display name
+  - a valid bio or blank bio
+  - a replacement avatar accepted by the backend
+- Verify the updated identity appears on:
   - `/u/bob`
-  - `/`
-  - a conversation route under `/posts/:postId` where `bob` appears
+  - `/` where Bob identity is already shown
+  - `/posts/:postId` where Bob identity is shown
+- Attempt an invalid display name or bio and verify the saved identity does not
+  change
 
-### 2. Reply and Conversation Management
+### 2. Replies and Conversation States
 
-- Open a seeded conversation at `/posts/:postId`
+- Open an available `/posts/:postId`
 - Create a reply as `bob`
-- Edit that reply and verify the edited state
-- Delete that reply and verify a non-interactive placeholder remains visible
-- Open a seeded unavailable-parent conversation route and verify the route stays
-  open with a placeholder target plus any still-visible replies
+- Edit the reply as `bob`
+- Delete the reply and verify a non-interactive placeholder remains
+- Verify Bob cannot edit/delete another user's reply
+- Open the seeded unavailable-parent conversation and verify:
+  - the route stays open
+  - the parent placeholder is shown
+  - visible replies remain accessible
 
 ### 3. Notifications Lifecycle
 
 - Open `/notifications`
-- Confirm unread items are visible
-- Leave the list without opening an item and verify unread state remains
-- Open one notification and verify:
-  - the app navigates to the relevant profile or conversation route
-  - only the opened notification becomes read
-- Open a notification whose target is unavailable and verify the destination
-  still resolves to a clear unavailable state
+- Verify unread and read rows are visually distinct
+- Leave without opening any notification and verify unread state is unchanged
+- Open one available-destination notification and verify:
+  - navigation reaches the correct profile or conversation surface
+  - only that selected notification becomes read
+- Open one unavailable-destination notification and verify:
+  - the app shows the notification-specific unavailable destination
+  - only that selected notification becomes read
 
 ### 4. Automatic Continuation
 
-- On `/`, scroll until the last currently visible timeline item becomes the
-  continuation point and verify more content loads automatically
-- On `/u/alice`, trigger a continuation failure through the test harness and
-  verify visible content remains plus a retry action appears
-- On `/posts/:postId`, continue loading replies until the explicit end-of-list
-  state appears
+- On `/`, scroll until the last currently visible item becomes the continuation
+  point and verify more posts append automatically
+- On `/u/alice`, force one continuation failure and verify:
+  - currently visible posts remain visible
+  - retry appears near the failure point
+  - retry appends items successfully
+- On `/posts/:postId`, continue through replies until `collection-end-state`
+  appears and verify it is distinct from an initial empty state
 
 ## Planned Automated Validation
 
-The intended Round 2 validation stack remains layered:
+### Backend unit tests
 
-1. Backend unit tests for reply rules, notification generation, profile
-   validation, and cursor helpers
+```bash
+dotnet test backend/tests/Postly.Api.UnitTests/Postly.Api.UnitTests.csproj --configuration Release --no-build
+```
 
-   ```bash
-   dotnet test backend/tests/Postly.Api.UnitTests/Postly.Api.UnitTests.csproj --configuration Release --no-build
-   ```
+Focus:
 
-2. Backend contract tests for new or changed endpoints
+- profile validation and owner-only authorization
+- avatar fallback projection rules
+- reply validation and placeholder transitions
+- notification creation and selected-item read transitions
+- cursor helper and continuation ordering behavior
 
-   ```bash
-   dotnet test backend/tests/Postly.Api.ContractTests/Postly.Api.ContractTests.csproj --configuration Release --no-build
-   ```
+### Backend contract tests
 
-3. Backend integration tests for end-to-end API behavior across replies,
-   notifications, and profile edits
+```bash
+dotnet test backend/tests/Postly.Api.ContractTests/Postly.Api.ContractTests.csproj --configuration Release --no-build
+```
 
-   ```bash
-   dotnet test backend/tests/Postly.Api.IntegrationTests/Postly.Api.IntegrationTests.csproj --configuration Release
-   ```
+Focus:
 
-4. Frontend component and route-state tests
+- profile update and avatar endpoints
+- conversation and reply endpoints
+- notification list and open endpoints
+- continuation response shape and ProblemDetails outcomes
 
-   ```bash
-   cd frontend
-   npm run test:ci
-   cd ..
-   ```
+### Backend integration tests
 
-5. Backend-hosted Playwright flows for Round 2 user stories
+```bash
+dotnet test backend/tests/Postly.Api.IntegrationTests/Postly.Api.IntegrationTests.csproj --configuration Release
+```
 
-   ```bash
-   cd frontend
-   npm run test:e2e
-   cd ..
-   ```
+Focus:
 
-## Build, Publish, and Compatibility Notes
+- profile identity reflection across read models
+- reply create/edit/delete plus unavailable-parent reads
+- notification generation and destination resolution
+- retry-safe continuation behavior
 
-- The backend remains the single runtime entry point and serves the built SPA
-  from `backend/src/Postly.Api/wwwroot`.
-- A fresh frontend build is still required before expecting backend-hosted UI
-  changes to appear locally.
-- No separate frontend runtime or new infrastructure tier is introduced in
-  Round 2.
+### Frontend component tests
 
-## Schema and Rollback Notes
+```bash
+cd frontend
+npm run test:ci
+cd ..
+```
 
-- All persistence changes for replies, avatar state, and notifications should
-  ship as EF Core migrations committed with the implementation.
-- Roll-forward remains the default fix strategy.
-- Any destructive change to existing data shape should include explicit rollback
-  notes in the implementation PR before shipping.
+Focus:
+
+- profile edit state variants
+- conversation placeholder/unavailable states
+- notifications list and destination-open transitions
+- shared continuation controller behavior
+
+### Playwright e2e tests
+
+```bash
+cd frontend
+npm run test:e2e
+cd ..
+```
+
+Focus:
+
+- all primary and recovery flows from `user-flows.md`
+
+## Migration and Rollback Notes
+
+- Round 2 persistence changes should ship through EF Core migrations committed
+  with the implementation.
+- Roll-forward remains the default recovery strategy.
+- Any migration affecting existing posts or identity projection should document
+  rollback constraints in the implementation PR before merge.

@@ -1,12 +1,10 @@
 # Data Model: Postly Round 2
 
-## Overview
+## Purpose
 
-Round 2 extends the MVP data model without replacing its core structure.
-SQLite remains the system of record, EF Core remains the schema and migration
-tool, and the smallest viable changes are applied to support profile editing,
-avatar replacement, replies, notifications, and automatic continuation on
-existing content collections.
+This document captures the Round 2 entity changes and read-model impact needed
+for profile editing, avatar replacement, replies, notifications, and
+continuation loading.
 
 ## Entity Changes
 
@@ -15,27 +13,21 @@ existing content collections.
 | Field | Type | Rules / Notes |
 |-------|------|---------------|
 | `Id` | `long` | Existing primary key |
-| `Username` | `string` | Existing trimmed, user-facing value |
-| `NormalizedUsername` | `string` | Existing case-insensitive unique lookup |
-| `DisplayName` | `string` | Required; trimmed; 1-50 chars |
-| `Bio` | `string?` | Optional; blank allowed; max 160 chars |
-| `PasswordHash` | `string` | Existing ASP.NET password hasher output |
+| `Username` | `string` | Existing display/login identifier |
+| `NormalizedUsername` | `string` | Existing unique lookup key |
+| `DisplayName` | `string` | Trimmed; required; 1-50 chars after trimming |
+| `Bio` | `string?` | Blank allowed; max 160 chars |
+| `PasswordHash` | `string` | Existing password hasher output |
 | `CreatedAtUtc` | `DateTimeOffset` | Existing immutable timestamp |
-| `AvatarContentType` | `string?` | Present only when a custom avatar exists |
-| `AvatarBytes` | `byte[]?` | Persisted custom avatar payload for current avatar only |
-| `AvatarUpdatedAtUtc` | `DateTimeOffset?` | Last replacement timestamp for cache invalidation/projection freshness |
+| `AvatarContentType` | `string?` | Null when no current custom avatar exists |
+| `AvatarBytes` | `byte[]?` | Current custom avatar payload only |
+| `AvatarUpdatedAtUtc` | `DateTimeOffset?` | Updated on successful avatar replacement |
 
-**Derived/read-model values**
+**Rules**
 
-- `HasCustomAvatar` derives from avatar persistence fields.
-- `AvatarUrl` is a backend-owned read-model projection used by the frontend.
-- `DefaultAvatar` remains the generated fallback derived from identity when no
-  custom avatar exists.
-
-### Session
-
-No Round 2 schema changes are required. Existing persisted cookie-backed
-sessions remain authoritative for authentication.
+- Only the signed-in owner can mutate `DisplayName`, `Bio`, or avatar fields.
+- If custom avatar data is absent or unavailable, the read model must expose the
+  generated default avatar instead of a broken image state.
 
 ### Post
 
@@ -43,211 +35,210 @@ sessions remain authoritative for authentication.
 |-------|------|---------------|
 | `Id` | `long` | Existing primary key |
 | `AuthorId` | `long` | Existing FK to `UserAccount` |
-| `Body` | `string` | Required for active posts/replies; 1-280 chars |
+| `Body` | `string` | Required for active posts/replies; existing 1-280 char rules |
 | `CreatedAtUtc` | `DateTimeOffset` | Existing publish timestamp |
 | `EditedAtUtc` | `DateTimeOffset?` | Existing edit timestamp |
-| `ReplyToPostId` | `long?` | Null for top-level posts; FK to parent target for replies |
-| `DeletedAtUtc` | `DateTimeOffset?` | Null for active items; used for conversation-safe placeholder behavior |
+| `ReplyToPostId` | `long?` | Null for top-level posts; parent target ID for replies |
+| `DeletedAtUtc` | `DateTimeOffset?` | Null for active items; set when reply is deleted and should render as placeholder |
 
-**Derived/read-model values**
+**Rules**
 
-- `IsReply` is `ReplyToPostId != null`.
-- `IsDeleted` is `DeletedAtUtc != null`.
-- `ReplyCount` is projected for conversation-aware views where useful.
-- `CanEdit`, `CanDelete`, and `CanReply` remain request-context values rather
-  than stored columns.
-
-### Follow
-
-No schema changes are required, but successful follow creation now becomes a
-notification trigger for the followed user.
-
-### Like
-
-No schema changes are required, but successful like creation now becomes a
-notification trigger for the post author when business rules allow it.
+- Replies are posts with `ReplyToPostId != null`.
+- Only the author may edit or delete a reply.
+- Deleting a reply does not remove its conversation slot; it moves the reply to
+  placeholder state.
+- Existing visibility/access rules for posts remain the baseline rules for
+  replies.
 
 ### Notification
 
 | Field | Type | Rules / Notes |
 |-------|------|---------------|
 | `Id` | `long` | Primary key |
-| `RecipientUserId` | `long` | FK to the user receiving the notification |
-| `ActorUserId` | `long` | FK to the user who caused the event |
-| `Kind` | `string` | Enum-like value: `follow`, `like`, `reply` |
-| `PostId` | `long?` | Optional FK to the related post or conversation target |
-| `ReplyPostId` | `long?` | Optional FK to the created reply when kind is `reply` |
-| `ProfileUserId` | `long?` | Optional FK for profile-oriented destinations such as follows |
-| `CreatedAtUtc` | `DateTimeOffset` | Notification creation time |
-| `ReadAtUtc` | `DateTimeOffset?` | Null while unread; set only after destination-open behavior marks it read |
+| `RecipientUserId` | `long` | FK to receiving user |
+| `ActorUserId` | `long` | FK to acting user |
+| `Kind` | `string` | `follow`, `like`, or `reply` |
+| `ProfileUserId` | `long?` | Set for profile-oriented destinations such as follows |
+| `PostId` | `long?` | Set for post/conversation-related destinations |
+| `ReplyPostId` | `long?` | Set when `Kind=reply` and the created reply is relevant to projections |
+| `CreatedAtUtc` | `DateTimeOffset` | Creation timestamp |
+| `ReadAtUtc` | `DateTimeOffset?` | Null until the selected notification is opened |
 
-**Derived/read-model values**
+**Rules**
 
-- `IsRead` is `ReadAtUtc != null`.
-- `DestinationRoute` is projected from the stored target fields.
-- `DestinationState` resolves as `available` or `unavailable` at read time.
+- Notifications are created only for successful follow/like/reply events when
+  actor and recipient differ.
+- Viewing the notifications list alone does not change `ReadAtUtc`.
+- Opening one notification changes only that notification's `ReadAtUtc`.
+
+### Follow
+
+No schema change required. Successful follow creation may create a notification
+for the followed user.
+
+### Like
+
+No schema change required. Successful like creation may create a notification
+for the liked post owner when actor and recipient differ.
+
+### Session
+
+No Round 2 schema change required. Existing persisted sessions remain the auth
+source of truth.
 
 ## Relationships
 
-- `UserAccount 1 -> many Session`
 - `UserAccount 1 -> many Post` as author
-- `Post 1 -> many Post` through `ReplyToPostId` for replies
-- `UserAccount many -> many UserAccount` through `Follow`
-- `UserAccount many -> many Post` through `Like`
+- `Post 1 -> many Post` via `ReplyToPostId` for replies
 - `UserAccount 1 -> many Notification` as recipient
 - `UserAccount 1 -> many Notification` as actor
-- `Post 1 -> many Notification` for post/reply-related destinations
+- `UserAccount many -> many UserAccount` via `Follow`
+- `UserAccount many -> many Post` via `Like`
 
 ## Validation Rules
 
 ### Profile Identity
 
-- `DisplayName` is trimmed before validation and must contain between 1 and 50
-  characters after trimming.
-- `Bio` may be blank but must not exceed 160 characters.
-- Avatar replacement is valid for Round 2 only when the supplied replacement is
-  accepted as the user's current profile avatar and the previous avatar, if any,
-  is no longer treated as current.
-- Only the signed-in owner may mutate their profile identity or avatar.
+- `DisplayName` is trimmed before validation and must be 1-50 characters after
+  trimming.
+- `Bio` may be blank and must be at most 160 characters.
+- Avatar replacement succeeds only when Postly accepts the uploaded image as the
+  user's current avatar.
+- Failed validation or processing leaves the previously saved profile identity
+  unchanged.
 
-### Post and Reply Rules
+### Replies
 
-- Top-level posts still use the existing body validation rules.
-- Replies use the same body validation rules as posts: trimmed body length must
-  stay between 1 and 280 characters.
-- Only the author may edit or delete their own reply.
-- Deleting a reply does not remove its conversation slot; instead it transitions
-  to placeholder state through `DeletedAtUtc`.
-- Reply visibility follows the same viewer access rules as the parent product's
-  post visibility model unless Round 2 explicitly changes it, which it does not.
+- Reply bodies use the same body validation rules as posts.
+- Reply creation fails if the target post is unavailable at commit time.
+- Reply edits and deletes are author-only.
+- Deleted replies project as unavailable placeholders in conversation reads.
 
-### Notification Rules
+### Notifications
 
-- Notifications are created only for successful follow, like, and reply events.
-- Viewing the notifications list alone does not change `ReadAtUtc`.
-- `ReadAtUtc` is set only when the user opens the associated destination from
-  the notification flow.
-- Opening one notification must not change the read state of other notifications.
+- Only follow, like, and reply activity can create Round 2 notifications.
+- Self-initiated actions do not create notifications for the same user.
+- Destination state is evaluated when the notification-open flow runs.
 
-### Continuation Rules
+### Continuation
 
-- Timeline, profile, and conversation collections continue to use newest-first
-  ordering with a stable tie-breaker.
-- `NextCursor` remains opaque to the frontend.
-- Continuation failures must be retry-safe; repeated requests with the same
-  cursor must not corrupt ordering or duplicate persisted state.
+- Timeline, profile posts, and conversation replies all sort newest-first using
+  the existing stable cursor approach.
+- `nextCursor = null` means the list is exhausted.
+- Repeating a request with the same cursor must be safe after a transient
+  failure.
+
+## Read Models
+
+### ProfileView
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `username` | `string` | Existing |
+| `displayName` | `string` | Updated by US1 |
+| `bio` | `string?` | Updated by US1 |
+| `avatarUrl` | `string?` | Current custom avatar URL when available |
+| `hasCustomAvatar` | `boolean` | True only when a custom avatar exists and is usable |
+| `isSelf` | `boolean` | Existing route behavior |
+| `isFollowedByViewer` | `boolean` | Existing |
+| `followerCount` | `number` | Existing |
+| `followingCount` | `number` | Existing |
+| `posts` | `PostSummary[]` | Initial profile posts page |
+| `nextCursor` | `string?` | Continuation cursor for profile posts |
+
+### PostSummary
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | `long` | Existing |
+| `authorUsername` | `string?` | Null only if projection rules require it for unavailable items |
+| `authorDisplayName` | `string?` | Identity projection for cross-surface consistency |
+| `authorAvatarUrl` | `string?` | Avatar metadata with fallback behavior applied by the client |
+| `body` | `string?` | Null or omitted for deleted placeholder content |
+| `createdAtUtc` | `DateTimeOffset` | Existing |
+| `editedAtUtc` | `DateTimeOffset?` | Existing |
+| `isReply` | `boolean` | Derived from `ReplyToPostId` |
+| `replyToPostId` | `long?` | Parent target when reply |
+| `state` | `string` | `available` or `deleted` for Round 2 conversation rendering |
+| `canEdit` | `boolean` | Viewer-specific |
+| `canDelete` | `boolean` | Viewer-specific |
+
+### ConversationView
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `target.state` | `string` | `available` or `unavailable` |
+| `target.post` | `PostSummary?` | Present only when target is available |
+| `replies` | `PostSummary[]` | Includes deleted placeholders when applicable |
+| `nextCursor` | `string?` | Continuation cursor for more replies |
+
+### NotificationSummary
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | `long` | Notification ID |
+| `kind` | `string` | `follow`, `like`, `reply` |
+| `actorUsername` | `string` | Actor identity |
+| `actorDisplayName` | `string` | Actor identity |
+| `actorAvatarUrl` | `string?` | Actor avatar metadata |
+| `createdAtUtc` | `DateTimeOffset` | Timestamp |
+| `isRead` | `boolean` | Derived from `ReadAtUtc` |
+| `destinationKind` | `string` | `profile`, `post`, or `conversation` |
+| `destinationRoute` | `string` | Target route to open when available |
+| `destinationState` | `string` | `available` or `unavailable` |
+
+### NotificationOpenResult
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `notification` | `NotificationSummary` | Selected notification after read transition |
+| `destination.route` | `string` | Route to navigate to |
+| `destination.kind` | `string` | `profile`, `post`, `conversation`, or `notification-unavailable` |
+| `destination.state` | `string` | `available` or `unavailable` |
 
 ## Indexing Strategy
 
 - Keep the existing unique index on `UserAccount.NormalizedUsername`.
-- Keep the existing post indexes for newest-first timeline/profile reads.
+- Keep existing timeline/profile ordering indexes.
 - Add index on `Post.ReplyToPostId, Post.CreatedAtUtc DESC, Post.Id DESC` for
-  conversation reply pagination.
-- Add index on `Post.DeletedAtUtc` only if query plans show it is needed for
-  placeholder-heavy reads; do not add it speculatively.
+  reply pagination.
 - Add index on `Notification.RecipientUserId, Notification.CreatedAtUtc DESC, Notification.Id DESC`.
 - Add supporting index on `Notification.RecipientUserId, Notification.ReadAtUtc`.
-- Keep existing session, follow, and like indexes unchanged unless migration
-  work reveals a concrete need.
 
 ## State Transitions
 
-### Profile Identity Lifecycle
+### Profile Identity
 
-`Saved Identity -> Editing -> Saved Identity`
+`Saved -> Editing (UI only) -> Saved`
 
-- `Editing` is UI-only until a valid save succeeds.
-- Avatar replacement changes the current avatar in place; Round 2 does not keep
-  version history beyond what normal database history or audit tooling might
-  provide outside product scope.
+- Invalid save returns to `Editing` with errors and preserves draft input where
+  possible.
 
-### Reply Lifecycle
+### Reply
 
-`Published Reply -> Edited Reply -> Edited Reply`
-`Published Reply/Edited Reply -> Deleted Placeholder`
+`Published -> Edited`
+`Published/Edited -> DeletedPlaceholder`
 
-- `Deleted Placeholder` remains addressable in the conversation read model but
-  is non-interactive and does not expose removed content.
+- `DeletedPlaceholder` is non-interactive and carries no deleted body content.
 
-### Notification Lifecycle
+### Notification
 
 `Unread -> Read`
 
-- `Unread`: `ReadAtUtc` is null
-- `Read`: `ReadAtUtc` set after destination-open behavior succeeds
+- Transition occurs only through notification-open behavior.
 
-No archive, dismiss, or delete state is introduced in Round 2.
+## Seed Data Expectations
 
-## Read Models
-
-### PostSummary
-
-Round 2 extends the shared post summary used by timeline, profile, and
-conversation surfaces with:
-
-- `authorAvatarUrl` or equivalent avatar metadata
-- `isReply`
-- `replyToPostId` when applicable
-- `state` with at least `available` and `deleted` for conversation rendering
-
-Existing author, timestamp, like, and ownership fields remain unchanged.
-
-### ProfileView
-
-- Existing profile identity plus:
-  - avatar metadata for current profile avatar
-  - unchanged follower/following counts
-  - paginated post collection using current cursor semantics
-
-### ConversationView
-
-- `target` region with:
-  - `state`: `available` or `unavailable`
-  - `post`: nullable `PostSummary`
-- `replies`: paginated reply collection
-- `nextCursor`: opaque cursor for reply continuation
-
-### NotificationSummary
-
-- `id`
-- `kind`
-- `actor` identity summary
-- `createdAtUtc`
-- `isRead`
-- `destinationKind`
-- `destinationRoute`
-- `destinationState`
-- optional post/profile summary fields needed for user-facing copy
-
-## DataSeed
-
-## Purpose
-
-Round 2 seed data extends the MVP deterministic dataset so Playwright and local
-verification can cover profile edits, reply ownership, notification lifecycle,
-and continuation states without test-only public endpoints.
-
-## Seed Rules
-
-- Existing seeded users `bob`, `alice`, and `charlie` remain deterministic.
-- Seeded profile identity values must obey all normal validation rules.
-- Seeded avatar state may include both a generated-fallback user and a
-  custom-avatar user.
-- Seeded replies must include at least:
-  - one available conversation target
+- `bob`, `alice`, and `charlie` remain deterministic test users.
+- One seeded conversation must have:
+  - an available target
   - one Bob-authored reply
-  - one reply authored by another user
-  - enough replies to require at least one continuation request
-- Seeded notifications for `bob` must include at least one unread notification
-  for each supported kind: follow, like, and reply.
-
-## Flow Coverage Matrix
-
-| Flow / Scenario | Required Seed Preconditions |
-|-----------------|-----------------------------|
-| Profile edit success | `bob` owns `/u/bob`; at least one Bob-authored identity surface exists on home and conversation routes |
-| Profile edit validation | `bob` has a persisted baseline identity that can be compared after failed save |
-| Reply create/edit/delete | One available conversation target exists and `bob` can reply to it |
-| Unavailable parent conversation | One seeded route resolves to an unavailable parent plus at least one still-visible reply |
-| Notification read lifecycle | `bob` has unread notifications with both available and unavailable destinations |
-| Continuation retry/end | Timeline, profile, and conversation collections each contain more than one page of deterministic results |
+  - one non-Bob reply
+  - more than one page of replies
+- One seeded conversation route must resolve to an unavailable parent plus at
+  least one still-visible reply.
+- Bob must have:
+  - at least one unread available-destination notification
+  - at least one unread unavailable-destination notification
+  - at least one home timeline and conversation identity surface that will
+    reflect profile updates
