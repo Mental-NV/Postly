@@ -9,7 +9,7 @@ interface PostEditorProps {
   onCancel: () => void
 }
 
-export function PostEditor({ post, onSave, onCancel }: PostEditorProps) {
+export function PostEditor({ post, onSave, onCancel }: PostEditorProps): React.JSX.Element {
   const [body, setBody] = useState(post.body)
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
@@ -27,7 +27,7 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps) {
     }
   }, [body])
 
-  async function handleSave() {
+  async function handleSave(): Promise<void> {
     if (isEmpty || isOverLimit) return
 
     setIsPending(true)
@@ -51,6 +51,9 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps) {
       className="post-editor-container"
       data-testid="post-editor"
       onClick={(e) => { e.stopPropagation(); }}
+      onKeyDown={(e) => { if (e.key === 'Escape') e.stopPropagation(); }}
+      role="form"
+      tabIndex={-1}
     >
       <textarea
         ref={textareaRef}

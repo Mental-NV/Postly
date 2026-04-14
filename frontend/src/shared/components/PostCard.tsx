@@ -14,7 +14,7 @@ export function PostCard({
   onDelete,
   onLike,
   onUnlike,
-}: PostCardProps) {
+}: PostCardProps): React.JSX.Element {
   return (
     <div
       data-testid="post-card"

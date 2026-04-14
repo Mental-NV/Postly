@@ -8,11 +8,11 @@ interface MainLayoutProps {
   children: ReactNode
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
+export function MainLayout({ children }: MainLayoutProps): React.JSX.Element {
   const navigate = useNavigate()
   const { session, isAuthenticated } = useAuth()
 
-  const handleSignOut = () => {
+  const handleSignOut = (): void => {
     // Basic sign out logic - clear local storage/session and redirect
     localStorage.removeItem('token') // Assuming a token-based system
     void navigate('/signin')

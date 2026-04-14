@@ -10,7 +10,7 @@ interface ComposerProps {
   onPostCreated?: () => void
 }
 
-export function Composer({ onPostCreated }: ComposerProps) {
+export function Composer({ onPostCreated }: ComposerProps): React.JSX.Element {
   const { session } = useAuth()
   const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -29,7 +29,7 @@ export function Composer({ onPostCreated }: ComposerProps) {
     }
   }, [body])
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault()
     if (isEmpty || isOverLimit) return
 

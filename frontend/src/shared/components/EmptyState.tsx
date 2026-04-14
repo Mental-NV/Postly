@@ -6,7 +6,7 @@ interface EmptyStateProps {
   }
 }
 
-export function EmptyState({ message, action }: EmptyStateProps) {
+export function EmptyState({ message, action }: EmptyStateProps): React.JSX.Element {
   return (
     <div
       data-testid="empty-state"

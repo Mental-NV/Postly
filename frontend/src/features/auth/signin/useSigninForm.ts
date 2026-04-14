@@ -3,7 +3,16 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../app/providers/AuthProvider'
 import { isApiError } from '../../../shared/api/errors'
 
-export function useSigninForm() {
+interface UseSigninFormReturn {
+  values: { username: string; password: string }
+  errors: Record<string, string[]>
+  formError: string | null
+  isPending: boolean
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleSubmit: (e: React.FormEvent) => Promise<void>
+}
+
+export function useSigninForm(): UseSigninFormReturn {
   const [values, setValues] = useState({ username: '', password: '' })
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [formError, setFormError] = useState<string | null>(null)

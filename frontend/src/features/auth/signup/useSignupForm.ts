@@ -14,7 +14,20 @@ interface FormErrors {
   form?: string
 }
 
-export function useSignupForm() {
+interface UseSignupFormReturn {
+  values: {
+    username: string
+    displayName: string
+    bio: string
+    password: string
+  }
+  errors: FormErrors
+  isPending: boolean
+  handleChange: (field: keyof typeof values, value: string) => void
+  handleSubmit: (e: FormEvent) => Promise<void>
+}
+
+export function useSignupForm(): UseSignupFormReturn {
   const navigate = useNavigate()
   const { signin } = useAuth()
   const [values, setValues] = useState({

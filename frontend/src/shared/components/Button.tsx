@@ -10,7 +10,7 @@ export function Button({
   children,
   className = '',
   ...props
-}: ButtonProps) {
+}: ButtonProps): React.JSX.Element {
   const baseStyles = 'btn'
   const variantStyles = {
     primary: 'btn-primary',
