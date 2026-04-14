@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../app/providers/AuthProvider'
+import { useAuth } from '../../../app/providers/AuthContext'
 import { apiClient } from '../../../shared/api/client'
 import { isApiError } from '../../../shared/api/errors'
 import type { SignupRequest } from '../../../shared/api/contracts'

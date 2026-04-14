@@ -4,7 +4,7 @@ import { apiClient } from '../../../shared/api/client'
 import { isApiError } from '../../../shared/api/errors'
 import { Button } from '../../../shared/components/Button'
 import { Avatar } from '../../../shared/components/Avatar'
-import { useAuth } from '../../../app/providers/AuthProvider'
+import { useAuth } from '../../../app/providers/AuthContext'
 
 interface ComposerProps {
   onPostCreated?: () => void

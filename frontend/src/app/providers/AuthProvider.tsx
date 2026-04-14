@@ -1,17 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { apiClient } from '../../shared/api/client'
 import { isApiError } from '../../shared/api/errors'
 import type { SessionResponse } from '../../shared/api/contracts'
-
-interface AuthContextValue {
-  session: SessionResponse | null
-  isLoading: boolean
-  isAuthenticated: boolean
-  signin: (username: string, password: string) => Promise<void>
-  signout: () => Promise<void>
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
+import { AuthContext } from './AuthContext'
 
 export function AuthProvider({
   children,
@@ -72,12 +63,4 @@ export function AuthProvider({
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
-  }
-  return context
 }

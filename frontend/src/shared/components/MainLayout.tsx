@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { Home, User, LogOut } from 'lucide-react'
-import { useAuth } from '../../app/providers/AuthProvider'
+import { useAuth } from '../../app/providers/AuthContext'
 import { Button } from './Button'
 
 interface MainLayoutProps {

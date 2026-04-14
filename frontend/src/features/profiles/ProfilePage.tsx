@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
 import type {
@@ -12,7 +12,7 @@ import { PostEditor } from '../posts/editor/PostEditor'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { Avatar } from '../../shared/components/Avatar'
 import { Button } from '../../shared/components/Button'
-import { useAuth } from '../../app/providers/AuthProvider'
+import { useAuth } from '../../app/providers/AuthContext'
 
 export function ProfilePage(): React.JSX.Element {
   const { username } = useParams<{ username: string }>()
@@ -34,24 +34,7 @@ export function ProfilePage(): React.JSX.Element {
   )
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!username) return
-    if (username === 'me' && !isAuthenticated) {
-      return
-    }
-
-    void loadProfile()
-  }, [isAuthenticated, username])
-
-  useEffect(() => {
-    if (!profile?.isSelf || username !== 'me') {
-      return
-    }
-
-    void navigate(`/u/${profile.username}`, { replace: true })
-  }, [navigate, profile, username])
-
-  const loadProfile = async (): Promise<void> => {
+  const loadProfile = useCallback(async (): Promise<void> => {
     if (!username) return
 
     setIsLoading(true)
@@ -75,7 +58,24 @@ export function ProfilePage(): React.JSX.Element {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [username])
+
+  useEffect(() => {
+    if (!username) return
+    if (username === 'me' && !isAuthenticated) {
+      return
+    }
+
+    void loadProfile()
+  }, [isAuthenticated, username, loadProfile])
+
+  useEffect(() => {
+    if (!profile?.isSelf || username !== 'me') {
+      return
+    }
+
+    void navigate(`/u/${profile.username}`, { replace: true })
+  }, [navigate, profile, username])
 
   const loadMorePosts = async (): Promise<void> => {
     if (!username || !nextCursor || isLoadingMore) return

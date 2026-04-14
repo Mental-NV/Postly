@@ -27,6 +27,11 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps): React.J
     }
   }, [body])
 
+  // Focus on mount
+  useEffect(() => {
+    textareaRef.current?.focus()
+  }, [])
+
   async function handleSave(): Promise<void> {
     if (isEmpty || isOverLimit) return
 
@@ -63,7 +68,6 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps): React.J
         onChange={(e) => { setBody(e.target.value); }}
         disabled={isPending}
         rows={1}
-        autoFocus
       />
 
       {error ? <div className="composer-error" role="alert">

@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../providers/AuthProvider'
+import { useAuth } from '../providers/AuthContext'
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }): React.JSX.Element {
   const { isAuthenticated, isLoading } = useAuth()

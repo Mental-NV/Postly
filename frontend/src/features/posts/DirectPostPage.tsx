@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
 import type {
@@ -6,7 +6,7 @@ import type {
   PostSummary,
 } from '../../shared/api/contracts'
 import { isApiError } from '../../shared/api/errors'
-import { useAuth } from '../../app/providers/AuthProvider'
+import { useAuth } from '../../app/providers/AuthContext'
 import { PostEditor } from './editor/PostEditor'
 import { PostCard } from './post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
@@ -26,11 +26,7 @@ export function DirectPostPage(): React.JSX.Element | null {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isLikePending, setIsLikePending] = useState(false)
 
-  useEffect(() => {
-    void loadPost()
-  }, [postId])
-
-  const loadPost = async (): Promise<void> => {
+  const loadPost = useCallback(async (): Promise<void> => {
     if (!postId) return
 
     setIsLoading(true)
@@ -49,7 +45,11 @@ export function DirectPostPage(): React.JSX.Element | null {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [postId])
+
+  useEffect(() => {
+    void loadPost()
+  }, [loadPost])
 
   const handleEdit = async (postId: number, newBody: string): Promise<void> => {
     await apiClient.patch(`/posts/${String(postId)}`, { body: newBody })
