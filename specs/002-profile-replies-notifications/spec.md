@@ -2,7 +2,7 @@
 
 **Feature Branch**: `002-profile-replies-notifications`  
 **Created**: 2026-04-12  
-**Status**: Draft  
+**Status**: Approved  
 **Input**: User description: "Define Round 2 for Postly as a bounded feature phase that extends the current product with profile editing and avatar management, replies and threaded conversation view, in-app notifications, and loading more content across long lists, while treating existing public profile and public post reading as already established behavior."
 
 > Keep this document story-first. `spec.md` records user behavior, business

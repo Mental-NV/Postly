@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-microblog-mvp`  
 **Created**: 2026-04-09  
-**Status**: Draft  
+**Status**: Approved  
 **Input**: User description: "Define the MVP for Postly, a microblogging social web app similar in spirit to Twitter/X with account access, short text posts, profiles, follows, likes, a home timeline, and responsive accessible web UX."
 
 ## Clarifications
