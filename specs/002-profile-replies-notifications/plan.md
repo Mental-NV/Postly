@@ -100,6 +100,7 @@ For features with multiple user stories, use `/speckit.analyze` before
 specs/002-profile-replies-notifications/
 ├── spec.md
 ├── plan.md
+├── ui-ux-design.md
 ├── user-flows.md
 ├── frontend-requirements.md
 ├── openapi.yaml

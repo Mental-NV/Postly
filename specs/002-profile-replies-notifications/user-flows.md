@@ -61,7 +61,9 @@ Playwright should prove.
 | 2 | `profile-edit-button` | Click edit | Profile enters editable state on the same route |
 | 3 | `profile-display-name-input` | Enter a valid updated display name | Updated value is visible in the input |
 | 4 | `profile-bio-input` | Enter a valid updated bio | Updated value is visible in the input |
-| 5 | `profile-avatar-input` | Choose a valid replacement avatar | Selected file is accepted by the form |
+| 4a | `profile-bio-counter` | Observe character count | Count reflects the current bio length (e.g. "50/160") |
+| 5 | `profile-avatar-edit-overlay` | Click the edit overlay | File picker opens |
+| 5a | `profile-avatar-input` | Choose a valid replacement avatar | Selected file is accepted by the form |
 | 6 | `profile-save-button` | Click save | Save enters pending state and duplicate submits are prevented |
 | 7 | `profile-display-name` | Observe profile header | Updated display name is visible on `/u/bob` |
 | 8 | `nav-home-link` | Navigate to home | Route changes to `/` |
@@ -94,6 +96,7 @@ Playwright should prove.
 | 2 | `reply-composer-input` | Enter valid reply text | Draft text is visible |
 | 3 | `reply-submit-button` | Click submit | Composer enters pending state |
 | 4 | `conversation-replies` | Observe reply list | New reply appears in the conversation replies collection |
+| 4a | `conversation-thread-line` | Observe threading | A vertical thread line connects the parent avatar to the new reply avatar |
 | 5 | `post-body-<postId>` | Observe new reply body | Saved reply text is visible in its reply card |
 
 ### UF-04 Edit and Delete Own Reply
@@ -129,12 +132,14 @@ Playwright should prove.
 
 | Step | UI element | Interaction | Expected result |
 |------|------------|-------------|-----------------|
+| 0 | `nav-notifications-badge` | Observe navigation | Unread badge shows a count (e.g. "1") |
 | 1 | `notifications-list` | Observe list | At least one unread notification is visible |
-| 2 | `notification-unread-indicator-<notificationId>` | Observe unread state | Notification is visibly unread before selection |
+| 2 | `notification-unread-indicator-<notificationId>` | Observe unread state | Notification has a light-blue background and blue accent bar |
 | 3 | `notification-item-<notificationId>` | Open the notification destination | App navigates to the route associated with the notification |
 | 4 | Destination surface | Observe route content | The relevant profile or conversation route loads successfully |
 | 5 | `nav-notifications-link` | Return to notifications | Route changes back to `/notifications` |
-| 6 | `notification-read-indicator-<notificationId>` | Observe updated state | The opened notification is now read and other unread items remain unread |
+| 6 | `notification-read-indicator-<notificationId>` | Observe updated state | The opened notification background is now neutral |
+| 7 | `nav-notifications-badge` | Observe navigation | Unread badge count has decreased or is hidden if no more unread items remain |
 
 ### UF-07 Notifications List-Only View
 

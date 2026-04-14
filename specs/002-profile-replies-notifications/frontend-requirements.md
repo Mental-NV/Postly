@@ -97,27 +97,32 @@ The fixture contract MUST guarantee:
 - `profile-heading`
 - `profile-display-name`
 - `profile-bio`
+- `profile-avatar-wrapper`: Container for the avatar image.
 - `profile-avatar-image` or `profile-avatar-fallback`
+- `profile-avatar-edit-overlay`: Visible only in edit mode, contains the upload icon.
 - `profile-posts`
 - `profile-edit-button` when `isSelf`
-- `profile-edit-form` in edit state
+- `profile-edit-form`: Container for all inputs in edit mode.
 - `profile-display-name-input`
 - `profile-bio-input`
-- `profile-avatar-input`
+- `profile-bio-counter`: Character count indicator (e.g., "150/160").
+- `profile-avatar-input`: Hidden file input triggered by the overlay.
 - `profile-save-button`
 - `profile-cancel-button`
-- `profile-form-status`
+- `profile-form-status`: Area for validation errors or success messages.
 
 **State variants**
 
 - Read-only own profile state
 - Read-only other-user profile state
 - Edit form default state
-- Edit validation error state
-- Edit pending-save state
+- Edit validation error state: Inputs show `danger` (red) borders.
+- Edit pending-save state: Buttons show spinners; inputs are disabled.
 - Avatar replacement success state
-- Route-level loading, empty, error, and retry states for profile data
-- Collection continuation loading, failure, retry, and end states for profile posts
+- Route-level loading: Full-page skeleton.
+- Collection continuation loading: Bottom-of-list skeleton shimmers.
+- Collection continuation failure: Bottom-of-list error banner with `collection-continuation-retry`.
+- Collection end state: `collection-end-state` centered message.
 
 **Required behaviors**
 
@@ -145,23 +150,25 @@ The fixture contract MUST guarantee:
 
 - `conversation-page`
 - `conversation-heading`
-- `conversation-target` or `conversation-target-unavailable`
+- `conversation-target`: Large-format `PostCard`.
+- `conversation-target-unavailable`: "Post no longer available" placeholder.
+- `conversation-thread-line`: Visual line connecting parent/child avatars.
 - `conversation-replies`
 - `reply-composer`
-- `reply-composer-input`
+- `reply-composer-avatar`: Sign-in user's avatar.
+- `reply-composer-input`: Textarea for reply content.
 - `reply-submit-button`
 - `reply-form-status`
-- `deleted-reply-placeholder-<postId>` when a reply has been deleted but must
-  remain represented in the thread
+- `deleted-reply-placeholder-<postId>`: "This reply was deleted" muted box.
 
 **State variants**
 
 - Available conversation target state
 - Unavailable parent placeholder state
-- Empty-replies state
+- Empty-replies state: "No replies yet."
 - Reply composer validation and pending states
 - Reply edit state using existing post editor hooks
-- Deleted reply placeholder state
+- Deleted reply placeholder state: Non-interactive card replacement.
 - Collection continuation loading, failure, retry, and end states for replies
 
 **Required behaviors**
@@ -172,6 +179,7 @@ The fixture contract MUST guarantee:
   `post-delete-button-<postId>` on replies they do not own.
 - Deleted replies remain visible only as non-interactive placeholders.
 - The route remains `/posts/:postId` even when the parent target is unavailable.
+- Threading lines MUST be rendered to visually connect the target post and its direct replies.
 
 ### FE-09 Notifications Screen
 
@@ -190,22 +198,26 @@ The fixture contract MUST guarantee:
 - `notifications-page`
 - `notifications-heading`
 - `notifications-list`
-- `notification-item-<notificationId>`
-- `notification-unread-indicator-<notificationId>`
-- `notification-read-indicator-<notificationId>`
-- `notifications-empty-state`
+- `notification-item-<notificationId>`: Entire row, interactive.
+- `notification-icon-<notificationId>`: Minimalistic monochrome Lucide icon (Heart, User, MessageCircle).
+- `notification-avatar-<notificationId>`: Avatar of the triggering user.
+- `notification-text-<notificationId>`: e.g., "Alice liked your post".
+- `notification-unread-indicator-<notificationId>`: Left-edge blue accent and light-blue background.
+- `notification-read-indicator-<notificationId>`: Neutral background.
+- `notifications-empty-state`: "No notifications yet."
 - `notifications-error-state`
 - `notifications-retry-button`
-- `nav-notifications-link`
+- `nav-notifications-link`: Main navigation link with optional unread badge.
+- `nav-notifications-badge`: Counter for unread notifications.
 
 **State variants**
 
-- Loading state
-- Populated list with mixed read/unread items
-- Empty state
-- Route-level error with retry
-- Destination-open success state
-- Destination-unavailable state after selection
+- Loading state: List of skeleton notifications.
+- Populated list with mixed read/unread items.
+- Empty state: Explanatory text and icon.
+- Route-level error with retry.
+- Destination-open success state.
+- Destination-unavailable state: Navigates to a "Content unavailable" route or modal.
 
 **Required behaviors**
 
@@ -213,6 +225,7 @@ The fixture contract MUST guarantee:
 - Opening a notification destination must mark only that notification as read.
 - If the target later becomes unavailable, the user still reaches a clear
   destination state associated with that notification.
+- The `nav-notifications-badge` MUST only show the count of *unread* items.
 
 ### FE-10 Shared Automatic Continuation Contract
 
@@ -229,18 +242,18 @@ The fixture contract MUST guarantee:
 
 **Required UI elements**
 
-- `collection-continuation-sentinel`
-- `collection-continuation-loading`
-- `collection-continuation-error`
-- `collection-continuation-retry`
-- `collection-end-state`
+- `collection-continuation-sentinel`: Intersection observer target.
+- `collection-continuation-loading`: Pulsing skeleton shimmers.
+- `collection-continuation-error`: "Couldn't load more" banner.
+- `collection-continuation-retry`: Button to manually retry the failed page.
+- `collection-end-state`: "You've reached the end." message.
 
 **State variants**
 
 - Initial page only
-- Automatic continuation in progress
-- Continuation failure with retry
-- End-of-list state
+- Automatic continuation in progress: Sentinel in view, request pending.
+- Continuation failure with retry: UI shows error and retry button.
+- End-of-list state: Explicit completion indicator.
 
 **Required behaviors**
 
