@@ -14,16 +14,18 @@ interface FormErrors {
   form?: string
 }
 
+interface FormValues {
+  username: string
+  displayName: string
+  bio: string
+  password: string
+}
+
 interface UseSignupFormReturn {
-  values: {
-    username: string
-    displayName: string
-    bio: string
-    password: string
-  }
+  values: FormValues
   errors: FormErrors
   isPending: boolean
-  handleChange: (field: keyof typeof values, value: string) => void
+  handleChange: (field: keyof FormValues, value: string) => void
   handleSubmit: (e: FormEvent) => Promise<void>
 }
 

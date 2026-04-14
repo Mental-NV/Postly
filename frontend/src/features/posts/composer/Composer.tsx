@@ -10,7 +10,7 @@ interface ComposerProps {
   onPostCreated?: () => void
 }
 
-export function Composer({ onPostCreated }: ComposerProps): React.JSX.Element {
+export function Composer({ onPostCreated }: ComposerProps): React.JSX.Element | null {
   const { session } = useAuth()
   const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)

@@ -292,7 +292,7 @@ export function ProfilePage(): React.JSX.Element {
         <Button
           variant="ghost"
           onClick={() => {
-            navigate(-1)
+            void navigate(-1)
           }}
           className="back-btn"
         >

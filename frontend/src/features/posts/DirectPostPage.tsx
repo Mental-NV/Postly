@@ -12,7 +12,7 @@ import { PostCard } from './post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { Button } from '../../shared/components/Button'
 
-export function DirectPostPage() {
+export function DirectPostPage(): React.JSX.Element | null {
   const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
@@ -30,7 +30,7 @@ export function DirectPostPage() {
     void loadPost()
   }, [postId])
 
-  const loadPost = async () => {
+  const loadPost = async (): Promise<void> => {
     if (!postId) return
 
     setIsLoading(true)
@@ -51,7 +51,7 @@ export function DirectPostPage() {
     }
   }
 
-  const handleEdit = async (postId: number, newBody: string) => {
+  const handleEdit = async (postId: number, newBody: string): Promise<void> => {
     await apiClient.patch(`/posts/${String(postId)}`, { body: newBody })
     setEditingPostId(null)
     if (post) {
@@ -59,7 +59,7 @@ export function DirectPostPage() {
     }
   }
 
-  const handleDelete = async (postId: number) => {
+  const handleDelete = async (postId: number): Promise<void> => {
     setIsDeleting(true)
     try {
       await apiClient.delete(`/posts/${String(postId)}`)
@@ -69,7 +69,7 @@ export function DirectPostPage() {
     }
   }
 
-  const handleLikeToggle = async (currentPost: PostSummary) => {
+  const handleLikeToggle = async (currentPost: PostSummary): Promise<void> => {
     if (isLikePending) return
 
     setIsLikePending(true)
@@ -187,7 +187,7 @@ export function DirectPostPage() {
         <Button
           variant="ghost"
           onClick={() => {
-            navigate(-1)
+            void navigate(-1)
           }}
           className="back-btn"
           data-testid="post-back-link"

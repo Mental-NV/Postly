@@ -2,15 +2,22 @@ import { ApiError } from './errors'
 
 const API_BASE = '/api'
 
+interface ProblemDetails {
+  type?: string
+  title?: string
+  detail?: string
+  errors?: Record<string, string[]>
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const contentType = response.headers.get('content-type')
     if (contentType?.includes('application/problem+json')) {
-      const problem = await response.json()
+      const problem = await response.json() as ProblemDetails
       throw new ApiError(
         response.status,
-        problem.type || 'UNKNOWN_ERROR',
-        problem.title || 'An error occurred',
+        problem.type ?? 'UNKNOWN_ERROR',
+        problem.title ?? 'An error occurred',
         problem.detail,
         problem.errors
       )
@@ -27,7 +34,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
     return undefined as T
   }
 
-  return response.json()
+  return response.json() as Promise<T>
 }
 
 export const apiClient = {
