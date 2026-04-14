@@ -76,12 +76,13 @@ The non-production seed should provide:
 - Save:
   - a valid trimmed display name
   - a valid bio or blank bio
-  - a replacement avatar accepted by the backend
+  - a valid JPEG or PNG avatar accepted and normalized by the backend
 - Verify the updated identity appears on:
   - `/u/bob`
   - `/` where Bob identity is already shown
   - `/posts/:postId` where Bob identity is shown
-- Attempt an invalid display name or bio and verify the saved identity does not
+- Attempt an invalid display name, bio, unsupported avatar type, tiny avatar,
+  malformed avatar, or oversized avatar and verify the saved identity does not
   change
 
 ### 2. Replies and Conversation States
@@ -138,7 +139,8 @@ dotnet test backend/tests/Postly.Api.UnitTests/Postly.Api.UnitTests.csproj --con
 Focus:
 
 - profile validation and owner-only authorization
-- avatar fallback projection rules
+- avatar normalization, unchanged-on-failure behavior, and fallback projection
+  rules
 - reply validation and placeholder transitions
 - notification creation and selected-item read transitions
 - cursor helper and continuation ordering behavior
@@ -154,6 +156,7 @@ Focus:
 - profile update and avatar endpoints, plus anonymous success on preserved
   public profile reads
 - anonymous mutation rejection on protected profile-edit endpoints
+- accepted avatar upload constraints plus `image/jpeg` avatar delivery
 - conversation and reply endpoints, including anonymous success on preserved
   direct-post and reply-read routes
 - anonymous mutation rejection on protected reply create/edit/delete endpoints
@@ -169,6 +172,8 @@ dotnet test backend/tests/Postly.Api.IntegrationTests/Postly.Api.IntegrationTest
 Focus:
 
 - profile identity reflection across read models
+- avatar replacement stores normalized JPEG output and updates versioned
+  avatar URLs
 - reply create/edit/delete plus unavailable-parent reads
 - anonymous direct-post and conversation-reply reads remain available while
   reply creation stays authenticated

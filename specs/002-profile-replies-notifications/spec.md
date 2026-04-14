@@ -33,10 +33,15 @@
   updates appear? → A: Display name edits are valid when the trimmed result is
   1 to 50 characters and not empty; bio edits are valid when the bio is blank
   or 160 characters or fewer; an avatar replacement is valid for Round 2 when
-  Postly accepts it as the user's current profile avatar. Successful profile
-  identity updates appear on the user's own profile, in places that already
-  show that user's identity in the home timeline, and on direct-post or
-  conversation surfaces where that user's identity is shown.
+  Postly accepts it as the user's current profile avatar. For Round 2, avatar
+  replacement accepts only still JPEG or PNG uploads up to 5 MB, rejects SVG
+  and animated formats, requires source dimensions of at least 256x256 and no
+  more than 4096 pixels on either decoded side, applies orientation, center-
+  crops to a square, resizes to 512x512, strips metadata, flattens
+  transparency onto white when needed, and stores the result as a high-quality
+  JPEG. Successful profile identity updates appear on the user's own profile,
+  in places that already show that user's identity in the home timeline, and
+  on direct-post or conversation surfaces where that user's identity is shown.
 - Q: What is the continuation point for automatic loading, and what exact
   notification destination outcomes must User Story 3 define? → A: The
   continuation point is when the user reaches the last currently visible item
@@ -79,9 +84,10 @@ direct-post or conversation surfaces where that user's identity is shown.
 2. **Given** a signed-in user viewing their own profile settings,
    **When** they replace their avatar with one that Postly accepts as that
    user's current profile avatar, **Then** the new avatar replaces the previous
-   one and appears consistently on their own profile, in places that already
-   show that user's identity in the home timeline, and on direct-post or
-   conversation surfaces where that user's identity is shown.
+   one, is stored as the current normalized high-quality JPEG avatar, and
+   appears consistently on their own profile, in places that already show that
+   user's identity in the home timeline, and on direct-post or conversation
+   surfaces where that user's identity is shown.
 3. **Given** a user's custom avatar does not exist or later becomes
    unavailable, **When** their identity is shown on their own profile, in
    places that already show that user's identity in the home timeline, or on
@@ -111,8 +117,19 @@ direct-post or conversation surfaces where that user's identity is shown.
 - If a proposed avatar replacement is not accepted as the user's current
   profile avatar for Round 2, the attempted replacement MUST fail and the
   previously shown custom or default avatar MUST remain in place.
+- Avatar replacement for Round 2 MUST accept only still JPEG or PNG uploads,
+  MUST reject SVG and animated formats, MUST reject empty files, MUST reject
+  files larger than 5 MB, MUST reject source images smaller than 256x256, and
+  MUST reject decoded images larger than 4096 pixels on either side.
+- Accepted avatar uploads MUST be normalized by applying orientation,
+  center-cropping to a square, resizing to 512x512, stripping metadata,
+  flattening transparency onto white when present, and storing the result as a
+  high-quality JPEG.
 - If a custom avatar is missing or later becomes unavailable after a successful
   upload, the user's system-generated default avatar MUST be shown instead.
+- If a custom avatar cannot be delivered or rendered after a successful upload,
+  the frontend MUST show the generated default avatar instead of a broken
+  image.
 - If updated profile details appear on multiple visible surfaces at once, those
   surfaces MUST not show conflicting versions of the same user's identity after
   a successful save.
@@ -315,12 +332,23 @@ attempt.
   blank or 160 characters or fewer.
 - **BR-003b**: An avatar replacement is valid for Round 2 only when Postly
   accepts it as the user's current profile avatar.
+- **BR-003c**: Round 2 avatar replacement accepts only still `image/jpeg` and
+  `image/png` uploads, rejects SVG and animated formats, rejects empty files,
+  rejects files larger than 5 MB, rejects source images smaller than 256x256,
+  and rejects decoded images larger than 4096 pixels on either side.
+- **BR-003d**: Accepted avatar uploads MUST be normalized by applying
+  orientation, center-cropping to a square, resizing to 512x512, stripping
+  metadata, flattening transparency onto white when present, and storing the
+  result as a high-quality JPEG.
 - **BR-004**: Successful profile identity changes MUST be reflected
   consistently on the user's own profile, in places that already show that
   user's identity in the home timeline, and on direct-post or conversation
   surfaces where that user's identity is shown.
 - **BR-004a**: If no custom avatar exists or a custom avatar later becomes
   unavailable, the user's system-generated default avatar MUST be used.
+- **BR-004b**: Successful avatar replacement MUST update the versioned custom
+  avatar URL so already visible profile, timeline, and conversation surfaces
+  can refresh without showing stale cached images.
 - **BR-005**: A reply belongs to its author and to a specific target post; only
   the reply author may edit or delete that reply.
 - **BR-006**: Conversation view MUST present the target post together with the
@@ -397,10 +425,23 @@ attempt.
   whenever no custom avatar exists or a custom avatar becomes unavailable.
 - **FR-003b**: The system MUST accept an avatar replacement for Round 2 only
   when Postly accepts it as the user's current profile avatar.
+- **FR-003c**: The system MUST accept avatar replacement only for still JPEG or
+  PNG uploads that satisfy Round 2 file-size, decoded-dimension, and minimum
+  dimension rules.
+- **FR-003d**: The system MUST normalize every accepted custom avatar by
+  applying orientation, center-cropping to a square, resizing to 512x512,
+  stripping metadata, flattening transparency onto white when needed, and
+  storing the result as a high-quality JPEG.
+- **FR-003e**: The system MUST leave the previously saved avatar unchanged when
+  avatar replacement fails validation, decoding, normalization, or storage.
 - **FR-004**: The system MUST reflect successful profile identity updates
   consistently on the signed-in user's own profile, in places that already show
   that user's identity in the home timeline, and on direct-post or
   conversation surfaces where that user's identity is shown.
+- **FR-004a**: The system MUST expose a versioned custom avatar URL when a
+  usable custom avatar exists so successful avatar replacement can bypass stale
+  cached images on already visible profile, timeline, and conversation
+  surfaces.
 - **FR-005**: The system MUST prevent a user from editing another user's
   profile identity.
 - **FR-006**: The system MUST allow a signed-in user to reply to a post they

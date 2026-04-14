@@ -187,6 +187,8 @@ identity.
 - Display name validation using trimmed 1-50 character semantics
 - Bio validation allowing blank or up to 160 characters
 - Avatar replacement when Postly accepts the new image as the current avatar
+- Avatar upload validation bounded to still JPEG/PNG input, deterministic
+  normalization, and one-current-avatar replacement only
 - Fallback to a generated default avatar when no custom avatar exists or a
   custom avatar later becomes unavailable
 - Immediate identity reflection on:
@@ -298,8 +300,13 @@ responsibilities below stay technical and implementation-oriented.
   in-scope identity surfaces.
 - Render either `profile-avatar-image` or `profile-avatar-fallback`; never show
   a broken avatar state.
+- Restrict `profile-avatar-input` to still JPEG/PNG selection, avoid manual
+  crop UI, and switch to generated fallback immediately if a custom avatar
+  image fails to load.
 - Keep the same logical edit controls and profile test IDs across all own
   profile sessions.
+- After successful avatar replacement, refresh visible profile, timeline, and
+  conversation identity surfaces using the returned versioned avatar URL.
 
 ### US2 Frontend Responsibilities
 
@@ -359,6 +366,18 @@ responsibilities below stay technical and implementation-oriented.
   - bio length of 0-160 characters
   - owner-only authorization
   - avatar replacement accepted only when it becomes the user's current avatar
+  - still JPEG/PNG input only
+  - file size at or below 5 MB
+  - minimum oriented source dimensions of 256x256
+  - maximum decoded width/height of 4096
+- Normalize accepted avatars by:
+  - applying image orientation before validation and crop
+  - center-cropping to a square
+  - resizing to 512x512
+  - flattening transparency onto white when needed
+  - stripping metadata
+  - storing the result as a high-quality JPEG and setting a new
+    `AvatarUpdatedAtUtc`
 - Preserve the previously saved profile on validation or processing failure.
 - Project updated identity consistently through profile, timeline, and
   conversation read models.
@@ -425,12 +444,14 @@ responsibilities below stay technical and implementation-oriented.
 - `PATCH /api/profiles/me`
   - update display name and bio for the signed-in user
 - `PUT /api/profiles/me/avatar`
-  - replace the signed-in user's current avatar
+  - replace the signed-in user's current avatar using multipart upload,
+    validate accepted still-image constraints, and store normalized
+    `image/jpeg` output
 - `GET /api/profiles/{username}`
   - continue returning profile read mode, now with avatar metadata and profile
     post continuation support aligned to Round 2
 - `GET /api/profiles/{username}/avatar`
-  - serve the current custom avatar when it exists
+  - serve the current normalized custom avatar as `image/jpeg` when it exists
 - `GET /api/posts/{postId}`
   - evolve from direct-post read to conversation read with target state,
     visible replies, placeholders, and continuation cursor
@@ -453,6 +474,8 @@ responsibilities below stay technical and implementation-oriented.
 
 - Extend `UserAccount` with current-avatar persistence metadata and payload
   needed for avatar replacement plus fallback projection support.
+- Treat `AvatarUpdatedAtUtc` as the cache-busting version source for current
+  custom avatar delivery.
 - Extend `Post` with nullable `ReplyToPostId` and nullable `DeletedAtUtc` so
   replies remain first-class posts and deleted replies can stay visible as
   placeholders in conversations.
@@ -467,7 +490,11 @@ responsibilities below stay technical and implementation-oriented.
   - invalid display name
   - invalid bio
   - invalid avatar replacement
-  - invalid reply body
+  - unsupported avatar format
+  - empty avatar file
+  - oversized avatar file
+  - avatar dimensions outside accepted bounds
+- invalid reply body
 - Authorization errors remain deterministic for:
   - editing another user's profile
   - editing/deleting another user's reply

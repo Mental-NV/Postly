@@ -66,6 +66,12 @@ paths:
                 avatar:
                   type: string
                   format: binary
+                  description: >
+                    Still JPEG or PNG upload only. Round 2 rejects SVG,
+                    animated formats, empty files, files larger than 5 MB,
+                    source images smaller than 256x256, and decoded images
+                    larger than 4096 pixels on either side. Accepted uploads
+                    are normalized and stored as 512x512 high-quality JPEG.
       responses:
         '200':
           description: Updated profile avatar state
@@ -103,9 +109,9 @@ paths:
         - $ref: '#/components/parameters/Username'
       responses:
         '200':
-          description: Avatar binary
+          description: Normalized current avatar binary
           content:
-            image/*:
+            image/jpeg:
               schema:
                 type: string
                 format: binary
@@ -343,6 +349,7 @@ components:
         avatarUrl:
           type: string
           nullable: true
+          description: Versioned custom avatar URL when a usable custom avatar exists
         hasCustomAvatar:
           type: boolean
         followerCount:

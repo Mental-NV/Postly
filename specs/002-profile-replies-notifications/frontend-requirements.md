@@ -106,8 +106,13 @@ appears.
 - Updated identity must propagate to already visible in-scope timeline and
   conversation surfaces via shared query invalidation or equivalent refresh
   behavior.
+- `profile-avatar-input` accepts only still JPEG/PNG file selection in Round 2.
+- Round 2 does not provide manual cropping UI; avatar normalization remains a
+  backend responsibility.
 - Avatar rendering must never show a broken image; use fallback when no usable
   custom avatar is available.
+- Successful avatar replacement must adopt the returned versioned `avatarUrl`
+  so refreshed identity surfaces bypass stale cached images.
 
 ## FE-08 Conversation / Direct-Post Screen
 

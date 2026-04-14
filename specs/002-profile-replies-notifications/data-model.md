@@ -19,13 +19,20 @@ continuation loading.
 | `Bio` | `string?` | Blank allowed; max 160 chars |
 | `PasswordHash` | `string` | Existing password hasher output |
 | `CreatedAtUtc` | `DateTimeOffset` | Existing immutable timestamp |
-| `AvatarContentType` | `string?` | Null when no current custom avatar exists |
-| `AvatarBytes` | `byte[]?` | Current custom avatar payload only |
-| `AvatarUpdatedAtUtc` | `DateTimeOffset?` | Updated on successful avatar replacement |
+| `AvatarContentType` | `string?` | Null when no current custom avatar exists; otherwise always `image/jpeg` |
+| `AvatarBytes` | `byte[]?` | Current normalized 512x512 high-quality JPEG avatar payload only |
+| `AvatarUpdatedAtUtc` | `DateTimeOffset?` | Updated on successful avatar replacement; also used as avatar cache-busting version source |
 
 **Rules**
 
 - Only the signed-in owner can mutate `DisplayName`, `Bio`, or avatar fields.
+- Avatar replacement accepts only still JPEG/PNG uploads up to 5 MB, requires
+  source dimensions of at least 256x256 after orientation is applied, and
+  rejects decoded images larger than 4096 pixels on either side.
+- Accepted avatar uploads are normalized to one current stored 512x512
+  high-quality JPEG by applying orientation, center-cropping to square,
+  resizing, stripping metadata, and flattening transparency onto white when
+  needed.
 - If custom avatar data is absent or unavailable, the read model must expose the
   generated default avatar instead of a broken image state.
 
@@ -104,6 +111,9 @@ source of truth.
 - `Bio` may be blank and must be at most 160 characters.
 - Avatar replacement succeeds only when Postly accepts the uploaded image as the
   user's current avatar.
+- Avatar replacement fails for empty files, unsupported formats, animated
+  images, SVG, oversized uploads, too-small source images, oversize decoded
+  images, decode failures, and normalization failures.
 - Failed validation or processing leaves the previously saved profile identity
   unchanged.
 
@@ -137,7 +147,7 @@ source of truth.
 | `username` | `string` | Existing |
 | `displayName` | `string` | Updated by US1 |
 | `bio` | `string?` | Updated by US1 |
-| `avatarUrl` | `string?` | Current custom avatar URL when available |
+| `avatarUrl` | `string?` | Versioned current custom avatar URL when available |
 | `hasCustomAvatar` | `boolean` | True only when a custom avatar exists and is usable |
 | `isSelf` | `boolean` | Existing route behavior |
 | `isFollowedByViewer` | `boolean` | Existing |
