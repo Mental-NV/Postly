@@ -81,6 +81,7 @@ paths:
     get:
       summary: Get a profile and the initial profile-post page
       tags: [Profiles]
+      security: []
       parameters:
         - $ref: '#/components/parameters/Username'
         - $ref: '#/components/parameters/Cursor'
@@ -97,6 +98,7 @@ paths:
     get:
       summary: Get the user's current custom avatar
       tags: [Profiles]
+      security: []
       parameters:
         - $ref: '#/components/parameters/Username'
       responses:
@@ -113,6 +115,7 @@ paths:
     get:
       summary: Get a conversation-oriented direct-post view
       tags: [Posts]
+      security: []
       parameters:
         - $ref: '#/components/parameters/PostId'
         - $ref: '#/components/parameters/Cursor'
@@ -123,8 +126,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConversationResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
     patch:
@@ -195,6 +196,7 @@ paths:
     get:
       summary: Get additional replies for a conversation
       tags: [Posts]
+      security: []
       parameters:
         - $ref: '#/components/parameters/PostId'
         - $ref: '#/components/parameters/Cursor'
@@ -205,8 +207,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReplyPageResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
   /api/notifications:

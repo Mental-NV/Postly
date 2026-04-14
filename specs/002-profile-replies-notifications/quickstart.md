@@ -151,8 +151,12 @@ dotnet test backend/tests/Postly.Api.ContractTests/Postly.Api.ContractTests.cspr
 
 Focus:
 
-- profile update and avatar endpoints
-- conversation and reply endpoints
+- profile update and avatar endpoints, plus anonymous success on preserved
+  public profile reads
+- anonymous mutation rejection on protected profile-edit endpoints
+- conversation and reply endpoints, including anonymous success on preserved
+  direct-post and reply-read routes
+- anonymous mutation rejection on protected reply create/edit/delete endpoints
 - notification list and open endpoints
 - continuation response shape and ProblemDetails outcomes
 
@@ -166,6 +170,10 @@ Focus:
 
 - profile identity reflection across read models
 - reply create/edit/delete plus unavailable-parent reads
+- anonymous direct-post and conversation-reply reads remain available while
+  reply creation stays authenticated
+- anonymous profile-edit and reply-mutation attempts remain rejected while
+  baseline public reads stay available
 - notification generation and destination resolution
 - retry-safe continuation behavior
 

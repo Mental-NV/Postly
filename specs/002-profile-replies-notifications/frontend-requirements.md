@@ -143,6 +143,9 @@ appears.
 ### Behavioral requirements
 
 - Conversation target and replies render as separate regions on the same route.
+- The route remains readable while signed out; reply creation and author-only
+  edit/delete controls appear only when authentication and ownership allow
+  them.
 - Reply cards reuse the existing post-card control IDs for edit/delete/edit-save
   where those controls are applicable.
 - Non-authored replies do not render edit/delete controls.

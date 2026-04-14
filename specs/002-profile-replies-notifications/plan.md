@@ -417,6 +417,11 @@ responsibilities below stay technical and implementation-oriented.
 
 ### API Contract Impact
 
+- `GET /api/profiles/{username}`, `GET /api/profiles/{username}/avatar`,
+  `GET /api/posts/{postId}`, and `GET /api/posts/{postId}/replies` remain
+  publicly readable baseline behavior in Round 2; the phase extends their
+  payloads and signed-in affordances without adding authentication
+  requirements for read access.
 - `PATCH /api/profiles/me`
   - update display name and bio for the signed-in user
 - `PUT /api/profiles/me/avatar`

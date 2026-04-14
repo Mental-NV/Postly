@@ -63,7 +63,7 @@ responsibilities -> `UserAccount`, `ProfileView`, `PostSummary`
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
 - [ ] T011 [P] [US1] Add backend unit coverage for profile validation, owner-only authorization, and avatar fallback projection in `backend/tests/Postly.Api.UnitTests/Features/Profiles/ProfileEditValidationTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Profiles/ProfileAvatarProjectionTests.cs`
-- [ ] T012 [P] [US1] Add backend contract coverage for `PATCH /api/profiles/me`, `PUT /api/profiles/me/avatar`, and `GET /api/profiles/{username}/avatar` in `backend/tests/Postly.Api.ContractTests/ProfileEditingContractsTests.cs`
+- [ ] T012 [P] [US1] Add backend contract coverage for anonymous `401` on `PATCH /api/profiles/me` and `PUT /api/profiles/me/avatar`, plus anonymous success on preserved public reads `GET /api/profiles/{username}` and `GET /api/profiles/{username}/avatar` in `backend/tests/Postly.Api.ContractTests/ProfileEditingContractsTests.cs`
 - [ ] T013 [P] [US1] Add backend integration coverage for successful profile edits, invalid edits, avatar replacement, and unchanged persisted identity on failure in `backend/tests/Postly.Api.IntegrationTests/ProfileEditingFlowTests.cs`
 - [ ] T014 [P] [US1] Add frontend component coverage for inline profile edit states, validation messaging, pending save, and avatar fallback rendering in `frontend/src/features/profiles/__tests__/profile-editing-ui.test.tsx`
 - [ ] T015 [P] [US1] Add Playwright coverage for `UF-01`, `UF-02`, and `UF-03` in `frontend/tests/e2e/us6-profile-editing.spec.ts`
@@ -106,8 +106,8 @@ backend/frontend responsibilities -> `Post`, `ConversationView`, `PostSummary`
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
 - [ ] T024 [P] [US2] Add backend unit coverage for reply validation, author-only reply ownership, deleted-placeholder transitions, and unavailable-target rejection in `backend/tests/Postly.Api.UnitTests/Features/Posts/ReplyValidationTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Posts/ReplyOwnershipTests.cs`
-- [ ] T025 [P] [US2] Add backend contract coverage for `GET /api/posts/{postId}`, `POST /api/posts/{postId}/replies`, `GET /api/posts/{postId}/replies`, `PATCH /api/posts/{postId}`, and `DELETE /api/posts/{postId}` in `backend/tests/Postly.Api.ContractTests/ReplyConversationContractsTests.cs`
-- [ ] T026 [P] [US2] Add backend integration coverage for reply create/edit/delete, deleted placeholders, unavailable parent reads, and unavailable target submission failures in `backend/tests/Postly.Api.IntegrationTests/ReplyConversationFlowTests.cs`
+- [ ] T025 [P] [US2] Add backend contract coverage for anonymous success on preserved public reads `GET /api/posts/{postId}` and `GET /api/posts/{postId}/replies`, plus anonymous `401` on `POST /api/posts/{postId}/replies`, `PATCH /api/posts/{postId}`, and `DELETE /api/posts/{postId}` in `backend/tests/Postly.Api.ContractTests/ReplyConversationContractsTests.cs`
+- [ ] T026 [P] [US2] Add backend integration coverage for reply create/edit/delete, deleted placeholders, unavailable parent reads, anonymous direct-post and reply-read access, anonymous reply-create rejection, and unavailable target submission failures in `backend/tests/Postly.Api.IntegrationTests/ReplyConversationFlowTests.cs`
 - [ ] T027 [P] [US2] Add frontend component coverage for conversation target states, reply composer states, non-author action absence, and deleted placeholders in `frontend/src/features/posts/__tests__/reply-conversation-ui.test.tsx`
 - [ ] T028 [P] [US2] Add Playwright coverage for `UF-04`, `UF-05`, `UF-06`, and `UF-07` in `frontend/tests/e2e/us7-replies-and-conversation.spec.ts`
 
