@@ -36,14 +36,8 @@ jobs:
       - name: Build solution
         run: dotnet build Postly.sln --configuration Release --no-restore
 
-      - name: Run unit tests
-        run: dotnet test backend/tests/Postly.Api.UnitTests/Postly.Api.UnitTests.csproj --configuration Release --no-build
-
-      - name: Run contract tests
-        run: dotnet test backend/tests/Postly.Api.ContractTests/Postly.Api.ContractTests.csproj --configuration Release --no-build
-
-      - name: Run integration tests
-        run: dotnet test backend/tests/Postly.Api.IntegrationTests/Postly.Api.IntegrationTests.csproj --configuration Release --no-build
+      - name: Run backend tests
+        run: dotnet test Postly.sln --configuration Release --no-build
 
   frontend-unit-tests:
     name: Frontend Unit Tests
