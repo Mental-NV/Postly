@@ -119,6 +119,14 @@ The non-production seed should provide:
 - On `/posts/:postId`, continue through replies until `collection-end-state`
   appears and verify it is distinct from an initial empty state
 
+Deterministic automation strategy for continuation failures:
+
+- Frontend component tests should use a shared fetch-mock helper that rejects
+  the next continuation request once and then allows the retry request to
+  succeed.
+- Playwright retry scenarios should use route interception to fail the first
+  matching continuation request once and allow subsequent requests through.
+
 ## Planned Automated Validation
 
 ### Backend unit tests
@@ -174,7 +182,8 @@ Focus:
 - profile edit state variants
 - conversation placeholder/unavailable states
 - notifications list and destination-open transitions
-- shared continuation controller behavior
+- shared continuation controller behavior, including one-shot fetch-mock
+  continuation failure injection for retry coverage
 
 ### Playwright e2e tests
 
@@ -186,7 +195,9 @@ cd ..
 
 Focus:
 
-- all primary and recovery flows from `user-flows.md`
+- all primary and recovery flows from `user-flows.md`, with continuation retry
+  scenarios driven by one-shot route interception rather than backend seed
+  toggles
 
 ## Migration and Rollback Notes
 

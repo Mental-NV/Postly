@@ -40,7 +40,7 @@ infrastructure that every Round 2 story depends on.
 - [ ] T006 Create the EF Core migration for avatar, reply, and notification schema changes in `backend/src/Postly.Api/Persistence/Migrations/`
 - [ ] T007 [P] Extend shared validation and ProblemDetails handling for Round 2 field errors and unavailable-content outcomes in `backend/src/Postly.Api/Features/Shared/Validation/ValidationHelpers.cs`, `backend/src/Postly.Api/Features/Shared/Errors/ProblemDetailsFactory.cs`, and `backend/src/Postly.Api/Features/Shared/Errors/ProblemDetailsResponse.cs`
 - [ ] T008 [P] Expand shared frontend API contracts and client helpers for profile editing, conversation reads, notification-open behavior, and continuation responses in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
-- [ ] T009 [P] Extend shared frontend test factories and Playwright helper plumbing for Round 2 payloads and seeded-state assumptions in `frontend/src/shared/test/factories.ts`, `frontend/src/shared/test/fetch-mock.ts`, and `frontend/tests/e2e/helpers.ts`
+- [ ] T009 [P] Extend shared frontend test factories, add a one-shot continuation failure helper in `frontend/src/shared/test/fetch-mock.ts`, and update Playwright helper plumbing in `frontend/src/shared/test/factories.ts` and `frontend/tests/e2e/helpers.ts`
 
 **Checkpoint**: Foundation ready for Round 2 story work.
 
@@ -194,8 +194,8 @@ responsibilities -> cursor-bearing `TimelineResponse`, `ProfileResponse`,
 - [ ] T048 [P] [US4] Add backend unit coverage for retry-safe cursor semantics, duplicate prevention, and exhausted-list behavior in `backend/tests/Postly.Api.UnitTests/Features/Timeline/ContinuationCursorTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Posts/ReplyContinuationTests.cs`
 - [ ] T049 [P] [US4] Add backend contract coverage for continuation response shape and error outcomes on timeline, profile, and conversation reads in `backend/tests/Postly.Api.ContractTests/ContinuationContractsTests.cs`
 - [ ] T050 [P] [US4] Add backend integration coverage for timeline/profile/conversation continuation success, retry-after-failure, and explicit exhaustion behavior in `backend/tests/Postly.Api.IntegrationTests/ContinuationFlowTests.cs`
-- [ ] T051 [P] [US4] Add frontend component coverage for the shared continuation hook plus timeline/profile/conversation loading, retry, and end states in `frontend/src/shared/test/use-continuation-collection.test.tsx` and `frontend/src/features/timeline/__tests__/continuation-state-ui.test.tsx`
-- [ ] T052 [P] [US4] Add Playwright coverage for `UF-11`, `UF-12`, and `UF-13` in `frontend/tests/e2e/us9-continuation-loading.spec.ts`
+- [ ] T051 [P] [US4] Add frontend component coverage for the shared continuation hook plus timeline, profile, and conversation loading/retry/end states using the one-shot fetch-mock continuation failure helper in `frontend/src/shared/test/use-continuation-collection.test.tsx`, `frontend/src/features/timeline/__tests__/continuation-state-ui.test.tsx`, `frontend/src/features/profiles/__tests__/profile-continuation-ui.test.tsx`, and `frontend/src/features/posts/__tests__/conversation-continuation-ui.test.tsx`
+- [ ] T052 [P] [US4] Add Playwright coverage for `UF-11`, `UF-12`, and `UF-13` in `frontend/tests/e2e/us9-continuation-loading.spec.ts` using route interception to fail the first matching continuation request once for retry scenarios
 
 ### Backend Implementation for User Story 4
 
@@ -209,7 +209,7 @@ responsibilities -> cursor-bearing `TimelineResponse`, `ProfileResponse`,
 
 ### Contracts, Data, Fixtures, and Documentation for User Story 4
 
-- [ ] T057 [US4] Add deterministic continuation retry and exhaustion fixtures for timeline, profile, and conversation surfaces in `backend/src/Postly.Api/Persistence/DataSeed.cs` and `frontend/tests/e2e/helpers.ts`
+- [ ] T057 [US4] Add deterministic continuation and exhaustion fixtures for timeline, profile, and conversation surfaces in `backend/src/Postly.Api/Persistence/DataSeed.cs` and align the retry test helpers in `frontend/tests/e2e/helpers.ts` with route interception rather than backend fault toggles
 
 **Checkpoint**: User Story 4 is independently testable.
 

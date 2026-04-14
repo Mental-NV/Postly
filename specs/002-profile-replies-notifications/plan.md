@@ -341,6 +341,11 @@ responsibilities below stay technical and implementation-oriented.
   once no more items remain.
 - Prevent duplicate appends and suppress overlapping continuation requests for
   the same collection state.
+- Keep continuation retry scenarios deterministic in automated tests by using:
+  - a shared frontend test helper that fails the next continuation fetch once
+    in component tests
+  - Playwright route interception that fails the first matching continuation
+    request once in end-to-end tests
 
 ## 4. Backend Requirements
 
@@ -504,10 +509,13 @@ responsibilities below stay technical and implementation-oriented.
 ### Sequence 5: US4 Automatic Continuation
 
 1. Shared backend pagination reuse for conversation replies
-2. Shared frontend continuation controller and state contract
+2. Shared frontend continuation controller, state contract, and one-shot
+   continuation failure test helper
 3. Apply continuation behavior to timeline, profile posts, and conversation
    replies
-4. Failure/retry/end-state tests across all three surfaces
+4. Failure/retry/end-state tests across all three surfaces, using fetch-mock
+   failure injection for frontend component tests and route interception for
+   Playwright retry scenarios
 
 ### Sequence 6: Cross-Cutting Verification
 
