@@ -9,7 +9,7 @@ interface PostEditorProps {
   onCancel: () => void
 }
 
-export function PostEditor({ post, onSave, onCancel }: PostEditorProps) {
+export function PostEditor({ post, onSave, onCancel }: PostEditorProps): React.JSX.Element {
   const [body, setBody] = useState(post.body)
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
@@ -27,7 +27,12 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps) {
     }
   }, [body])
 
-  async function handleSave() {
+  // Focus on mount
+  useEffect(() => {
+    textareaRef.current?.focus()
+  }, [])
+
+  async function handleSave(): Promise<void> {
     if (isEmpty || isOverLimit) return
 
     setIsPending(true)
@@ -50,24 +55,24 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps) {
     <div
       className="post-editor-container"
       data-testid="post-editor"
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => { e.stopPropagation(); }}
+      onKeyDown={(e) => { if (e.key === 'Escape') e.stopPropagation(); }}
+      role="form"
+      tabIndex={-1}
     >
       <textarea
         ref={textareaRef}
         className="composer-textarea editor-textarea"
         data-testid="editor-textarea"
         value={body}
-        onChange={(e) => setBody(e.target.value)}
+        onChange={(e) => { setBody(e.target.value); }}
         disabled={isPending}
         rows={1}
-        autoFocus
       />
 
-      {error && (
-        <div className="composer-error" role="alert">
+      {error ? <div className="composer-error" role="alert">
           {error}
-        </div>
-      )}
+        </div> : null}
 
       <div className="composer-footer">
         <div className="composer-stats">

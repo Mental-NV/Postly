@@ -18,7 +18,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   isPending = false,
-}: ConfirmDialogProps) {
+}: ConfirmDialogProps): React.JSX.Element | null {
   if (!isOpen) return null
 
   return (

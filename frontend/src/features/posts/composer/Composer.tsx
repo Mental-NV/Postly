@@ -1,15 +1,16 @@
-import { useState, FormEvent, useRef, useEffect } from 'react'
+import type { FormEvent} from 'react';
+import { useState, useRef, useEffect } from 'react'
 import { apiClient } from '../../../shared/api/client'
 import { isApiError } from '../../../shared/api/errors'
 import { Button } from '../../../shared/components/Button'
 import { Avatar } from '../../../shared/components/Avatar'
-import { useAuth } from '../../../app/providers/AuthProvider'
+import { useAuth } from '../../../app/providers/AuthContext'
 
 interface ComposerProps {
   onPostCreated?: () => void
 }
 
-export function Composer({ onPostCreated }: ComposerProps) {
+export function Composer({ onPostCreated }: ComposerProps): React.JSX.Element | null {
   const { session } = useAuth()
   const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +29,7 @@ export function Composer({ onPostCreated }: ComposerProps) {
     }
   }, [body])
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault()
     if (isEmpty || isOverLimit) return
 
@@ -73,17 +74,15 @@ export function Composer({ onPostCreated }: ComposerProps) {
           className="composer-textarea"
           data-testid="composer-textarea"
           value={body}
-          onChange={(e) => setBody(e.target.value)}
+          onChange={(e) => { setBody(e.target.value); }}
           disabled={isPending}
           placeholder="What's happening?"
           rows={1}
         />
 
-        {error && (
-          <div className="composer-error" role="alert">
+        {error ? <div className="composer-error" role="alert">
             {error}
-          </div>
-        )}
+          </div> : null}
 
         <div className="composer-footer">
           <div className="composer-stats">

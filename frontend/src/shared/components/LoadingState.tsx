@@ -2,7 +2,7 @@ interface LoadingStateProps {
   message?: string
 }
 
-export function LoadingState({ message = 'Loading...' }: LoadingStateProps) {
+export function LoadingState({ message = 'Loading...' }: LoadingStateProps): React.JSX.Element {
   return (
     <div
       data-testid="loading-state"

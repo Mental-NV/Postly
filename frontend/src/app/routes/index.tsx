@@ -7,7 +7,7 @@ import { DirectPostPage } from '../../features/posts/DirectPostPage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { MainLayout } from '../../shared/components/MainLayout'
 
-export function AppRoutes() {
+export function AppRoutes(): React.JSX.Element {
   return (
     <Routes>
       <Route path="/signup" element={<SignupPage />} />

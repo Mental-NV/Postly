@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
 import type {
@@ -12,9 +12,9 @@ import { PostEditor } from '../posts/editor/PostEditor'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { Avatar } from '../../shared/components/Avatar'
 import { Button } from '../../shared/components/Button'
-import { useAuth } from '../../app/providers/AuthProvider'
+import { useAuth } from '../../app/providers/AuthContext'
 
-export function ProfilePage() {
+export function ProfilePage(): React.JSX.Element {
   const { username } = useParams<{ username: string }>()
   const navigate = useNavigate()
   const location = useLocation()
@@ -34,31 +34,14 @@ export function ProfilePage() {
   )
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!username) return
-    if (username === 'me' && !isAuthenticated) {
-      return
-    }
-
-    void loadProfile()
-  }, [isAuthenticated, username])
-
-  useEffect(() => {
-    if (!profile?.isSelf || username !== 'me') {
-      return
-    }
-
-    navigate(`/u/${profile.username}`, { replace: true })
-  }, [navigate, profile, username])
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async (): Promise<void> => {
     if (!username) return
 
     setIsLoading(true)
     setError(null)
 
     const apiPath =
-      username === 'me' ? '/profiles/me' : `/profiles/${String(username)}`
+      username === 'me' ? '/profiles/me' : `/profiles/${username}`
 
     try {
       const data = await apiClient.get<ProfileResponse>(apiPath)
@@ -66,8 +49,8 @@ export function ProfilePage() {
       setProfile(data.profile)
       setPosts(data.posts)
       setNextCursor(data.nextCursor ?? null)
-    } catch (err: any) {
-      if (err?.status === 404) {
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
         setError('User not found')
       } else {
         setError('Failed to load profile. Please try again.')
@@ -75,19 +58,36 @@ export function ProfilePage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [username])
 
-  const loadMorePosts = async () => {
+  useEffect(() => {
+    if (!username) return
+    if (username === 'me' && !isAuthenticated) {
+      return
+    }
+
+    void loadProfile()
+  }, [isAuthenticated, username, loadProfile])
+
+  useEffect(() => {
+    if (!profile?.isSelf || username !== 'me') {
+      return
+    }
+
+    void navigate(`/u/${profile.username}`, { replace: true })
+  }, [navigate, profile, username])
+
+  const loadMorePosts = async (): Promise<void> => {
     if (!username || !nextCursor || isLoadingMore) return
 
     setIsLoadingMore(true)
 
     const apiPath =
-      username === 'me' ? '/profiles/me' : `/profiles/${String(username)}`
+      username === 'me' ? '/profiles/me' : `/profiles/${username}`
 
     try {
       const data = await apiClient.get<ProfileResponse>(
-        `${apiPath}?cursor=${String(nextCursor)}`
+        `${apiPath}?cursor=${nextCursor}`
       )
 
       setPosts((currentPosts) => [...currentPosts, ...data.posts])
@@ -99,7 +99,7 @@ export function ProfilePage() {
     }
   }
 
-  const handleFollow = async () => {
+  const handleFollow = async (): Promise<void> => {
     if (!username || !profile || isFollowPending) return
 
     setIsFollowPending(true)
@@ -113,7 +113,7 @@ export function ProfilePage() {
     })
 
     try {
-      await apiClient.post(`/profiles/${String(username)}/follow`)
+      await apiClient.post(`/profiles/${username}/follow`)
     } catch {
       setProfile({
         ...profile,
@@ -126,7 +126,7 @@ export function ProfilePage() {
     }
   }
 
-  const handleUnfollow = async () => {
+  const handleUnfollow = async (): Promise<void> => {
     if (!username || !profile || isFollowPending) return
 
     setIsFollowPending(true)
@@ -140,7 +140,7 @@ export function ProfilePage() {
     })
 
     try {
-      await apiClient.delete(`/profiles/${String(username)}/follow`)
+      await apiClient.delete(`/profiles/${username}/follow`)
     } catch {
       setProfile({
         ...profile,
@@ -156,23 +156,23 @@ export function ProfilePage() {
   function updatePost(
     postId: number,
     updater: (post: PostSummary) => PostSummary
-  ) {
+  ): void {
     setPosts((currentPosts) =>
       currentPosts.map((post) => (post.id === postId ? updater(post) : post))
     )
   }
 
-  const handleEdit = async (postId: number, newBody: string) => {
-    await apiClient.patch(`/posts/${String(postId)}`, { body: newBody })
+  const handleEdit = async (postId: number, newBody: string): Promise<void> => {
+    await apiClient.patch(`/posts/${postId}`, { body: newBody })
     setEditingPostId(null)
     updatePost(postId, (post) => ({ ...post, body: newBody, isEdited: true }))
   }
 
-  const handleDelete = async (postId: number) => {
+  const handleDelete = async (postId: number): Promise<void> => {
     setIsDeleting(true)
 
     try {
-      await apiClient.delete(`/posts/${String(postId)}`)
+      await apiClient.delete(`/posts/${postId}`)
       setDeletingPostId(null)
       setPosts((currentPosts) =>
         currentPosts.filter((post) => post.id !== postId)
@@ -182,7 +182,7 @@ export function ProfilePage() {
     }
   }
 
-  const handleLikeToggle = async (post: PostSummary) => {
+  const handleLikeToggle = async (post: PostSummary): Promise<void> => {
     if (pendingLikePostId === post.id) return
 
     setPendingLikePostId(post.id)
@@ -203,10 +203,10 @@ export function ProfilePage() {
     try {
       const interactionState = post.likedByViewer
         ? await apiClient.delete<PostInteractionState>(
-            `/posts/${String(post.id)}/like`
+            `/posts/${post.id}/like`
           )
         : await apiClient.post<PostInteractionState>(
-            `/posts/${String(post.id)}/like`
+            `/posts/${post.id}/like`
           )
 
       updatePost(post.id, (currentPost) => ({
@@ -284,7 +284,7 @@ export function ProfilePage() {
     )
   }
 
-  if (!profile) return null
+  if (!profile) return <div>Loading...</div>
 
   return (
     <div className="profile-page" data-testid="profile-page">
@@ -292,7 +292,7 @@ export function ProfilePage() {
         <Button
           variant="ghost"
           onClick={() => {
-            navigate(-1)
+            void navigate(-1)
           }}
           className="back-btn"
         >
@@ -345,7 +345,7 @@ export function ProfilePage() {
             <span className="profile-username">@{profile.username}</span>
           </div>
 
-          {profile.bio && <p className="profile-bio">{profile.bio}</p>}
+          {profile.bio ? <p className="profile-bio">{profile.bio}</p> : null}
 
           <div className="profile-stats">
             <span className="stat-item">
@@ -364,13 +364,11 @@ export function ProfilePage() {
         </nav>
       </div>
 
-      {error && (
-        <div className="page-error-container" style={{ padding: '16px' }}>
+      {error ? <div className="page-error-container" style={{ padding: '16px' }}>
           <p className="page-error-text" role="alert">
             {error}
           </p>
-        </div>
-      )}
+        </div> : null}
 
       <div className="profile-posts-feed" data-testid="profile-posts-feed">
         {posts.length === 0 ? (
@@ -392,7 +390,7 @@ export function ProfilePage() {
                   key={post.id}
                   post={post}
                   onSave={(body) => handleEdit(post.id, body)}
-                  onCancel={() => setEditingPostId(null)}
+                  onCancel={() => { setEditingPostId(null); }}
                 />
               ) : (
                 <PostCard
@@ -413,8 +411,7 @@ export function ProfilePage() {
               )
             )}
 
-            {nextCursor && (
-              <div className="load-more-container">
+            {nextCursor ? <div className="load-more-container">
                 <Button
                   variant="secondary"
                   onClick={() => {
@@ -425,8 +422,7 @@ export function ProfilePage() {
                 >
                   {isLoadingMore ? 'Loading...' : 'Load more'}
                 </Button>
-              </div>
-            )}
+              </div> : null}
           </>
         )}
       </div>

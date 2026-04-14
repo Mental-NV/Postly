@@ -13,7 +13,7 @@ vi.mock('../../../shared/api/client', () => ({
   },
 }))
 
-vi.mock('../../../app/providers/AuthProvider', () => ({
+vi.mock('../../../app/providers/AuthContext', () => ({
   useAuth: () => ({
     signin: mockSignin,
   }),

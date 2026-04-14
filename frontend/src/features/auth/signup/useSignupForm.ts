@@ -1,6 +1,7 @@
-import { useState, FormEvent } from 'react'
+import type { FormEvent } from 'react';
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../../app/providers/AuthProvider'
+import { useAuth } from '../../../app/providers/AuthContext'
 import { apiClient } from '../../../shared/api/client'
 import { isApiError } from '../../../shared/api/errors'
 import type { SignupRequest } from '../../../shared/api/contracts'
@@ -13,7 +14,22 @@ interface FormErrors {
   form?: string
 }
 
-export function useSignupForm() {
+interface FormValues {
+  username: string
+  displayName: string
+  bio: string
+  password: string
+}
+
+interface UseSignupFormReturn {
+  values: FormValues
+  errors: FormErrors
+  isPending: boolean
+  handleChange: (field: keyof FormValues, value: string) => void
+  handleSubmit: (e: FormEvent) => Promise<void>
+}
+
+export function useSignupForm(): UseSignupFormReturn {
   const navigate = useNavigate()
   const { signin } = useAuth()
   const [values, setValues] = useState({
@@ -25,7 +41,7 @@ export function useSignupForm() {
   const [errors, setErrors] = useState<FormErrors>({})
   const [isPending, setIsPending] = useState(false)
 
-  const handleChange = (field: keyof typeof values, value: string) => {
+  const handleChange = (field: keyof typeof values, value: string): void => {
     setValues((prev) => ({ ...prev, [field]: value }))
     // Clear field error when user types
     if (errors[field]) {
@@ -37,7 +53,7 @@ export function useSignupForm() {
     }
   }
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault()
 
     if (isPending) return
@@ -59,7 +75,7 @@ export function useSignupForm() {
       await signin(values.username, values.password)
 
       // Success - navigate to home timeline
-      navigate('/', { replace: true })
+      void navigate('/', { replace: true })
     } catch (error) {
       if (isApiError(error)) {
         if (error.status === 400 && error.errors) {

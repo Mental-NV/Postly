@@ -1,18 +1,18 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { Home, User, LogOut } from 'lucide-react'
-import { useAuth } from '../../app/providers/AuthProvider'
+import { useAuth } from '../../app/providers/AuthContext'
 import { Button } from './Button'
 
 interface MainLayoutProps {
   children: ReactNode
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
+export function MainLayout({ children }: MainLayoutProps): React.JSX.Element {
   const navigate = useNavigate()
   const { session, isAuthenticated } = useAuth()
 
-  const handleSignOut = () => {
+  const handleSignOut = (): void => {
     // Basic sign out logic - clear local storage/session and redirect
     localStorage.removeItem('token') // Assuming a token-based system
     void navigate('/signin')
@@ -25,8 +25,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           <Link to="/" className="brand" data-testid="brand-link">
             Postly
           </Link>
-          {isAuthenticated && (
-            <>
+          {isAuthenticated ? <>
               <nav className="nav-links">
                 <NavLink
                   to="/"
@@ -60,8 +59,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                   <span className="signout-btn-text">Sign Out</span>
                 </Button>
               </div>
-            </>
-          )}
+            </> : null}
         </div>
       </header>
 

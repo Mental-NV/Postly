@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useSigninForm } from './useSigninForm'
 import { Button } from '../../../shared/components/Button'
 
-export function SigninPage() {
+export function SigninPage(): React.JSX.Element {
   const { values, errors, formError, isPending, handleChange, handleSubmit } =
     useSigninForm()
 
@@ -18,11 +18,9 @@ export function SigninPage() {
           }}
           className="auth-form"
         >
-          {formError && (
-            <div role="alert" className="auth-error-top">
+          {formError ? <div role="alert" className="auth-error-top">
               {formError}
-            </div>
-          )}
+            </div> : null}
 
           <div className="auth-field">
             <label htmlFor="username">Username</label>
@@ -36,11 +34,9 @@ export function SigninPage() {
               data-testid="username-input"
               className={errors.username ? 'invalid' : ''}
             />
-            {errors.username && (
-              <div data-testid="username-error" className="auth-field-error">
+            {errors.username ? <div data-testid="username-error" className="auth-field-error">
                 {errors.username[0]}
-              </div>
-            )}
+              </div> : null}
           </div>
 
           <div className="auth-field">
@@ -55,11 +51,9 @@ export function SigninPage() {
               data-testid="password-input"
               className={errors.password ? 'invalid' : ''}
             />
-            {errors.password && (
-              <div data-testid="password-error" className="auth-field-error">
+            {errors.password ? <div data-testid="password-error" className="auth-field-error">
                 {errors.password[0]}
-              </div>
-            )}
+              </div> : null}
           </div>
 
           <Button

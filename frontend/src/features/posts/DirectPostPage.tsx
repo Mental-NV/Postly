@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
 import type {
@@ -6,13 +6,13 @@ import type {
   PostSummary,
 } from '../../shared/api/contracts'
 import { isApiError } from '../../shared/api/errors'
-import { useAuth } from '../../app/providers/AuthProvider'
+import { useAuth } from '../../app/providers/AuthContext'
 import { PostEditor } from './editor/PostEditor'
 import { PostCard } from './post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { Button } from '../../shared/components/Button'
 
-export function DirectPostPage() {
+export function DirectPostPage(): React.JSX.Element | null {
   const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
@@ -26,11 +26,7 @@ export function DirectPostPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isLikePending, setIsLikePending] = useState(false)
 
-  useEffect(() => {
-    void loadPost()
-  }, [postId])
-
-  const loadPost = async () => {
+  const loadPost = useCallback(async (): Promise<void> => {
     if (!postId) return
 
     setIsLoading(true)
@@ -49,9 +45,13 @@ export function DirectPostPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [postId])
 
-  const handleEdit = async (postId: number, newBody: string) => {
+  useEffect(() => {
+    void loadPost()
+  }, [loadPost])
+
+  const handleEdit = async (postId: number, newBody: string): Promise<void> => {
     await apiClient.patch(`/posts/${String(postId)}`, { body: newBody })
     setEditingPostId(null)
     if (post) {
@@ -59,7 +59,7 @@ export function DirectPostPage() {
     }
   }
 
-  const handleDelete = async (postId: number) => {
+  const handleDelete = async (postId: number): Promise<void> => {
     setIsDeleting(true)
     try {
       await apiClient.delete(`/posts/${String(postId)}`)
@@ -69,7 +69,7 @@ export function DirectPostPage() {
     }
   }
 
-  const handleLikeToggle = async (currentPost: PostSummary) => {
+  const handleLikeToggle = async (currentPost: PostSummary): Promise<void> => {
     if (isLikePending) return
 
     setIsLikePending(true)
@@ -187,7 +187,7 @@ export function DirectPostPage() {
         <Button
           variant="ghost"
           onClick={() => {
-            navigate(-1)
+            void navigate(-1)
           }}
           className="back-btn"
           data-testid="post-back-link"
@@ -197,13 +197,11 @@ export function DirectPostPage() {
         <h1 className="page-title">Post</h1>
       </header>
 
-      {error && (
-        <div className="page-error-container" style={{ padding: '16px' }}>
+      {error ? <div className="page-error-container" style={{ padding: '16px' }}>
           <p className="page-error-text" data-testid="post-status">
             {error}
           </p>
-        </div>
-      )}
+        </div> : null}
 
       <div className="post-detail-content">
         {editingPostId === post.id ? (

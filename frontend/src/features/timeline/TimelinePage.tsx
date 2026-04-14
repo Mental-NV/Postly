@@ -11,7 +11,7 @@ import type {
   TimelineResponse,
 } from '../../shared/api/contracts'
 
-export function TimelinePage() {
+export function TimelinePage(): React.JSX.Element {
   const [posts, setPosts] = useState<PostSummary[]>([])
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [editingPostId, setEditingPostId] = useState<number | null>(null)
@@ -28,7 +28,7 @@ export function TimelinePage() {
     void loadTimeline()
   }, [])
 
-  async function loadTimeline() {
+  async function loadTimeline(): Promise<void> {
     setIsLoading(true)
     setError(null)
 
@@ -44,7 +44,7 @@ export function TimelinePage() {
     }
   }
 
-  async function loadMorePosts() {
+  async function loadMorePosts(): Promise<void> {
     if (!nextCursor || isLoadingMore) return
 
     setIsLoadingMore(true)
@@ -63,7 +63,7 @@ export function TimelinePage() {
     }
   }
 
-  async function handlePostCreated() {
+  async function handlePostCreated(): Promise<void> {
     // Reload timeline to show new post
     await loadTimeline()
   }
@@ -71,19 +71,19 @@ export function TimelinePage() {
   function updatePost(
     postId: number,
     updater: (post: PostSummary) => PostSummary
-  ) {
+  ): void {
     setPosts((currentPosts) =>
       currentPosts.map((post) => (post.id === postId ? updater(post) : post))
     )
   }
 
-  async function handleEdit(postId: number, newBody: string) {
+  async function handleEdit(postId: number, newBody: string): Promise<void> {
     await apiClient.patch(`/posts/${String(postId)}`, { body: newBody })
     setEditingPostId(null)
     updatePost(postId, (post) => ({ ...post, body: newBody, isEdited: true }))
   }
 
-  async function handleDelete(postId: number) {
+  async function handleDelete(postId: number): Promise<void> {
     setIsDeleting(true)
     try {
       await apiClient.delete(`/posts/${String(postId)}`)
@@ -96,7 +96,7 @@ export function TimelinePage() {
     }
   }
 
-  async function handleLikeToggle(post: PostSummary) {
+  async function handleLikeToggle(post: PostSummary): Promise<void> {
     if (pendingLikePostId === post.id) return
 
     setPendingLikePostId(post.id)
@@ -164,8 +164,7 @@ export function TimelinePage() {
         }}
       />
 
-      {error && (
-        <div className="page-error-container">
+      {error ? <div className="page-error-container">
           <p className="page-error-text">{error}</p>
           <Button
             variant="secondary"
@@ -175,8 +174,7 @@ export function TimelinePage() {
           >
             Retry
           </Button>
-        </div>
-      )}
+        </div> : null}
 
       <div className="timeline-feed" data-testid="timeline-feed">
         {posts.length === 0 ? (
@@ -217,8 +215,7 @@ export function TimelinePage() {
               )
             )}
 
-            {nextCursor && (
-              <div className="load-more-container">
+            {nextCursor ? <div className="load-more-container">
                 <Button
                   variant="secondary"
                   onClick={() => {
@@ -229,8 +226,7 @@ export function TimelinePage() {
                 >
                   {isLoadingMore ? 'Loading...' : 'Load more'}
                 </Button>
-              </div>
-            )}
+              </div> : null}
           </>
         )}
       </div>

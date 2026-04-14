@@ -1,17 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { apiClient } from '../../shared/api/client'
 import { isApiError } from '../../shared/api/errors'
 import type { SessionResponse } from '../../shared/api/contracts'
-
-interface AuthContextValue {
-  session: SessionResponse | null
-  isLoading: boolean
-  isAuthenticated: boolean
-  signin: (username: string, password: string) => Promise<void>
-  signout: () => Promise<void>
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
+import { AuthContext } from './AuthContext'
 
 export function AuthProvider({
   children,
@@ -19,7 +10,7 @@ export function AuthProvider({
 }: {
   children: React.ReactNode
   initialSession?: SessionResponse | null
-}) {
+}): React.JSX.Element {
   const hasInitialSession = initialSession !== undefined
   const [session, setSession] = useState<SessionResponse | null>(
     initialSession ?? null
@@ -32,7 +23,7 @@ export function AuthProvider({
     }
   }, [hasInitialSession])
 
-  async function checkSession() {
+  async function checkSession(): Promise<void> {
     try {
       const response = await apiClient.get<SessionResponse>('/auth/session')
       setSession(response)
@@ -46,7 +37,7 @@ export function AuthProvider({
     }
   }
 
-  async function signin(username: string, password: string) {
+  async function signin(username: string, password: string): Promise<void> {
     const response = await apiClient.post<SessionResponse>('/auth/signin', {
       username,
       password,
@@ -54,7 +45,7 @@ export function AuthProvider({
     setSession(response)
   }
 
-  async function signout() {
+  async function signout(): Promise<void> {
     await apiClient.post('/auth/signout', null)
     setSession(null)
   }
@@ -72,12 +63,4 @@ export function AuthProvider({
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
-  }
-  return context
 }

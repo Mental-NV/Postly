@@ -1,4 +1,5 @@
-import { ReactNode } from 'react'
+import React from 'react'
+import type { ReactNode } from 'react'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -17,16 +18,16 @@ export class ErrorBoundary extends React.Component<
     this.state = { hasError: false }
   }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(): ErrorBoundaryState {
     return { hasError: true }
   }
 
-  render() {
+  render(): ReactNode {
     if (this.state.hasError) {
       return (
         <div style={{ padding: '2rem', textAlign: 'center' }}>
           <h1>Something went wrong</h1>
-          <button onClick={() => window.location.reload()}>Reload page</button>
+          <button onClick={() => { window.location.reload(); }}>Reload page</button>
         </div>
       )
     }
@@ -34,5 +35,3 @@ export class ErrorBoundary extends React.Component<
     return this.props.children
   }
 }
-
-import React from 'react'

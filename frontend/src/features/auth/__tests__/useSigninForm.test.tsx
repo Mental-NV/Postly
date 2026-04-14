@@ -7,7 +7,7 @@ const mockNavigate = vi.fn()
 const mockSignin = vi.fn()
 let mockLocationSearch = ''
 
-vi.mock('../../../app/providers/AuthProvider', () => ({
+vi.mock('../../../app/providers/AuthContext', () => ({
   useAuth: () => ({
     signin: mockSignin,
   }),

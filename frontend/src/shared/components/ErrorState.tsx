@@ -3,7 +3,7 @@ interface ErrorStateProps {
   onRetry?: () => void
 }
 
-export function ErrorState({ message, onRetry }: ErrorStateProps) {
+export function ErrorState({ message, onRetry }: ErrorStateProps): React.JSX.Element {
   return (
     <div
       data-testid="error-state"
@@ -11,11 +11,9 @@ export function ErrorState({ message, onRetry }: ErrorStateProps) {
       style={{ padding: '2rem', textAlign: 'center' }}
     >
       <p style={{ color: 'red' }}>{message}</p>
-      {onRetry && (
-        <button type="button" onClick={onRetry} data-testid="retry-button">
+      {onRetry ? <button type="button" onClick={onRetry} data-testid="retry-button">
           Retry
-        </button>
-      )}
+        </button> : null}
     </div>
   )
 }

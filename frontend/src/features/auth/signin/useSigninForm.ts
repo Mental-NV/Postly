@@ -1,9 +1,18 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../../../app/providers/AuthProvider'
+import { useAuth } from '../../../app/providers/AuthContext'
 import { isApiError } from '../../../shared/api/errors'
 
-export function useSigninForm() {
+interface UseSigninFormReturn {
+  values: { username: string; password: string }
+  errors: Record<string, string[]>
+  formError: string | null
+  isPending: boolean
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleSubmit: (e: React.FormEvent) => Promise<void>
+}
+
+export function useSigninForm(): UseSigninFormReturn {
   const [values, setValues] = useState({ username: '', password: '' })
   const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [formError, setFormError] = useState<string | null>(null)
@@ -12,7 +21,7 @@ export function useSigninForm() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     const { name, value } = e.target
     setValues((prev) => ({ ...prev, [name]: value }))
     // Clear field error when user types
@@ -26,7 +35,7 @@ export function useSigninForm() {
     setFormError(null)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault()
     setIsPending(true)
     setErrors({})
@@ -38,7 +47,7 @@ export function useSigninForm() {
       // Get return URL from query params or default to home
       const params = new URLSearchParams(location.search)
       const returnUrl = params.get('returnUrl') || '/'
-      navigate(returnUrl, { replace: true })
+      void navigate(returnUrl, { replace: true })
     } catch (error) {
       // Clear password on error (security)
       setValues((prev) => ({ ...prev, password: '' }))

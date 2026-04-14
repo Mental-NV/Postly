@@ -23,7 +23,7 @@ export function Avatar({
   displayName,
   size = 'md',
   className = '',
-}: AvatarProps) {
+}: AvatarProps): React.JSX.Element {
   const backgroundColor = useMemo(() => {
     let hash = 0
     for (let i = 0; i < username.length; i++) {

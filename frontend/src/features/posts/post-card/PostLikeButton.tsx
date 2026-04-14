@@ -14,7 +14,7 @@ export function PostLikeButton({
   likeCount,
   isPending,
   onToggle,
-}: PostLikeButtonProps) {
+}: PostLikeButtonProps): React.JSX.Element {
   return (
     <div className="post-action-item like-action">
       <Button
