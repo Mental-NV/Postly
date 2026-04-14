@@ -1,4 +1,5 @@
-import { useState, FormEvent, useRef, useEffect } from 'react'
+import type { FormEvent} from 'react';
+import { useState, useRef, useEffect } from 'react'
 import { apiClient } from '../../../shared/api/client'
 import { isApiError } from '../../../shared/api/errors'
 import { Button } from '../../../shared/components/Button'
@@ -73,17 +74,15 @@ export function Composer({ onPostCreated }: ComposerProps) {
           className="composer-textarea"
           data-testid="composer-textarea"
           value={body}
-          onChange={(e) => setBody(e.target.value)}
+          onChange={(e) => { setBody(e.target.value); }}
           disabled={isPending}
           placeholder="What's happening?"
           rows={1}
         />
 
-        {error && (
-          <div className="composer-error" role="alert">
+        {error ? <div className="composer-error" role="alert">
             {error}
-          </div>
-        )}
+          </div> : null}
 
         <div className="composer-footer">
           <div className="composer-stats">

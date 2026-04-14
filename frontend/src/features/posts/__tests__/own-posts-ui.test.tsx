@@ -232,7 +232,7 @@ describe('ConfirmDialog', () => {
   it('shows dialog when open', () => {
     render(
       <ConfirmDialog
-        isOpen={true}
+        isOpen
         title="Delete Post"
         message="Are you sure?"
         onConfirm={vi.fn()}
@@ -251,7 +251,7 @@ describe('ConfirmDialog', () => {
 
     render(
       <ConfirmDialog
-        isOpen={true}
+        isOpen
         title="Delete Post"
         message="Are you sure?"
         onConfirm={onConfirm}
@@ -270,7 +270,7 @@ describe('ConfirmDialog', () => {
 
     render(
       <ConfirmDialog
-        isOpen={true}
+        isOpen
         title="Delete Post"
         message="Are you sure?"
         onConfirm={vi.fn()}
@@ -300,12 +300,12 @@ describe('ConfirmDialog', () => {
   it('shows pending state during deletion', () => {
     render(
       <ConfirmDialog
-        isOpen={true}
+        isOpen
         title="Delete Post"
         message="Are you sure?"
         onConfirm={vi.fn()}
         onCancel={vi.fn()}
-        isPending={true}
+        isPending
       />
     )
 
@@ -317,7 +317,7 @@ describe('ConfirmDialog', () => {
   it('uses custom button text', () => {
     render(
       <ConfirmDialog
-        isOpen={true}
+        isOpen
         title="Delete Post"
         message="Are you sure?"
         confirmText="Yes, delete"

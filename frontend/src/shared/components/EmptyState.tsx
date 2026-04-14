@@ -15,15 +15,13 @@ export function EmptyState({ message, action }: EmptyStateProps) {
       style={{ padding: '2rem', textAlign: 'center' }}
     >
       <p>{message}</p>
-      {action && (
-        <button
+      {action ? <button
           type="button"
           onClick={action.onClick}
           data-testid="empty-state-action"
         >
           {action.label}
-        </button>
-      )}
+        </button> : null}
     </div>
   )
 }

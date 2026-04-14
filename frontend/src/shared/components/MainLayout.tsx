@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { Home, User, LogOut } from 'lucide-react'
 import { useAuth } from '../../app/providers/AuthProvider'
@@ -25,8 +25,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           <Link to="/" className="brand" data-testid="brand-link">
             Postly
           </Link>
-          {isAuthenticated && (
-            <>
+          {isAuthenticated ? <>
               <nav className="nav-links">
                 <NavLink
                   to="/"
@@ -60,8 +59,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                   <span className="signout-btn-text">Sign Out</span>
                 </Button>
               </div>
-            </>
-          )}
+            </> : null}
         </div>
       </header>
 

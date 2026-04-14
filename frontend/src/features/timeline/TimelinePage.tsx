@@ -164,8 +164,7 @@ export function TimelinePage() {
         }}
       />
 
-      {error && (
-        <div className="page-error-container">
+      {error ? <div className="page-error-container">
           <p className="page-error-text">{error}</p>
           <Button
             variant="secondary"
@@ -175,8 +174,7 @@ export function TimelinePage() {
           >
             Retry
           </Button>
-        </div>
-      )}
+        </div> : null}
 
       <div className="timeline-feed" data-testid="timeline-feed">
         {posts.length === 0 ? (
@@ -217,8 +215,7 @@ export function TimelinePage() {
               )
             )}
 
-            {nextCursor && (
-              <div className="load-more-container">
+            {nextCursor ? <div className="load-more-container">
                 <Button
                   variant="secondary"
                   onClick={() => {
@@ -229,8 +226,7 @@ export function TimelinePage() {
                 >
                   {isLoadingMore ? 'Loading...' : 'Load more'}
                 </Button>
-              </div>
-            )}
+              </div> : null}
           </>
         )}
       </div>

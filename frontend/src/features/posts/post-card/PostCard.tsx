@@ -22,14 +22,21 @@ export function PostCard({
   onLikeToggle,
   onEdit,
   onDelete,
-}: PostCardProps) {
+}: PostCardProps): React.JSX.Element {
   const navigate = useNavigate()
 
-  const handleCardClick = () => {
-    void navigate(`/posts/${String(post.id)}`)
+  const handleCardClick = (): void => {
+    void navigate(`/posts/${post.id}`)
   }
 
-  const formatDate = (dateStr: string) => {
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleCardClick()
+    }
+  }
+
+  const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr)
     const now = new Date()
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
@@ -46,9 +53,12 @@ export function PostCard({
 
   return (
     <article
-      data-testid={`post-card-${String(post.id)}`}
+      data-testid={`post-card-${post.id}`}
       className="post-card"
       onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
     >
       <div className="post-card-avatar-column">
         <Link
@@ -88,28 +98,26 @@ export function PostCard({
           </Link>
           <span className="metadata-separator">·</span>
           <Link
-            to={`/posts/${String(post.id)}`}
+            to={`/posts/${post.id}`}
             onClick={(e) => {
               e.stopPropagation()
             }}
-            data-testid={`post-permalink-${String(post.id)}`}
+            data-testid={`post-permalink-${post.id}`}
             className="post-timestamp"
           >
-            <time data-testid={`post-timestamp-${String(post.id)}`}>
+            <time data-testid={`post-timestamp-${post.id}`}>
               {formatDate(post.createdAtUtc)}
             </time>
           </Link>
-          {post.isEdited && (
-            <span
-              data-testid={`post-edited-badge-${String(post.id)}`}
+          {post.isEdited ? <span
+              data-testid={`post-edited-badge-${post.id}`}
               className="post-edited-indicator"
             >
               (edited)
-            </span>
-          )}
+            </span> : null}
         </div>
 
-        <div className="post-body" data-testid={`post-body-${String(post.id)}`}>
+        <div className="post-body" data-testid={`post-body-${post.id}`}>
           {post.body}
         </div>
 
@@ -130,7 +138,7 @@ export function PostCard({
                 <span className="action-icon">🤍</span>
                 <span
                   aria-live="polite"
-                  data-testid={`post-like-count-${String(post.id)}`}
+                  data-testid={`post-like-count-${post.id}`}
                   className="action-count"
                 >
                   {post.likeCount > 0 ? post.likeCount : ''}
@@ -139,8 +147,7 @@ export function PostCard({
             </div>
           ) : null}
 
-          {post.canEdit && (
-            <div className="post-action-item">
+          {post.canEdit ? <div className="post-action-item">
               <Button
                 variant="ghost"
                 onClick={(e) => {
@@ -148,16 +155,14 @@ export function PostCard({
                   onEdit?.(post)
                 }}
                 aria-label="Edit"
-                data-testid={`post-edit-button-${String(post.id)}`}
+                data-testid={`post-edit-button-${post.id}`}
                 className="post-action-btn edit-btn"
               >
                 ✏️
               </Button>
-            </div>
-          )}
+            </div> : null}
 
-          {post.canDelete && (
-            <div className="post-action-item">
+          {post.canDelete ? <div className="post-action-item">
               <Button
                 variant="ghost"
                 onClick={(e) => {
@@ -165,13 +170,12 @@ export function PostCard({
                   onDelete?.(post)
                 }}
                 aria-label="Delete"
-                data-testid={`post-delete-button-${String(post.id)}`}
+                data-testid={`post-delete-button-${post.id}`}
                 className="post-action-btn delete-btn"
               >
                 🗑️
               </Button>
-            </div>
-          )}
+            </div> : null}
         </div>
       </div>
     </article>

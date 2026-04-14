@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useSignupForm } from './useSignupForm'
 import { Button } from '../../../shared/components/Button'
 
-export function SignupPage() {
+export function SignupPage(): React.JSX.Element {
   const { values, errors, isPending, handleChange, handleSubmit } =
     useSignupForm()
 
@@ -19,15 +19,13 @@ export function SignupPage() {
           data-testid="signup-form"
           className="auth-form"
         >
-          {errors.form && (
-            <div
+          {errors.form ? <div
               role="alert"
               className="auth-error-top"
               data-testid="form-error"
             >
               {errors.form}
-            </div>
-          )}
+            </div> : null}
 
           <div className="auth-field">
             <label htmlFor="username">Username</label>
@@ -35,16 +33,14 @@ export function SignupPage() {
               id="username"
               type="text"
               value={values.username}
-              onChange={(e) => handleChange('username', e.target.value)}
+              onChange={(e) => { handleChange('username', e.target.value); }}
               disabled={isPending}
               data-testid="username-input"
               className={errors.username ? 'invalid' : ''}
             />
-            {errors.username && (
-              <div className="auth-field-error" data-testid="username-error">
+            {errors.username ? <div className="auth-field-error" data-testid="username-error">
                 {errors.username[0]}
-              </div>
-            )}
+              </div> : null}
           </div>
 
           <div className="auth-field">
@@ -53,16 +49,14 @@ export function SignupPage() {
               id="displayName"
               type="text"
               value={values.displayName}
-              onChange={(e) => handleChange('displayName', e.target.value)}
+              onChange={(e) => { handleChange('displayName', e.target.value); }}
               disabled={isPending}
               data-testid="displayName-input"
               className={errors.displayName ? 'invalid' : ''}
             />
-            {errors.displayName && (
-              <div className="auth-field-error" data-testid="displayName-error">
+            {errors.displayName ? <div className="auth-field-error" data-testid="displayName-error">
                 {errors.displayName[0]}
-              </div>
-            )}
+              </div> : null}
           </div>
 
           <div className="auth-field">
@@ -70,17 +64,15 @@ export function SignupPage() {
             <textarea
               id="bio"
               value={values.bio}
-              onChange={(e) => handleChange('bio', e.target.value)}
+              onChange={(e) => { handleChange('bio', e.target.value); }}
               disabled={isPending}
               data-testid="bio-input"
               rows={3}
               className={errors.bio ? 'invalid' : ''}
             />
-            {errors.bio && (
-              <div className="auth-field-error" data-testid="bio-error">
+            {errors.bio ? <div className="auth-field-error" data-testid="bio-error">
                 {errors.bio[0]}
-              </div>
-            )}
+              </div> : null}
           </div>
 
           <div className="auth-field">
@@ -89,16 +81,14 @@ export function SignupPage() {
               id="password"
               type="password"
               value={values.password}
-              onChange={(e) => handleChange('password', e.target.value)}
+              onChange={(e) => { handleChange('password', e.target.value); }}
               disabled={isPending}
               data-testid="password-input"
               className={errors.password ? 'invalid' : ''}
             />
-            {errors.password && (
-              <div className="auth-field-error" data-testid="password-error">
+            {errors.password ? <div className="auth-field-error" data-testid="password-error">
                 {errors.password[0]}
-              </div>
-            )}
+              </div> : null}
           </div>
 
           <Button

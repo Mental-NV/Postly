@@ -12,7 +12,7 @@ export function useSigninForm() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>): void {
     const { name, value } = e.target
     setValues((prev) => ({ ...prev, [name]: value }))
     // Clear field error when user types
@@ -26,7 +26,7 @@ export function useSigninForm() {
     setFormError(null)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault()
     setIsPending(true)
     setErrors({})
@@ -38,7 +38,7 @@ export function useSigninForm() {
       // Get return URL from query params or default to home
       const params = new URLSearchParams(location.search)
       const returnUrl = params.get('returnUrl') || '/'
-      navigate(returnUrl, { replace: true })
+      void navigate(returnUrl, { replace: true })
     } catch (error) {
       // Clear password on error (security)
       setValues((prev) => ({ ...prev, password: '' }))

@@ -50,24 +50,22 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps) {
     <div
       className="post-editor-container"
       data-testid="post-editor"
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => { e.stopPropagation(); }}
     >
       <textarea
         ref={textareaRef}
         className="composer-textarea editor-textarea"
         data-testid="editor-textarea"
         value={body}
-        onChange={(e) => setBody(e.target.value)}
+        onChange={(e) => { setBody(e.target.value); }}
         disabled={isPending}
         rows={1}
         autoFocus
       />
 
-      {error && (
-        <div className="composer-error" role="alert">
+      {error ? <div className="composer-error" role="alert">
           {error}
-        </div>
-      )}
+        </div> : null}
 
       <div className="composer-footer">
         <div className="composer-stats">

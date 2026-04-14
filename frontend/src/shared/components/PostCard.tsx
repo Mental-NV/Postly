@@ -1,4 +1,4 @@
-import { PostSummary } from '../api/contracts'
+import type { PostSummary } from '../api/contracts'
 
 interface PostCardProps {
   post: PostSummary
@@ -27,7 +27,7 @@ export function PostCard({
       <div>
         <small>
           {new Date(post.createdAtUtc).toLocaleString()}
-          {post.isEdited && ' (edited)'}
+          {post.isEdited ? ' (edited)' : null}
         </small>
       </div>
       <div>
@@ -37,12 +37,8 @@ export function PostCard({
         ) : (
           <button onClick={() => onLike?.(post.id)}>Like</button>
         )}
-        {post.canEdit && (
-          <button onClick={() => onEdit?.(post.id)}>Edit</button>
-        )}
-        {post.canDelete && (
-          <button onClick={() => onDelete?.(post.id)}>Delete</button>
-        )}
+        {post.canEdit ? <button onClick={() => onEdit?.(post.id)}>Edit</button> : null}
+        {post.canDelete ? <button onClick={() => onDelete?.(post.id)}>Delete</button> : null}
       </div>
     </div>
   )

@@ -1,13 +1,13 @@
 import { BrowserRouter } from 'react-router-dom'
 import { ErrorBoundary } from './ErrorBoundary'
 import { AuthProvider } from './AuthProvider'
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 interface AppProvidersProps {
   children: ReactNode
 }
 
-export function AppProviders({ children }: AppProvidersProps) {
+export function AppProviders({ children }: AppProvidersProps): React.JSX.Element {
   return (
     <ErrorBoundary>
       <BrowserRouter>

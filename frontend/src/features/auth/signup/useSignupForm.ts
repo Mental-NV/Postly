@@ -1,4 +1,5 @@
-import { useState, FormEvent } from 'react'
+import type { FormEvent } from 'react';
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../app/providers/AuthProvider'
 import { apiClient } from '../../../shared/api/client'
@@ -25,7 +26,7 @@ export function useSignupForm() {
   const [errors, setErrors] = useState<FormErrors>({})
   const [isPending, setIsPending] = useState(false)
 
-  const handleChange = (field: keyof typeof values, value: string) => {
+  const handleChange = (field: keyof typeof values, value: string): void => {
     setValues((prev) => ({ ...prev, [field]: value }))
     // Clear field error when user types
     if (errors[field]) {
@@ -37,7 +38,7 @@ export function useSignupForm() {
     }
   }
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault()
 
     if (isPending) return
@@ -59,7 +60,7 @@ export function useSignupForm() {
       await signin(values.username, values.password)
 
       // Success - navigate to home timeline
-      navigate('/', { replace: true })
+      void navigate('/', { replace: true })
     } catch (error) {
       if (isApiError(error)) {
         if (error.status === 400 && error.errors) {

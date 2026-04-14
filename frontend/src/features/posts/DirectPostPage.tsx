@@ -197,13 +197,11 @@ export function DirectPostPage() {
         <h1 className="page-title">Post</h1>
       </header>
 
-      {error && (
-        <div className="page-error-container" style={{ padding: '16px' }}>
+      {error ? <div className="page-error-container" style={{ padding: '16px' }}>
           <p className="page-error-text" data-testid="post-status">
             {error}
           </p>
-        </div>
-      )}
+        </div> : null}
 
       <div className="post-detail-content">
         {editingPostId === post.id ? (
