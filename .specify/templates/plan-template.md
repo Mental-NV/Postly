@@ -34,14 +34,26 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
+For features with multiple user stories, use `/speckit.analyze` before
+`/speckit.implement` unless a maintainer-approved exception is documented.
+
+- [ ] `spec.md` is story-first, includes acceptance criteria and scope
+      boundaries, and excludes UI implementation detail, API shape, database
+      design, and test selectors.
+- [ ] Every approved user story maps to at least one end-to-end user flow with
+      route transitions, visible states, and verification intent.
+- [ ] Required UI automation elements and stable `data-testid` hooks are
+      defined before implementation, and repeated controls reuse the same test
+      ID across surfaces.
+- [ ] Frontend responsibilities, backend responsibilities, API contracts,
+      validation rules, error outcomes, and persistence changes trace back to
+      the relevant user story and flow.
+- [ ] Required backend unit/integration or contract coverage, frontend
+      component coverage, and Playwright coverage are planned for each
+      user-visible story, with tests-first task ordering preferred when
+      feasible.
 - [ ] Clear module boundaries are documented, including ownership and allowed
       dependency direction.
-- [ ] All affected contracts, validation rules, and predictable error outcomes
-      are specified.
-- [ ] Automated tests are planned at the lowest useful level plus any impacted
-      integration or contract boundaries.
-- [ ] UX impact is documented, including loading, empty, success, and error
-      states plus any intended pattern deviations.
 - [ ] The design is the simplest viable approach, and any breaking change
       includes migration or rollback notes.
 
@@ -51,13 +63,19 @@
 
 ```text
 specs/[###-feature]/
+├── spec.md              # Story-first user behavior and acceptance document
 ├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
+├── user-flows.md        # Optional flow breakdown by story
+├── frontend-requirements.md # Optional frontend delivery details by story
+├── openapi.yaml         # Optional API contract for affected flows
+├── data-model.md        # Optional persistence model changes
+├── quickstart.md        # Optional validation/runbook steps
+├── research.md          # Optional design research and decisions
 └── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
+
+Round 2+ planning order MUST remain: user story -> user flow ->
+frontend/backend requirements -> tasks -> implementation.
 
 ### Source Code (repository root)
 <!--
@@ -105,6 +123,54 @@ ios/ or android/
 
 **Structure Decision**: [Document the selected structure and reference the real
 directories captured above]
+
+## Story-to-Flow Mapping
+
+| User Story | Flow ID(s) | Primary User Outcome | Frontend Responsibility | Backend Responsibility | Supporting Artifacts |
+|------------|------------|----------------------|-------------------------|------------------------|----------------------|
+| US1 | F1 | [Outcome] | [Pages, components, states] | [API, validation, persistence] | [user-flows.md, openapi.yaml, etc.] |
+
+## User Flows
+
+### Flow F1 - [Name] (Story: US1)
+
+- **Start Route**: [route or entry point]
+- **Trigger**: [user action or entry condition]
+- **Route Transitions**: [from route/state -> to route/state]
+- **Visible States**: [loading, empty, success, error, validation, etc.]
+- **Verification Intent**: [What browser automation should prove]
+
+[Add one flow per approved story at minimum. Add more flows as needed.]
+
+## UI Automation Contract
+
+| Surface | Required Element | Purpose | Stable Selector / `data-testid` | Notes |
+|---------|------------------|---------|----------------------------------|-------|
+| [Route/page] | [Control or region] | [Why automation needs it] | [test id or explicit reason role/name is sufficient] | [Reuse rules across surfaces] |
+
+Use the same logical `data-testid` for the same control across all surfaces
+where it appears.
+
+## Frontend Responsibilities
+
+### User Story 1
+
+- [Explicit frontend behavior, routes, visible states, accessibility, and UI
+  contract responsibilities]
+
+## Backend Responsibilities
+
+### User Story 1
+
+- [Explicit backend behavior, API/validation/error/persistence responsibilities]
+
+## Traceability Notes
+
+- [Map each API contract, validation rule, error outcome, and persistence change
+  back to the relevant story and flow]
+- [Note any supporting artifacts created: `user-flows.md`,
+  `frontend-requirements.md`, `openapi.yaml`, `data-model.md`,
+  `quickstart.md`, `research.md`]
 
 ## Complexity Tracking
 

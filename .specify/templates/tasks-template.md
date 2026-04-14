@@ -6,28 +6,34 @@ description: "Task list template for feature implementation"
 # Tasks: [FEATURE NAME]
 
 **Input**: Design documents from `/specs/[###-feature-name]/`
-**Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
+**Prerequisites**: plan.md (required), spec.md (required for user stories),
+user-flows.md, frontend-requirements.md, openapi.yaml, research.md,
+data-model.md
 
-**Tests**: Automated tests are REQUIRED. Every user story MUST include the
-tests needed to prove new behavior and prevent regressions at the lowest useful
-level plus any affected integration or contract boundary.
+**Tests**: Automated tests are REQUIRED. Every user story with user-visible
+behavior changes MUST include the tests needed to prove new behavior and
+prevent regressions: backend unit coverage plus backend integration or contract
+coverage as needed, frontend component coverage, and Playwright coverage.
 
 **Organization**: Tasks are grouped by user story to enable independent
 implementation and testing of each story. Each story MUST include testing,
-validation and error handling, and UX consistency work.
+validation and error handling, UX consistency work, and explicit frontend and
+backend delivery tasks that trace back to the planned user flow(s).
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
 - Include exact file paths in descriptions
+- Reference the relevant story and, when helpful, the flow ID in the task text
+- Prefer tests-first ordering within each user story whenever feasible
 
 ## Path Conventions
 
 - **Single project**: `src/`, `tests/` at repository root
 - **Web app**: `backend/src/`, `frontend/src/`
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- Sample tasks below use web app paths - adjust based on plan.md structure
 
 <!-- 
   ============================================================================
@@ -36,8 +42,8 @@ validation and error handling, and UX consistency work.
   The /speckit.tasks command MUST replace these with actual tasks based on:
   - User stories from spec.md (with their priorities P1, P2, P3...)
   - Feature requirements from plan.md
-  - Entities from data-model.md
-  - Endpoints from contracts/
+  - Supporting artifacts such as data-model.md, openapi.yaml, and
+    frontend-requirements.md
   
   Tasks MUST be organized by user story so each story can be:
   - Implemented independently
@@ -85,21 +91,20 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
-> At minimum, include the lowest useful automated test plus any impacted
-> contract or integration coverage.
+> **NOTE: Write these tests FIRST when feasible, ensure they FAIL before
+> implementation**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T010 [P] [US1] Add backend unit coverage for [business rule / service] in backend/tests/[unit-path]
+- [ ] T011 [P] [US1] Add backend integration or contract coverage for [flow / endpoint] in backend/tests/[integration-or-contract-path]
+- [ ] T012 [P] [US1] Add frontend component coverage for [surface / state] in frontend/src/[test-path]
+- [ ] T013 [P] [US1] Add Playwright coverage for flow [F1] in frontend/tests/e2e/[spec-name].spec.ts
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and predictable error handling in src/[location]/[file].py
-- [ ] T017 [US1] Align loading/empty/success/error states with existing UX patterns in src/[location]/[file].py
+- [ ] T014 [US1] Implement backend behavior for flow [F1], including API, validation, error outcomes, and persistence updates in backend/src/[path]
+- [ ] T015 [US1] Implement frontend behavior for flow [F1], including routes and visible states in frontend/src/[path]
+- [ ] T016 [US1] Add or confirm stable required elements and shared `data-testid` hooks in frontend/src/[path]
+- [ ] T017 [US1] Align loading, empty, success, and error states with existing UX patterns in frontend/src/[path]
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -113,16 +118,17 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T018 [P] [US2] Add backend unit coverage for [business rule / service] in backend/tests/[unit-path]
+- [ ] T019 [P] [US2] Add backend integration or contract coverage for [flow / endpoint] in backend/tests/[integration-or-contract-path]
+- [ ] T020 [P] [US2] Add frontend component coverage for [surface / state] in frontend/src/[test-path]
+- [ ] T021 [P] [US2] Add Playwright coverage for flow [F2] in frontend/tests/e2e/[spec-name].spec.ts
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Add validation, predictable error handling, and UX state coverage in src/[location]/[file].py
-- [ ] T024 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T022 [US2] Implement backend behavior for flow [F2], including API, validation, error outcomes, and persistence updates in backend/src/[path]
+- [ ] T023 [US2] Implement frontend behavior for flow [F2], including routes and visible states in frontend/src/[path]
+- [ ] T024 [US2] Add or confirm stable required elements and shared `data-testid` hooks in frontend/src/[path]
+- [ ] T025 [US2] Integrate with User Story 1 behavior only through defined contracts and shared patterns (if needed)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -136,15 +142,17 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T025 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T026 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T026 [P] [US3] Add backend unit coverage for [business rule / service] in backend/tests/[unit-path]
+- [ ] T027 [P] [US3] Add backend integration or contract coverage for [flow / endpoint] in backend/tests/[integration-or-contract-path]
+- [ ] T028 [P] [US3] Add frontend component coverage for [surface / state] in frontend/src/[test-path]
+- [ ] T029 [P] [US3] Add Playwright coverage for flow [F3] in frontend/tests/e2e/[spec-name].spec.ts
 
 ### Implementation for User Story 3
 
-- [ ] T027 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T028 [US3] Implement [Service] in src/services/[service].py
-- [ ] T029 [US3] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T030 [US3] Add validation, predictable error handling, and UX state coverage in src/[location]/[file].py
+- [ ] T030 [US3] Implement backend behavior for flow [F3], including API, validation, error outcomes, and persistence updates in backend/src/[path]
+- [ ] T031 [US3] Implement frontend behavior for flow [F3], including routes and visible states in frontend/src/[path]
+- [ ] T032 [US3] Add or confirm stable required elements and shared `data-testid` hooks in frontend/src/[path]
+- [ ] T033 [US3] Align validation, predictable error handling, and UX state coverage in frontend/src/[path] and backend/src/[path]
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -188,10 +196,11 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Within Each User Story
 
-- Tests MUST be written and FAIL before implementation
-- Models before services
-- Services before endpoints
-- Core implementation before integration
+- Tests-first task ordering SHOULD be used whenever feasible, and tests MUST be
+  added before story completion
+- Backend and frontend work MUST both trace back to the planned story and flow
+- Stable required elements and `data-testid` hooks MUST be defined before
+  Playwright-relevant UI is considered complete
 - Story complete before moving to next priority
 
 ### Parallel Opportunities
@@ -209,12 +218,14 @@ Examples of foundational tasks (adjust based on your project):
 
 ```bash
 # Launch all tests for User Story 1 together:
-Task: "Contract test for [endpoint] in tests/contract/test_[name].py"
-Task: "Integration test for [user journey] in tests/integration/test_[name].py"
+Task: "Add backend unit coverage for [business rule / service] in backend/tests/[unit-path]"
+Task: "Add backend integration or contract coverage for [flow / endpoint] in backend/tests/[integration-or-contract-path]"
+Task: "Add frontend component coverage for [surface / state] in frontend/src/[test-path]"
+Task: "Add Playwright coverage for flow [F1] in frontend/tests/e2e/[spec-name].spec.ts"
 
-# Launch all models for User Story 1 together:
-Task: "Create [Entity1] model in src/models/[entity1].py"
-Task: "Create [Entity2] model in src/models/[entity2].py"
+# Launch implementation work once tests are in place:
+Task: "Implement backend behavior for flow [F1] in backend/src/[path]"
+Task: "Implement frontend behavior for flow [F1] in frontend/src/[path]"
 ```
 
 ---
@@ -257,7 +268,10 @@ With multiple developers:
 - Each user story MUST be independently completable and testable
 - Each user story MUST include tasks for tests, validation/error handling, and
   UX consistency
-- Verify tests fail before implementing
+- Each user-visible story MUST include backend, frontend, and Playwright test
+  coverage tasks
+- Reuse the same logical `data-testid` for the same control across surfaces
+- Verify tests fail before implementing whenever feasible
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence

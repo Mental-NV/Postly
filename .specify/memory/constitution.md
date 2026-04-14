@@ -1,15 +1,10 @@
 <!--
 Sync Impact Report
-Version change: unversioned template -> 1.0.0
+Version change: 1.0.0 -> 1.1.0
 Modified principles:
-- Principle 1 placeholder -> I. Modular Boundaries
-- Principle 2 placeholder -> II. Explicit Contracts, Validation, and Predictable Errors
-- Principle 3 placeholder -> III. Automated Testing Is Mandatory
-- Principle 4 placeholder -> IV. UX Consistency by Default
-- Principle 5 placeholder -> V. Readable Simplicity and Safe Evolution
+- None
 Added sections:
-- Definition of Done
-- Review Workflow
+- Round 2 Delivery Governance
 Removed sections:
 - None
 Templates requiring updates:
@@ -105,17 +100,51 @@ to maintain.
 
 ## Review Workflow
 
-- Plans MUST name the modules being changed, the dependency direction between
-  them, and any new public interfaces.
-- Specifications MUST describe validation rules, failure modes, and
-  user-visible state changes for affected flows.
-- Tasks MUST include work for automated tests, validation and error handling,
-  and UX verification for each user story.
+- Specifications MUST stay story-first, define acceptance criteria and scope
+  boundaries, and exclude UI implementation detail, API shape, database design,
+  and test selectors.
+- Plans MUST map each approved user story to at least one end-to-end user flow,
+  plus explicit frontend and backend responsibilities for that story.
+- Tasks MUST preserve story-to-flow traceability and include required automated
+  tests, validation and error handling, and UX verification for each user
+  story.
 - Pull requests SHOULD be small enough for a reviewer to evaluate boundary,
   contract, test, and UX impact in one pass; larger changes MUST be split or
   explicitly justified.
 - Any intentional exception to this constitution MUST be documented in the pull
   request and approved by at least one maintainer before merge.
+
+## Round 2 Delivery Governance
+
+- Every non-trivial feature MUST begin as one or more user stories with explicit
+  acceptance criteria and scope boundaries.
+- `spec.md` MUST stay focused on user behavior, business rules, edge cases, and
+  acceptance outcomes only; UI implementation detail, API shape, database
+  design, and test selectors MUST NOT appear there.
+- `plan.md` MUST translate each approved user story into at least one end-to-end
+  user flow suitable for browser automation. Each flow MUST define route
+  transitions, visible states, and verification intent.
+- Round 2+ planning MUST follow this artifact order: user story -> user flow ->
+  frontend/backend requirements -> tasks -> implementation. Supporting
+  technical artifacts MAY include `user-flows.md`,
+  `frontend-requirements.md`, `openapi.yaml`, `data-model.md`,
+  `quickstart.md`, and `research.md`.
+- Any UI required for end-to-end coverage MUST define stable required elements
+  and consistent `data-testid` hooks before implementation begins. The same
+  logical control MUST use the same test ID across all surfaces where it
+  appears.
+- For every approved user story, the plan MUST make frontend responsibilities
+  and backend responsibilities explicit. API contracts, validation rules, error
+  outcomes, and persistence changes MUST trace back to the relevant user story
+  and flow.
+- `tasks.md` MUST include required backend unit, integration, or contract
+  coverage, frontend component coverage, and Playwright coverage for every user
+  story where user-visible behavior changes. Tests-first task ordering SHOULD be
+  used whenever feasible.
+- A feature is not done unless its required automated tests are implemented and
+  passing.
+- `analyze` SHOULD be used before `implement` for any feature with multiple
+  user stories.
 
 ## Governance
 
@@ -123,7 +152,8 @@ to maintain.
   Postly and supersedes conflicting local habits or undocumented review
   preferences.
 - Every pull request review MUST verify compliance with the five core
-  principles and the Definition of Done.
+  principles, the Definition of Done, and the Round 2 Delivery Governance rules
+  for applicable features.
 - Amendments MUST be proposed in a pull request that updates this file and any
   affected templates or guidance artifacts in the same change.
 - Amendments MUST include a short rationale and receive approval from at least
@@ -139,4 +169,4 @@ to maintain.
 - The ratification date MUST remain the original adoption date; the last
   amended date MUST be updated whenever the constitution changes.
 
-**Version**: 1.0.0 | **Ratified**: 2026-04-09 | **Last Amended**: 2026-04-09
+**Version**: 1.1.0 | **Ratified**: 2026-04-09 | **Last Amended**: 2026-04-12

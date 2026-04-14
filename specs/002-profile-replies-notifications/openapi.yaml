@@ -1,0 +1,580 @@
+openapi: 3.1.0
+info:
+  title: Postly Round 2 API
+  version: 2.1.0
+  description: >
+    Contract additions and changes for Round 2 profile editing, avatar
+    replacement, replies/conversation reads, notifications, and automatic
+    continuation loading.
+servers:
+  - url: /
+security:
+  - cookieAuth: []
+paths:
+  /api/timeline:
+    get:
+      summary: Get the signed-in user's home timeline
+      tags: [Timeline]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Timeline page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/profiles/me:
+    patch:
+      summary: Update the signed-in user's display name and bio
+      tags: [Profiles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/profiles/me/avatar:
+    put:
+      summary: Replace the signed-in user's current avatar
+      tags: [Profiles]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [avatar]
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: >
+                    Still JPEG or PNG upload only. Round 2 rejects SVG,
+                    animated formats, empty files, files larger than 5 MB,
+                    source images smaller than 256x256, and decoded images
+                    larger than 4096 pixels on either side. Accepted uploads
+                    are normalized and stored as 512x512 high-quality JPEG.
+      responses:
+        '200':
+          description: Updated profile avatar state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/profiles/{username}:
+    get:
+      summary: Get a profile and the initial profile-post page
+      tags: [Profiles]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Username'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Profile read model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/profiles/{username}/avatar:
+    get:
+      summary: Get the user's current custom avatar
+      tags: [Profiles]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Username'
+      responses:
+        '200':
+          description: Normalized current avatar binary
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/posts/{postId}:
+    get:
+      summary: Get a conversation-oriented direct-post view
+      tags: [Posts]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Conversation view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update an authored post or reply
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePostRequest'
+      responses:
+        '200':
+          description: Updated post or reply
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete an authored post or reply
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '204':
+          description: Deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/posts/{postId}/replies:
+    post:
+      summary: Create a reply to the target post
+      tags: [Posts]
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReplyRequest'
+      responses:
+        '201':
+          description: Reply created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      summary: Get additional replies for a conversation
+      tags: [Posts]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: Additional reply page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplyPageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/notifications:
+    get:
+      summary: Get the signed-in user's notifications
+      tags: [Notifications]
+      responses:
+        '200':
+          description: Notification list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/notifications/{notificationId}/open:
+    post:
+      summary: Open the selected notification destination and mark only that notification as read
+      tags: [Notifications]
+      parameters:
+        - $ref: '#/components/parameters/NotificationId'
+      responses:
+        '200':
+          description: Notification destination result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationOpenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: postly_session
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+    Username:
+      name: username
+      in: path
+      required: true
+      schema:
+        type: string
+    PostId:
+      name: postId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    NotificationId:
+      name: notificationId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Forbidden:
+      description: Authenticated user is not allowed to perform this action
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    NotFound:
+      description: Resource not found or unavailable
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    ValidationProblem:
+      description: Validation failed
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ValidationProblemDetails'
+  schemas:
+    TimelineResponse:
+      type: object
+      required: [posts, nextCursor]
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostSummary'
+        nextCursor:
+          type: string
+          nullable: true
+    ProfileResponse:
+      type: object
+      required: [profile, posts, nextCursor]
+      properties:
+        profile:
+          $ref: '#/components/schemas/UserProfile'
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostSummary'
+        nextCursor:
+          type: string
+          nullable: true
+    UserProfile:
+      type: object
+      required:
+        - username
+        - displayName
+        - followerCount
+        - followingCount
+        - isSelf
+        - isFollowedByViewer
+        - hasCustomAvatar
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+          description: Versioned custom avatar URL when a usable custom avatar exists
+        hasCustomAvatar:
+          type: boolean
+        followerCount:
+          type: integer
+        followingCount:
+          type: integer
+        isSelf:
+          type: boolean
+        isFollowedByViewer:
+          type: boolean
+    UpdateProfileRequest:
+      type: object
+      required: [displayName, bio]
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Trimmed value must remain within 1-50 characters
+        bio:
+          type: string
+          nullable: true
+          maxLength: 160
+    ConversationResponse:
+      type: object
+      required: [target, replies, nextCursor]
+      properties:
+        target:
+          $ref: '#/components/schemas/ConversationTarget'
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostSummary'
+        nextCursor:
+          type: string
+          nullable: true
+    ConversationTarget:
+      type: object
+      required: [state]
+      properties:
+        state:
+          type: string
+          enum: [available, unavailable]
+        post:
+          $ref: '#/components/schemas/PostSummary'
+    CreateReplyRequest:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 280
+    UpdatePostRequest:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 280
+    ReplyPageResponse:
+      type: object
+      required: [replies, nextCursor]
+      properties:
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostSummary'
+        nextCursor:
+          type: string
+          nullable: true
+    PostResponse:
+      type: object
+      required: [post]
+      properties:
+        post:
+          $ref: '#/components/schemas/PostSummary'
+    PostSummary:
+      type: object
+      required:
+        - id
+        - createdAtUtc
+        - isEdited
+        - likeCount
+        - likedByViewer
+        - canEdit
+        - canDelete
+        - isReply
+        - state
+      properties:
+        id:
+          type: integer
+          format: int64
+        authorUsername:
+          type: string
+          nullable: true
+        authorDisplayName:
+          type: string
+          nullable: true
+        authorAvatarUrl:
+          type: string
+          nullable: true
+        body:
+          type: string
+          nullable: true
+        createdAtUtc:
+          type: string
+          format: date-time
+        isEdited:
+          type: boolean
+        likeCount:
+          type: integer
+        likedByViewer:
+          type: boolean
+        canEdit:
+          type: boolean
+        canDelete:
+          type: boolean
+        isReply:
+          type: boolean
+        replyToPostId:
+          type: integer
+          format: int64
+          nullable: true
+        state:
+          type: string
+          enum: [available, deleted]
+    NotificationsResponse:
+      type: object
+      required: [notifications]
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationSummary'
+    NotificationSummary:
+      type: object
+      required:
+        - id
+        - kind
+        - actorUsername
+        - actorDisplayName
+        - createdAtUtc
+        - isRead
+        - destinationKind
+        - destinationRoute
+        - destinationState
+      properties:
+        id:
+          type: integer
+          format: int64
+        kind:
+          type: string
+          enum: [follow, like, reply]
+        actorUsername:
+          type: string
+        actorDisplayName:
+          type: string
+        actorAvatarUrl:
+          type: string
+          nullable: true
+        createdAtUtc:
+          type: string
+          format: date-time
+        isRead:
+          type: boolean
+        destinationKind:
+          type: string
+          enum: [profile, post, conversation]
+        destinationRoute:
+          type: string
+        destinationState:
+          type: string
+          enum: [available, unavailable]
+    NotificationOpenResponse:
+      type: object
+      required: [notification, destination]
+      properties:
+        notification:
+          $ref: '#/components/schemas/NotificationSummary'
+        destination:
+          $ref: '#/components/schemas/NotificationDestination'
+    NotificationDestination:
+      type: object
+      required: [kind, route, state]
+      properties:
+        kind:
+          type: string
+          enum: [profile, post, conversation, notification-unavailable]
+        route:
+          type: string
+        state:
+          type: string
+          enum: [available, unavailable]
+    ProblemDetails:
+      type: object
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+          nullable: true
+        instance:
+          type: string
+          nullable: true
+        code:
+          type: string
+          nullable: true
+        traceId:
+          type: string
+          nullable: true
+    ValidationProblemDetails:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string

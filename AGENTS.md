@@ -1,8 +1,9 @@
 # Postly Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-10
+Auto-generated from all feature plans. Last updated: 2026-04-14
 
 ## Active Technologies
+- SQLite via EF Core migrations; persisted session records; persistence for avatar state, reply relationships, soft-delete markers for reply placeholders, and notifications (002-profile-replies-notifications)
 
 - C# on .NET 10 (backend), TypeScript in strict mode (frontend) + ASP.NET Core Minimal APIs, EF Core with SQLite provider and migrations, ASP.NET Core authentication/cookie middleware, ASP.NET Core Identity password hasher, React, React Router, Vite, Vitest, React Testing Library, Playwright (001-microblog-mvp)
 
@@ -33,6 +34,7 @@ tests/
 C# on .NET 10 (backend), TypeScript in strict mode (frontend): Follow standard conventions
 
 ## Recent Changes
+- 002-profile-replies-notifications: Added C# on .NET 10 (backend), TypeScript in strict mode (frontend) + ASP.NET Core Minimal APIs, EF Core with SQLite provider and migrations, ASP.NET Core authentication/cookie middleware, ASP.NET Core Identity password hasher, React, React Router, Vite, Vitest, React Testing Library, Playwright
 
 - 001-microblog-mvp: Added C# on .NET 10 (backend), TypeScript in strict mode (frontend) + ASP.NET Core Minimal APIs, EF Core with SQLite provider and migrations, ASP.NET Core authentication/cookie middleware, ASP.NET Core Identity password hasher, React, React Router, Vite, Vitest, React Testing Library, Playwright
 

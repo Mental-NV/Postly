@@ -5,6 +5,10 @@
 **Status**: Draft  
 **Input**: User description: "$ARGUMENTS"
 
+> Keep this document story-first. `spec.md` records user behavior, business
+> rules, edge cases, scope boundaries, and acceptance outcomes only. Do not add
+> UI implementation detail, API shape, database design, or test selectors here.
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -65,7 +69,18 @@
 
 [Add more user stories as needed, each with an assigned priority]
 
-### Edge Cases
+## Scope Boundaries *(mandatory)*
+
+- **In Scope**: [Explicitly list what this feature includes]
+- **Out of Scope**: [Explicitly list what this feature does not include]
+
+## Business Rules *(mandatory)*
+
+- **BR-001**: [Rule that governs user-visible behavior or decision logic]
+- **BR-002**: [Rule covering permissions, limits, ordering, or state changes]
+- **BR-003**: [Rule covering exceptions, fallback behavior, or edge handling]
+
+## Edge Cases
 
 <!--
   ACTION REQUIRED: The content in this section represents placeholders.
@@ -74,20 +89,6 @@
 
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
-
-## System Boundaries & Contracts *(mandatory)*
-
-### Affected Modules
-
-- **Module**: [frontend/backend/shared area or NEEDS CLARIFICATION]
-- **Responsibility**: [what this module owns]
-- **Public Interface**: [API/component/hook/event exposed to other modules]
-
-### Validation & Error Handling
-
-- **Input Contract**: [request fields, payload shape, form fields, event schema]
-- **Validation Rules**: [required fields, formats, permissions, limits]
-- **Error Outcomes**: [deterministic error codes/messages/states and where they surface]
 
 ## Requirements *(mandatory)*
 
@@ -108,17 +109,6 @@
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
-
-### Key Entities *(include if feature involves data)*
-
-- **[Entity 1]**: [What it represents, key attributes without implementation]
-- **[Entity 2]**: [What it represents, relationships to other entities]
-
-## UX Consistency Impact *(mandatory)*
-
-- **Existing Pattern Referenced**: [component/page/pattern or NEEDS CLARIFICATION]
-- **States Covered**: [loading, empty, success, error]
-- **Accessibility/Copy Notes**: [labels, focus, announcements, tone]
 
 ## Success Criteria *(mandatory)*
 
