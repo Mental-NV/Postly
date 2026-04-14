@@ -18,6 +18,7 @@ tests/
 
 - `cd frontend && npm ci`
 - `cd frontend && npm run build`
+- `cd frontend && npm run lint`
 - `cd frontend && npm run test:ci`
 - `cd frontend && npm run test:e2e`
 - `dotnet restore Postly.sln`
