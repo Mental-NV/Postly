@@ -17,22 +17,9 @@ explicit traceability:
 - **[Story]**: User story label for story-phase tasks only
 - Every task includes exact file paths
 
-## Phase 1: Shared Foundations (Minimal Cross-Story Infrastructure)
-
-**Purpose**: Create only the truly shared infrastructure that is not naturally
-owned by a single story. No story-specific feature files, fixtures, or e2e
-scenarios belong here.
-
-- [ ] T001 [P] Create only shared Round 2 test root directories and helper placeholders in `backend/tests/Postly.Api.ContractTests/`, `backend/tests/Postly.Api.IntegrationTests/`, `frontend/src/shared/test/`, and `frontend/tests/e2e/`
-- [ ] T002 [P] Extend only story-agnostic shared validation and ProblemDetails extension points in `backend/src/Postly.Api/Features/Shared/Validation/ValidationHelpers.cs`, `backend/src/Postly.Api/Features/Shared/Errors/ProblemDetailsFactory.cs`, and `backend/src/Postly.Api/Features/Shared/Errors/ProblemDetailsResponse.cs`
-- [ ] T003 [P] Create only shared frontend test harness plumbing and common Playwright helper roots in `frontend/src/shared/test/fetch-mock.ts`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts` without adding story-specific scenarios or assertions
-- [ ] T004 [P] Create only shared backend test helper roots in `backend/tests/Postly.Api.UnitTests/TestHelpers/` and align `backend/tests/Postly.Api.ContractTests/TestWebApplicationFactory.cs` for Round 2 shared fixture registration without adding story-specific assertions
-
-**Checkpoint**: Shared harness exists. Story-specific files start only inside the corresponding story phase.
-
 ---
 
-## Phase 2: User Story 1 - Profile Editing and Avatar Replacement (Priority: P1) 🎯
+## Phase 1: User Story 1 - Profile Editing and Avatar Replacement (Priority: P1) 🎯
 
 **Goal**: A signed-in user can update their display name, bio, and avatar and
 see the new identity reflected on their own profile plus the in-scope timeline
@@ -82,7 +69,7 @@ responsibilities -> `UserAccount`, `ProfileView`, `PostSummary`
 
 ---
 
-## Phase 3: User Story 2 - Replies and Conversation-Oriented Direct-Post View (Priority: P1)
+## Phase 2: User Story 2 - Replies and Conversation-Oriented Direct-Post View (Priority: P1)
 
 **Goal**: A signed-in user can reply from the conversation route, edit and
 delete their own replies, see deleted-reply placeholders, and continue viewing
@@ -132,7 +119,7 @@ backend/frontend responsibilities -> `Post`, `ConversationView`, `PostSummary`
 
 ---
 
-## Phase 4: User Story 3 - In-App Notifications (Priority: P2)
+## Phase 3: User Story 3 - In-App Notifications (Priority: P2)
 
 **Goal**: A signed-in user can view follow, like, and reply notifications,
 distinguish unread from read items, open available or unavailable destinations,
@@ -186,7 +173,7 @@ backend/frontend responsibilities -> `Notification`, `NotificationSummary`,
 
 ---
 
-## Phase 5: User Story 4 - Automatic Continuation Loading (Priority: P3)
+## Phase 4: User Story 4 - Automatic Continuation Loading (Priority: P3)
 
 **Goal**: A signed-in user can keep loading older content on timeline, profile,
 and conversation surfaces at the continuation point, recover from failures
@@ -233,7 +220,7 @@ responsibilities -> cursor-bearing `TimelineResponse`, `ProfileResponse`,
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 5: Polish & Cross-Cutting Concerns
 
 **Purpose**: Finalize shared regressions, visual consistency, documentation, and
 delivery readiness across all Round 2 stories.
