@@ -46,13 +46,12 @@ public class OwnPostsContractsTests : IClassFixture<TestWebApplicationFactory>
 
         var post = await response.Content.ReadFromJsonAsync<PostResponse>();
         Assert.NotNull(post);
-        Assert.True(post.Id > 0);
-        Assert.Equal("alice", post.AuthorUsername);
-        Assert.Equal("Alice Example", post.AuthorDisplayName);
-        Assert.Equal("Test post content", post.Body);
-        Assert.False(post.IsEdited);
-        Assert.Null(post.EditedAtUtc);
-        Assert.True(post.CreatedAtUtc <= DateTimeOffset.UtcNow);
+        Assert.True(post.Post.Id > 0);
+        Assert.Equal("alice", post.Post.AuthorUsername);
+        Assert.Equal("Alice Example", post.Post.AuthorDisplayName);
+        Assert.Equal("Test post content", post.Post.Body);
+        Assert.False(post.Post.IsEdited);
+        Assert.True(post.Post.CreatedAtUtc <= DateTimeOffset.UtcNow);
     }
 
     #endregion
@@ -71,7 +70,7 @@ public class OwnPostsContractsTests : IClassFixture<TestWebApplicationFactory>
         var updateRequest = new { body = "Updated content" };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/api/posts/{createdPost!.Id}", updateRequest);
+        var response = await _client.PatchAsJsonAsync($"/api/posts/{createdPost!.Post.Id}", updateRequest);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -79,11 +78,10 @@ public class OwnPostsContractsTests : IClassFixture<TestWebApplicationFactory>
 
         var updatedPost = await response.Content.ReadFromJsonAsync<PostResponse>();
         Assert.NotNull(updatedPost);
-        Assert.Equal(createdPost.Id, updatedPost.Id);
-        Assert.Equal("Updated content", updatedPost.Body);
-        Assert.True(updatedPost.IsEdited);
-        Assert.NotNull(updatedPost.EditedAtUtc);
-        Assert.Equal(createdPost.CreatedAtUtc, updatedPost.CreatedAtUtc); // Original timestamp preserved
+        Assert.Equal(createdPost.Post.Id, updatedPost.Post.Id);
+        Assert.Equal("Updated content", updatedPost.Post.Body);
+        Assert.True(updatedPost.Post.IsEdited);
+        Assert.Equal(createdPost.Post.CreatedAtUtc, updatedPost.Post.CreatedAtUtc); // Original timestamp preserved
     }
 
     [Fact]
@@ -115,7 +113,7 @@ public class OwnPostsContractsTests : IClassFixture<TestWebApplicationFactory>
         var createdPost = await createResponse.Content.ReadFromJsonAsync<PostResponse>();
 
         // Act
-        var response = await _client.DeleteAsync($"/api/posts/{createdPost!.Id}");
+        var response = await _client.DeleteAsync($"/api/posts/{createdPost!.Post.Id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
@@ -145,10 +143,10 @@ public class OwnPostsContractsTests : IClassFixture<TestWebApplicationFactory>
         var createdPost = await createResponse.Content.ReadFromJsonAsync<PostResponse>();
 
         // First delete
-        await _client.DeleteAsync($"/api/posts/{createdPost!.Id}");
+        await _client.DeleteAsync($"/api/posts/{createdPost!.Post.Id}");
 
         // Act: Second delete (stale)
-        var response = await _client.DeleteAsync($"/api/posts/{createdPost.Id}");
+        var response = await _client.DeleteAsync($"/api/posts/{createdPost.Post.Id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -157,13 +155,17 @@ public class OwnPostsContractsTests : IClassFixture<TestWebApplicationFactory>
 
     #endregion
 
-    private record PostResponse(
+    private record PostSummaryDto(
         long Id,
-        string AuthorUsername,
-        string AuthorDisplayName,
-        string Body,
+        string? AuthorUsername,
+        string? AuthorDisplayName,
+        string? Body,
         DateTimeOffset CreatedAtUtc,
         bool IsEdited,
-        DateTimeOffset? EditedAtUtc
+        bool CanEdit,
+        bool CanDelete,
+        string State
     );
+
+    private record PostResponse(PostSummaryDto Post);
 }

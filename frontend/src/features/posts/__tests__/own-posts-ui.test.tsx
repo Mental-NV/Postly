@@ -133,11 +133,13 @@ describe('PostEditor', () => {
     body: 'Original content',
     createdAtUtc: new Date().toISOString(),
     isEdited: false,
-    editedAtUtc: undefined,
     likeCount: 0,
     likedByViewer: false,
     canEdit: true,
     canDelete: true,
+    isReply: false,
+    replyToPostId: null,
+    state: 'available' as const,
   }
 
   beforeEach(() => {
@@ -147,7 +149,7 @@ describe('PostEditor', () => {
   it('renders the existing post content and remaining character count', () => {
     render(<PostEditor post={mockPost} onSave={vi.fn()} onCancel={vi.fn()} />)
 
-    expect(screen.getByTestId('editor-textarea')).toHaveValue(
+    expect(screen.getByTestId('post-editor-body-input-1')).toHaveValue(
       'Original content'
     )
     expect(screen.getByText('264')).toBeInTheDocument()
@@ -157,11 +159,11 @@ describe('PostEditor', () => {
     const user = userEvent.setup()
     render(<PostEditor post={mockPost} onSave={vi.fn()} onCancel={vi.fn()} />)
 
-    const textarea = screen.getByTestId('editor-textarea')
+    const textarea = screen.getByTestId('post-editor-body-input-1')
     await user.clear(textarea)
     await user.type(textarea, 'a'.repeat(281))
 
-    expect(screen.getByTestId('editor-save')).toBeDisabled()
+    expect(screen.getByTestId('post-editor-save-button-1')).toBeDisabled()
   })
 
   it('calls onSave with updated content', async () => {
@@ -170,10 +172,10 @@ describe('PostEditor', () => {
 
     render(<PostEditor post={mockPost} onSave={onSave} onCancel={vi.fn()} />)
 
-    const textarea = screen.getByTestId('editor-textarea')
+    const textarea = screen.getByTestId('post-editor-body-input-1')
     await user.clear(textarea)
     await user.type(textarea, 'Updated content')
-    await user.click(screen.getByTestId('editor-save'))
+    await user.click(screen.getByTestId('post-editor-save-button-1'))
 
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith('Updated content')
@@ -201,7 +203,7 @@ describe('PostEditor', () => {
 
     render(<PostEditor post={mockPost} onSave={onSave} onCancel={vi.fn()} />)
 
-    const saveButton = screen.getByTestId('editor-save')
+    const saveButton = screen.getByTestId('post-editor-save-button-1')
     await user.click(saveButton)
 
     expect(saveButton).toBeDisabled()
@@ -218,7 +220,7 @@ describe('PostEditor', () => {
 
     render(<PostEditor post={mockPost} onSave={onSave} onCancel={vi.fn()} />)
 
-    await user.click(screen.getByTestId('editor-save'))
+    await user.click(screen.getByTestId('post-editor-save-button-1'))
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent(

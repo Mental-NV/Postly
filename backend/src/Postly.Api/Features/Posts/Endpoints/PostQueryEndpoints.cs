@@ -8,7 +8,12 @@ public static class PostQueryEndpoints
     {
         var group = app.MapGroup("/api/posts");
 
-        group.MapGet("{postId:long}", async (long postId, GetPostHandler handler) =>
-            await handler.HandleAsync(postId));
+        group.MapGet("{postId:long}", async (long postId, string? cursor, GetPostHandler handler) =>
+            await handler.HandleAsync(postId, cursor))
+            .AllowAnonymous();
+
+        group.MapGet("{postId:long}/replies", async (long postId, string? cursor, GetRepliesHandler handler) =>
+            await handler.HandleAsync(postId, cursor))
+            .AllowAnonymous();
     }
 }

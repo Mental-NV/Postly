@@ -6,7 +6,7 @@ using Postly.Api.Security;
 
 namespace Postly.Api.Features.Posts.Application;
 
-public class GetPostHandler
+public class GetRepliesHandler
 {
     private const int PageSize = 20;
 
@@ -14,7 +14,7 @@ public class GetPostHandler
     private readonly ICurrentViewerAccessor _currentViewer;
     private readonly HttpContext _httpContext;
 
-    public GetPostHandler(
+    public GetRepliesHandler(
         AppDbContext dbContext,
         ICurrentViewerAccessor currentViewer,
         IHttpContextAccessor httpContextAccessor)
@@ -29,38 +29,17 @@ public class GetPostHandler
     {
         var userId = _currentViewer.GetCurrentUserId();
 
-        var targetPost = await _dbContext.Posts
-            .Include(p => p.Author)
-            .FirstOrDefaultAsync(p => p.Id == postId);
-
-        if (targetPost == null)
+        var exists = await _dbContext.Posts.AnyAsync(p => p.Id == postId);
+        if (!exists)
         {
             return Results.Problem(ProblemDetailsFactory.CreateNotFoundProblem("Post not found", _httpContext.TraceIdentifier));
         }
 
-        PostSummary? targetSummary = null;
-        string targetState;
-
-        if (targetPost.DeletedAtUtc != null)
-        {
-            targetState = "unavailable";
-        }
-        else
-        {
-            var likeCount = await _dbContext.Likes.CountAsync(l => l.PostId == postId);
-            var likedByViewer = userId != null && await _dbContext.Likes
-                .AnyAsync(l => l.PostId == postId && l.UserAccountId == userId.Value);
-            targetSummary = PostSummaryFactory.Create(targetPost, userId, likeCount, likedByViewer);
-            targetState = "available";
-        }
-
-        // Load all replies into memory, then sort (SQLite DateTimeOffset ORDER BY not supported)
         var allReplies = await _dbContext.Posts
             .Include(p => p.Author)
             .Where(p => p.ReplyToPostId == postId)
             .ToListAsync();
 
-        // Parse cursor
         DateTimeOffset cursorTime = DateTimeOffset.MaxValue;
         long cursorId = long.MaxValue;
         if (!string.IsNullOrEmpty(cursor))
@@ -92,10 +71,6 @@ public class GetPostHandler
 
         var replySummaries = await PostSummaryFactory.CreateManyAsync(_dbContext, replies, userId);
 
-        return Results.Ok(new ConversationResponse(
-            Target: new ConversationTarget(targetState, targetSummary),
-            Replies: replySummaries,
-            NextCursor: nextCursor
-        ));
+        return Results.Ok(new ReplyPageResponse(replySummaries, nextCursor));
     }
 }

@@ -14,9 +14,11 @@ public static class DataSeed
     public const string BobPostBody = "Seed post from Bob";
     public const string AliceUsername = "alice";
     public const string AliceDisplayName = "Alice Example";
-    public const string AliceBio =
-        "Seeded profile used for follow, like, and redirect scenarios.";
+    public const string AliceBio = "Seeded profile used for follow, like, and redirect scenarios.";
     public const string AlicePostBody = "Seed post from Alice";
+
+    // Conversation with replies spanning multiple pages
+    public const string ConversationPostBody = "Seed conversation post for reply flows";
 
     public static async Task SeedAsync(AppDbContext context)
     {
@@ -35,8 +37,6 @@ public static class DataSeed
             DisplayName = BobDisplayName,
             Bio = BobBio,
             PasswordHash = string.Empty,
-            // Seed users start without a custom avatar so fallback and
-            // replacement flows are deterministic in US1.
             AvatarContentType = null,
             AvatarBytes = null,
             AvatarUpdatedAtUtc = null,
@@ -75,6 +75,7 @@ public static class DataSeed
         context.UserAccounts.AddRange(bob, alice, charlie);
         await context.SaveChangesAsync();
 
+        // Top-level posts
         var alicePost = new Post
         {
             AuthorId = alice.Id,
@@ -89,7 +90,54 @@ public static class DataSeed
             CreatedAtUtc = now.AddMinutes(-5)
         };
 
-        context.Posts.AddRange(alicePost, bobPost);
+        // Conversation post (Alice's) with multiple replies for UF-04/05/06/07
+        var conversationPost = new Post
+        {
+            AuthorId = bob.Id,
+            Body = ConversationPostBody,
+            CreatedAtUtc = now.AddMinutes(-10)
+        };
+
+        context.Posts.AddRange(alicePost, bobPost, conversationPost);
+        await context.SaveChangesAsync();
+
+        // Seed replies on conversationPost:
+        // - One Bob-authored reply (for UF-05: edit/delete own reply)
+        // - One Alice-authored reply (for UF-07: non-author has no controls)
+        // - Enough replies to span more than one page (21+ for page size 20)
+        var replies = new List<Post>();
+
+        var bobReply = new Post
+        {
+            AuthorId = bob.Id,
+            Body = "Bob's seeded reply on the conversation post",
+            CreatedAtUtc = now.AddMinutes(-6),
+            ReplyToPostId = conversationPost.Id
+        };
+        replies.Add(bobReply);
+
+        var aliceReply = new Post
+        {
+            AuthorId = alice.Id,
+            Body = "Alice's seeded reply on the conversation post",
+            CreatedAtUtc = now.AddMinutes(-6).AddSeconds(30),
+            ReplyToPostId = conversationPost.Id
+        };
+        replies.Add(aliceReply);
+
+        // Add 20 older Charlie replies to push past page boundary
+        for (var i = 1; i <= 20; i++)
+        {
+            replies.Add(new Post
+            {
+                AuthorId = charlie.Id,
+                Body = $"Charlie's seeded reply #{i}",
+                CreatedAtUtc = now.AddMinutes(-7).AddSeconds(i),
+                ReplyToPostId = conversationPost.Id
+            });
+        }
+
+        context.Posts.AddRange(replies);
         await context.SaveChangesAsync();
     }
 

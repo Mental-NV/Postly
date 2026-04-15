@@ -26,6 +26,7 @@ export function PostCard({
   const navigate = useNavigate()
 
   const handleCardClick = (): void => {
+    if (post.state === 'deleted') return
     void navigate(`/posts/${post.id}`)
   }
 
@@ -51,6 +52,20 @@ export function PostCard({
     })
   }
 
+  // Deleted reply placeholder — non-interactive, no author/body
+  if (post.state === 'deleted') {
+    return (
+      <article
+        data-testid={`deleted-reply-placeholder-${post.id}`}
+        className="post-card post-card-deleted"
+      >
+        <div className="post-card-content-column">
+          <p className="post-deleted-text">This reply was deleted by the author.</p>
+        </div>
+      </article>
+    )
+  }
+
   return (
     <article
       data-testid={`post-card-${post.id}`}
@@ -62,15 +77,15 @@ export function PostCard({
     >
       <div className="post-card-avatar-column">
         <Link
-          to={`/u/${post.authorUsername}`}
+          to={`/u/${post.authorUsername ?? ''}`}
           onClick={(e) => {
             e.stopPropagation()
           }}
-          data-testid={`author-link-${post.authorUsername}`}
+          data-testid={`author-link-${post.authorUsername ?? ''}`}
         >
           <Avatar
-            username={post.authorUsername}
-            displayName={post.authorDisplayName}
+            username={post.authorUsername ?? ''}
+            displayName={post.authorDisplayName ?? ''}
             avatarUrl={post.authorAvatarUrl}
             size="sm"
             wrapperTestId={`post-avatar-${post.id}`}
@@ -81,7 +96,7 @@ export function PostCard({
       <div className="post-card-content-column">
         <div className="post-header">
           <Link
-            to={`/u/${post.authorUsername}`}
+            to={`/u/${post.authorUsername ?? ''}`}
             onClick={(e) => {
               e.stopPropagation()
             }}
@@ -90,7 +105,7 @@ export function PostCard({
             {post.authorDisplayName}
           </Link>
           <Link
-            to={`/u/${post.authorUsername}`}
+            to={`/u/${post.authorUsername ?? ''}`}
             onClick={(e) => {
               e.stopPropagation()
             }}

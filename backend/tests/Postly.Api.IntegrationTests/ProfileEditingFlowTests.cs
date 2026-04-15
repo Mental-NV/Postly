@@ -60,9 +60,9 @@ public class ProfileEditingFlowTests : IDisposable
         Assert.Contains(timelineResponse.Posts, post => post.AuthorUsername == "bob" && post.AuthorDisplayName == "Bob Renamed");
 
         var bobPostId = await GetBobPostIdAsync();
-        var directPostResponse = await _client.GetFromJsonAsync<PostSummary>($"/api/posts/{bobPostId}");
-        Assert.NotNull(directPostResponse);
-        Assert.Equal("Bob Renamed", directPostResponse.AuthorDisplayName);
+        var directPostConversation = await _client.GetFromJsonAsync<ConversationResponse>($"/api/posts/{bobPostId}");
+        Assert.NotNull(directPostConversation);
+        Assert.Equal("Bob Renamed", directPostConversation.Target.Post?.AuthorDisplayName);
     }
 
     [Fact]
@@ -103,9 +103,9 @@ public class ProfileEditingFlowTests : IDisposable
             && post.AuthorAvatarUrl == profileResponse.Profile.AvatarUrl);
 
         var bobPostId = await GetBobPostIdAsync();
-        var directPostResponse = await _client.GetFromJsonAsync<PostSummary>($"/api/posts/{bobPostId}");
-        Assert.NotNull(directPostResponse);
-        Assert.Equal(profileResponse.Profile.AvatarUrl, directPostResponse.AuthorAvatarUrl);
+        var directPostConversation = await _client.GetFromJsonAsync<ConversationResponse>($"/api/posts/{bobPostId}");
+        Assert.NotNull(directPostConversation);
+        Assert.Equal(profileResponse.Profile.AvatarUrl, directPostConversation.Target.Post?.AuthorAvatarUrl);
     }
 
     [Fact]
@@ -228,9 +228,9 @@ public class ProfileEditingFlowTests : IDisposable
         await using var scope = _factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         return await dbContext.Posts
-            .Where(post => post.Author.Username == "bob")
+            .Where(post => post.Author.Username == "bob" && post.ReplyToPostId == null)
             .Select(post => post.Id)
-            .SingleAsync();
+            .FirstAsync();
     }
 
     private async Task<HttpResponseMessage> UploadAvatarAsync(byte[] avatarBytes)

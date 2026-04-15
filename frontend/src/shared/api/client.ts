@@ -86,3 +86,13 @@ export const apiClient = {
     return handleResponse<T>(response)
   },
 }
+
+export function getConversationPath(postId: number | string, cursor?: string | null): string {
+  const params = cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''
+  return `/posts/${String(postId)}${params}`
+}
+
+export function getRepliesPath(postId: number | string, cursor?: string | null): string {
+  const params = cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''
+  return `/posts/${String(postId)}/replies${params}`
+}

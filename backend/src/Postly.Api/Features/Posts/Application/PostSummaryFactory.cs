@@ -6,7 +6,7 @@ using Postly.Api.Persistence.Entities;
 
 namespace Postly.Api.Features.Posts.Application;
 
-internal static class PostSummaryFactory
+public static class PostSummaryFactory
 {
     public static async Task<PostSummary[]> CreateManyAsync(
         AppDbContext dbContext,
@@ -51,20 +51,24 @@ internal static class PostSummaryFactory
         int likeCount,
         bool likedByViewer)
     {
-        var isOwnedByViewer = viewerId != null && post.AuthorId == viewerId.Value;
+        var isDeleted = post.DeletedAtUtc != null;
+        var isOwnedByViewer = !isDeleted && viewerId != null && post.AuthorId == viewerId.Value;
 
         return new PostSummary(
-            post.Id,
-            post.Author.Username,
-            post.Author.DisplayName,
-            ProfileIdentityProjection.CreateAvatarUrl(post.Author),
-            post.Body,
-            post.CreatedAtUtc,
-            post.EditedAtUtc != null,
-            likeCount,
-            likedByViewer,
-            isOwnedByViewer,
-            isOwnedByViewer
+            Id: post.Id,
+            AuthorUsername: isDeleted ? null : post.Author.Username,
+            AuthorDisplayName: isDeleted ? null : post.Author.DisplayName,
+            AuthorAvatarUrl: isDeleted ? null : ProfileIdentityProjection.CreateAvatarUrl(post.Author),
+            Body: isDeleted ? null : post.Body,
+            CreatedAtUtc: post.CreatedAtUtc,
+            IsEdited: post.EditedAtUtc != null,
+            LikeCount: likeCount,
+            LikedByViewer: likedByViewer,
+            CanEdit: isOwnedByViewer,
+            CanDelete: isOwnedByViewer,
+            IsReply: post.ReplyToPostId != null,
+            ReplyToPostId: post.ReplyToPostId,
+            State: isDeleted ? "deleted" : "available"
         );
     }
 }

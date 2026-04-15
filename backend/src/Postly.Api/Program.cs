@@ -33,6 +33,8 @@ builder.Services.AddScoped<CreatePostHandler>();
 builder.Services.AddScoped<UpdatePostHandler>();
 builder.Services.AddScoped<DeletePostHandler>();
 builder.Services.AddScoped<GetPostHandler>();
+builder.Services.AddScoped<GetRepliesHandler>();
+builder.Services.AddScoped<CreateReplyHandler>();
 builder.Services.AddScoped<LikePostHandler>();
 builder.Services.AddScoped<UnlikePostHandler>();
 builder.Services.AddScoped<GetTimelineHandler>();

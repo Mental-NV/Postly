@@ -103,7 +103,7 @@ public class GetProfileHandler
 
         var allPosts = await _dbContext.Posts
             .Include(p => p.Author)
-            .Where(p => p.AuthorId == targetUser.Id)
+            .Where(p => p.AuthorId == targetUser.Id && p.ReplyToPostId == null && p.DeletedAtUtc == null)
             .ToListAsync();
 
         // Apply cursor filter and sort in memory

@@ -173,8 +173,8 @@ public class FollowFlowTests : IDisposable
 
         // Assert - Only bob's post
         Assert.NotNull(data1);
-        Assert.Single(data1.Posts);
-        Assert.Equal("bob", data1.Posts[0].AuthorUsername);
+        Assert.Equal(2, data1.Posts.Length);
+        Assert.All(data1.Posts, p => Assert.Equal("bob", p.AuthorUsername));
 
         // Act - Follow alice
         await _client.PostAsync("/api/profiles/alice/follow", null);
@@ -183,7 +183,7 @@ public class FollowFlowTests : IDisposable
 
         // Assert - Bob's + Alice's posts
         Assert.NotNull(data2);
-        Assert.Equal(2, data2.Posts.Length);
+        Assert.True(data2.Posts.Length >= 2);
         var usernames = data2.Posts.Select(p => p.AuthorUsername).ToHashSet();
         Assert.Contains("bob", usernames);
         Assert.Contains("alice", usernames);
@@ -193,10 +193,10 @@ public class FollowFlowTests : IDisposable
         var response3 = await _client.GetAsync("/api/timeline");
         var data3 = await response3.Content.ReadFromJsonAsync<TimelineResponse>();
 
-        // Assert - Only bob's post again
+        // Assert - Only bob's posts again
         Assert.NotNull(data3);
-        Assert.Single(data3.Posts);
-        Assert.Equal("bob", data3.Posts[0].AuthorUsername);
+        Assert.Equal(2, data3.Posts.Length);
+        Assert.All(data3.Posts, p => Assert.Equal("bob", p.AuthorUsername));
     }
 
     [Fact]

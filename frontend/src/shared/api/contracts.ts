@@ -12,16 +12,35 @@ export interface UserProfile {
 
 export interface PostSummary {
   id: number
-  authorUsername: string
-  authorDisplayName: string
+  authorUsername?: string | null
+  authorDisplayName?: string | null
   authorAvatarUrl?: string | null
-  body: string
+  body?: string | null
   createdAtUtc: string
   isEdited: boolean
   likeCount: number
   likedByViewer: boolean
   canEdit: boolean
   canDelete: boolean
+  isReply: boolean
+  replyToPostId?: number | null
+  state: 'available' | 'deleted'
+}
+
+export interface ConversationTarget {
+  state: 'available' | 'unavailable'
+  post?: PostSummary
+}
+
+export interface ConversationResponse {
+  target: ConversationTarget
+  replies: PostSummary[]
+  nextCursor?: string | null
+}
+
+export interface ReplyPageResponse {
+  replies: PostSummary[]
+  nextCursor?: string | null
 }
 
 export interface PostInteractionState {
@@ -70,4 +89,12 @@ export interface CreatePostRequest {
 
 export interface UpdatePostRequest {
   body: string
+}
+
+export interface CreateReplyRequest {
+  body: string
+}
+
+export interface PostResponse {
+  post: PostSummary
 }

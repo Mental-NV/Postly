@@ -19,11 +19,21 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
         builder.Property(p => p.CreatedAtUtc)
             .IsRequired();
 
+        builder.Property(p => p.ReplyToPostId)
+            .IsRequired(false);
+
+        builder.Property(p => p.DeletedAtUtc)
+            .IsRequired(false);
+
         builder.HasIndex(p => new { p.AuthorId, p.CreatedAtUtc, p.Id })
             .IsDescending(false, true, true);
 
         builder.HasIndex(p => new { p.CreatedAtUtc, p.Id })
             .IsDescending(true, true);
+
+        // Reply pagination index
+        builder.HasIndex(p => new { p.ReplyToPostId, p.CreatedAtUtc, p.Id })
+            .IsDescending(false, true, true);
 
         builder.HasMany(p => p.Likes)
             .WithOne(l => l.Post)
