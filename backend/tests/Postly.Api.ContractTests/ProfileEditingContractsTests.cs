@@ -103,21 +103,22 @@ public class ProfileEditingContractsTests : IDisposable
 
     private string FindAssetPath(string fileName)
     {
-        var currentDir = Directory.GetCurrentDirectory();
-        var pathsToTry = new[]
+        var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
+        while (currentDir != null && !File.Exists(Path.Combine(currentDir.FullName, "Postly.sln")))
         {
-            Path.Combine(currentDir, "..", "..", "..", "backend", "tests", "assets", "avatars", fileName),
-            Path.Combine(currentDir, "..", "..", "..", "assets", "avatars", fileName),
-            Path.Combine(currentDir, "assets", "avatars", fileName),
-            "/home/mental/projects/Postly/backend/tests/assets/avatars/" + fileName
-        };
-
-        foreach (var path in pathsToTry)
-        {
-            if (File.Exists(path)) return path;
+            currentDir = currentDir.Parent;
         }
 
-        throw new FileNotFoundException($"Could not find asset {fileName}");
+        if (currentDir == null)
+        {
+            // Fallback for environments where the solution file isn't present in the expected hierarchy
+            throw new FileNotFoundException($"Could not find project root (Postly.sln) from {Directory.GetCurrentDirectory()}");
+        }
+
+        var assetPath = Path.Combine(currentDir.FullName, "backend", "tests", "assets", "avatars", fileName);
+        if (File.Exists(assetPath)) return assetPath;
+
+        throw new FileNotFoundException($"Could not find asset {fileName} at {assetPath}");
     }
 
     private async Task SignInAsBobAsync()
