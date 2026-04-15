@@ -85,35 +85,35 @@ backend/frontend responsibilities -> `Post`, `ConversationView`, `PostSummary`
 
 ### Story-Owned Foundations for User Story 2
 
-- [ ] T023 [US2] Extend reply persistence in `backend/src/Postly.Api/Persistence/Entities/Post.cs` and `backend/src/Postly.Api/Persistence/AppDbContext.cs`
-- [ ] T024 [US2] Add EF Core configuration and indexes for reply persistence and placeholder behavior in `backend/src/Postly.Api/Persistence/Configurations/PostConfiguration.cs`
-- [ ] T025 [US2] Create the EF Core migration for reply schema changes in `backend/src/Postly.Api/Persistence/Migrations/`
-- [ ] T026 [US2] Expand shared frontend API contracts and client helpers for conversation reads and reply mutations in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
-- [ ] T027 [US2] Create story-specific test roots for posts in `backend/tests/Postly.Api.UnitTests/Features/Posts/` and `frontend/src/features/posts/__tests__/`
+- [X] T023 [US2] Extend reply persistence in `backend/src/Postly.Api/Persistence/Entities/Post.cs` and `backend/src/Postly.Api/Persistence/AppDbContext.cs`
+- [X] T024 [US2] Add EF Core configuration and indexes for reply persistence and placeholder behavior in `backend/src/Postly.Api/Persistence/Configurations/PostConfiguration.cs`
+- [X] T025 [US2] Create the EF Core migration for reply schema changes in `backend/src/Postly.Api/Persistence/Migrations/`
+- [X] T026 [US2] Expand shared frontend API contracts and client helpers for conversation reads and reply mutations in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
+- [X] T027 [US2] Create story-specific test roots for posts in `backend/tests/Postly.Api.UnitTests/Features/Posts/` and `frontend/src/features/posts/__tests__/`
 
 ### Tests for User Story 2 (REQUIRED) ⚠️
 
-- [ ] T028 [P] [US2] Add backend unit coverage for reply validation, author-only reply ownership, deleted-placeholder transitions, and unavailable-target rejection in `backend/tests/Postly.Api.UnitTests/Features/Posts/ReplyValidationTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Posts/ReplyOwnershipTests.cs`
-- [ ] T029 [P] [US2] Add backend contract coverage for anonymous success on preserved public reads `GET /api/posts/{postId}` and `GET /api/posts/{postId}/replies`, plus anonymous `401` on `POST /api/posts/{postId}/replies`, `PATCH /api/posts/{postId}`, and `DELETE /api/posts/{postId}` in `backend/tests/Postly.Api.ContractTests/ReplyConversationContractsTests.cs`
-- [ ] T030 [P] [US2] Add backend integration coverage for reply create/edit/delete, deleted placeholders, unavailable parent reads, anonymous direct-post and reply-read access, anonymous reply-create rejection, and unavailable target submission failures in `backend/tests/Postly.Api.IntegrationTests/ReplyConversationFlowTests.cs`
-- [ ] T031 [P] [US2] Add frontend component coverage for conversation target states, reply composer states, non-author action absence, and deleted placeholders in `frontend/src/features/posts/__tests__/reply-conversation-ui.test.tsx`
-- [ ] T032 [P] [US2] Add Playwright coverage for `UF-04`, `UF-05`, `UF-06`, and `UF-07` in `frontend/tests/e2e/us7-replies-and-conversation.spec.ts`
+- [X] T028 [P] [US2] Add backend unit coverage for reply validation, author-only reply ownership, deleted-placeholder transitions, and unavailable-target rejection in `backend/tests/Postly.Api.UnitTests/Features/Posts/ReplyValidationTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Posts/ReplyOwnershipTests.cs`
+- [X] T029 [P] [US2] Add backend contract coverage for anonymous success on preserved public reads `GET /api/posts/{postId}` and `GET /api/posts/{postId}/replies`, plus anonymous `401` on `POST /api/posts/{postId}/replies`, `PATCH /api/posts/{postId}`, and `DELETE /api/posts/{postId}` in `backend/tests/Postly.Api.ContractTests/ReplyConversationContractsTests.cs`
+- [X] T030 [P] [US2] Add backend integration coverage for reply create/edit/delete, deleted placeholders, unavailable parent reads, anonymous direct-post and reply-read access, anonymous reply-create rejection, and unavailable target submission failures in `backend/tests/Postly.Api.IntegrationTests/ReplyConversationFlowTests.cs`
+- [X] T031 [P] [US2] Add frontend component coverage for conversation target states, reply composer states, non-author action absence, and deleted placeholders in `frontend/src/features/posts/__tests__/reply-conversation-ui.test.tsx`
+- [X] T032 [P] [US2] Add Playwright coverage for `UF-04`, `UF-05`, `UF-06`, and `UF-07` in `frontend/tests/e2e/us7-replies-and-conversation.spec.ts`
 
 ### Backend Implementation for User Story 2
 
-- [ ] T033 [US2] Implement reply and conversation contracts in `backend/src/Postly.Api/Features/Posts/Contracts/PostMutationContracts.cs` and `backend/src/Postly.Api/Features/Posts/Contracts/PostQueryContracts.cs`
-- [ ] T034 [US2] Implement reply creation and conversation query handlers in `backend/src/Postly.Api/Features/Posts/Application/CreateReplyHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/GetPostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/GetRepliesHandler.cs`
-- [ ] T035 [US2] Implement reply edit/delete placeholder behavior and author-only enforcement in `backend/src/Postly.Api/Features/Posts/Application/UpdatePostHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/DeletePostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/PostSummaryFactory.cs`
-- [ ] T036 [US2] Implement reply and conversation endpoint wiring in `backend/src/Postly.Api/Features/Posts/Endpoints/PostQueryEndpoints.cs` and `backend/src/Postly.Api/Features/Posts/Endpoints/PostMutationEndpoints.cs`
+- [X] T033 [US2] Implement reply and conversation contracts in `backend/src/Postly.Api/Features/Posts/Contracts/PostMutationContracts.cs` and `backend/src/Postly.Api/Features/Posts/Contracts/PostQueryContracts.cs`
+- [X] T034 [US2] Implement reply creation and conversation query handlers in `backend/src/Postly.Api/Features/Posts/Application/CreateReplyHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/GetPostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/GetRepliesHandler.cs`
+- [X] T035 [US2] Implement reply edit/delete placeholder behavior and author-only enforcement in `backend/src/Postly.Api/Features/Posts/Application/UpdatePostHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/DeletePostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/PostSummaryFactory.cs`
+- [X] T036 [US2] Implement reply and conversation endpoint wiring in `backend/src/Postly.Api/Features/Posts/Endpoints/PostQueryEndpoints.cs` and `backend/src/Postly.Api/Features/Posts/Endpoints/PostMutationEndpoints.cs`
 
 ### Frontend Implementation for User Story 2
 
-- [ ] T037 [US2] Implement the conversation layout, target/unavailable states, and reply composer flow in `frontend/src/features/posts/DirectPostPage.tsx`
-- [ ] T038 [US2] Implement reply-card edit/delete reuse, deleted-reply placeholder rendering, confirmation flow, and draft preservation in `frontend/src/shared/components/PostCard.tsx`, `frontend/src/features/posts/editor/PostEditor.tsx`, and `frontend/src/shared/components/ConfirmDialog.tsx`
+- [X] T037 [US2] Implement the conversation layout, target/unavailable states, and reply composer flow in `frontend/src/features/posts/DirectPostPage.tsx`
+- [X] T038 [US2] Implement reply-card edit/delete reuse, deleted-reply placeholder rendering, confirmation flow, and draft preservation in `frontend/src/shared/components/PostCard.tsx`, `frontend/src/features/posts/editor/PostEditor.tsx`, and `frontend/src/shared/components/ConfirmDialog.tsx`
 
 ### Contracts, Data, Fixtures, and Documentation for User Story 2
 
-- [ ] T039 [US2] Add deterministic reply ownership, unavailable-parent, and multi-page conversation fixtures in `backend/src/Postly.Api/Persistence/DataSeed.cs`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
+- [X] T039 [US2] Add deterministic reply ownership, unavailable-parent, and multi-page conversation fixtures in `backend/src/Postly.Api/Persistence/DataSeed.cs`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
 
 **Checkpoint**: User Story 2 is independently testable.
 
