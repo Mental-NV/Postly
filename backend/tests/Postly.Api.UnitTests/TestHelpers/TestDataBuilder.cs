@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Identity;
-using Moq;
 using Postly.Api.Persistence.Entities;
-using Postly.Api.Security;
 
 namespace Postly.Api.UnitTests.TestHelpers;
 
@@ -81,39 +79,5 @@ public static class TestDataBuilder
             RevokedAtUtc = revokedAtUtc,
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
-    }
-
-    public static UserAccount CreateUser(long id, string username)
-    {
-        return CreateUserAccount(id, username, username);
-    }
-
-    public static Notification CreateNotification(
-        long id,
-        long recipientUserId,
-        long actorUserId,
-        string kind,
-        long? profileUserId = null,
-        long? postId = null,
-        long? replyPostId = null)
-    {
-        return new Notification
-        {
-            Id = id,
-            RecipientUserId = recipientUserId,
-            ActorUserId = actorUserId,
-            Kind = kind,
-            ProfileUserId = profileUserId,
-            PostId = postId,
-            ReplyPostId = replyPostId,
-            CreatedAtUtc = DateTimeOffset.UtcNow
-        };
-    }
-
-    public static Mock<ICurrentViewerAccessor> CreateMockCurrentViewer(long userId)
-    {
-        var mock = new Mock<ICurrentViewerAccessor>();
-        mock.Setup(x => x.GetCurrentUserId()).Returns(userId);
-        return mock;
     }
 }

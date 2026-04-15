@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Postly.Api.Features.Auth.Application;
 using Postly.Api.Features.Auth.Endpoints;
-using Postly.Api.Features.Notifications.Application;
-using Postly.Api.Features.Notifications.Endpoints;
 using Postly.Api.Features.Posts.Application;
 using Postly.Api.Features.Posts.Endpoints;
 using Postly.Api.Features.Profiles.Application;
@@ -46,8 +44,6 @@ builder.Services.AddScoped<ReplaceAvatarHandler>();
 builder.Services.AddScoped<ProfileAvatarProcessor>();
 builder.Services.AddScoped<FollowUserHandler>();
 builder.Services.AddScoped<UnfollowUserHandler>();
-builder.Services.AddScoped<GetNotificationsHandler>();
-builder.Services.AddScoped<OpenNotificationHandler>();
 
 // Problem Details
 builder.Services.AddProblemDetails();
@@ -82,7 +78,6 @@ app.MapPostQueryEndpoints();
 app.MapPostInteractionEndpoints();
 app.MapTimelineEndpoints();
 app.MapProfileEndpoints();
-app.MapNotificationEndpoints();
 
 // SPA fallback
 app.MapFallbackToFile("index.html");

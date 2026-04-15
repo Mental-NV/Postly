@@ -55,50 +55,6 @@ namespace Postly.Api.Migrations
                     b.ToTable("Likes", (string)null);
                 });
 
-            modelBuilder.Entity("Postly.Api.Persistence.Entities.Notification", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long>("ActorUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("TEXT");
-
-                    b.Property<long?>("PostId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long?>("ProfileUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset?>("ReadAtUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<long>("RecipientUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long?>("ReplyPostId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActorUserId");
-
-                    b.HasIndex("RecipientUserId", "ReadAtUtc");
-
-                    b.HasIndex("RecipientUserId", "CreatedAtUtc", "Id")
-                        .IsDescending(false, true, true);
-
-                    b.ToTable("Notifications", (string)null);
-                });
-
             modelBuilder.Entity("Postly.Api.Persistence.Entities.Post", b =>
                 {
                     b.Property<long>("Id")
@@ -260,25 +216,6 @@ namespace Postly.Api.Migrations
                     b.Navigation("Post");
 
                     b.Navigation("UserAccount");
-                });
-
-            modelBuilder.Entity("Postly.Api.Persistence.Entities.Notification", b =>
-                {
-                    b.HasOne("Postly.Api.Persistence.Entities.UserAccount", "Actor")
-                        .WithMany()
-                        .HasForeignKey("ActorUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Postly.Api.Persistence.Entities.UserAccount", "Recipient")
-                        .WithMany()
-                        .HasForeignKey("RecipientUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Actor");
-
-                    b.Navigation("Recipient");
                 });
 
             modelBuilder.Entity("Postly.Api.Persistence.Entities.Post", b =>
