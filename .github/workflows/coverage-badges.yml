@@ -22,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.COVERAGE_BADGE_TOKEN || github.token }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -46,7 +47,14 @@ jobs:
             --configuration Release \
             --collect:"XPlat Code Coverage" \
             --results-directory ./artifacts/coverage/backend
-          cp "$(find artifacts/coverage/backend -name coverage.cobertura.xml | head -n 1)" artifacts/coverage/backend/coverage.cobertura.xml
+
+          coverage_file="$(find artifacts/coverage/backend -name coverage.cobertura.xml | head -n 1)"
+          if [[ -z "$coverage_file" ]]; then
+            echo "Backend coverage file was not generated." >&2
+            exit 1
+          fi
+
+          cp "$coverage_file" artifacts/coverage/backend/coverage.cobertura.xml
 
       - name: Install frontend dependencies
         working-directory: frontend
