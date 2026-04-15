@@ -58,7 +58,7 @@ public class GetTimelineHandler
         // 4. Query posts (own + followed users) and load into memory
         var allPosts = await _dbContext.Posts
             .Include(p => p.Author)
-            .Where(p => authorIds.Contains(p.AuthorId))
+            .Where(p => authorIds.Contains(p.AuthorId) && p.ReplyToPostId == null && p.DeletedAtUtc == null)
             .ToListAsync();
 
         // 5. Apply cursor filter and sort in memory

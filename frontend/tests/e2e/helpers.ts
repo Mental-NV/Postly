@@ -2,7 +2,7 @@ import { Buffer } from 'node:buffer'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { expect, type FilePayload, type Page } from '@playwright/test'
+import { expect, type FilePayload, type Locator, type Page } from '@playwright/test'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -32,6 +32,19 @@ export async function signIn(
   await page.getByTestId('password-input').fill(password)
   await page.getByTestId('submit-button').click()
   await expect(page).toHaveURL('/')
+}
+
+/** Navigate to the seeded conversation post (Alice's ConversationPostBody post). */
+export async function goToConversationPost(page: Page): Promise<void> {
+  await page.goto('/u/bob')
+  await expect(page.getByTestId('profile-page')).toBeVisible()
+  const conversationCard = page
+    .locator('[data-testid^="post-card-"]', { hasText: 'Seed conversation post for reply flows' })
+    .first()
+  const postId = (await conversationCard.getAttribute('data-testid'))?.replace('post-card-', '')
+  if (!postId) throw new Error('Could not find conversation post card')
+  await page.goto(`/posts/${postId}`)
+  await expect(page.getByTestId('conversation-page')).toBeVisible()
 }
 
 export async function createCanvasPngUpload(

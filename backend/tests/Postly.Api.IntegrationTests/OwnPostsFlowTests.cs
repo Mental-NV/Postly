@@ -73,14 +73,14 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
         var updateRequest = new { body = "Updated content" };
 
         // Act
-        var response = await _client.PatchAsJsonAsync($"/api/posts/{createdPost!.Id}", updateRequest);
+        var response = await _client.PatchAsJsonAsync($"/api/posts/{createdPost!.Post.Id}", updateRequest);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var post = await dbContext.Posts.FindAsync(createdPost.Id);
+        var post = await dbContext.Posts.FindAsync(createdPost.Post.Id);
 
         Assert.NotNull(post);
         Assert.Equal("Updated content", post.Body);
@@ -100,14 +100,14 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
         // Act: Bob tries to update Alice's post
         await SignInAsBob();
         var updateRequest = new { body = "Bob's edit attempt" };
-        var response = await _client.PatchAsJsonAsync($"/api/posts/{createdPost!.Id}", updateRequest);
+        var response = await _client.PatchAsJsonAsync($"/api/posts/{createdPost!.Post.Id}", updateRequest);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var post = await dbContext.Posts.FindAsync(createdPost.Id);
+        var post = await dbContext.Posts.FindAsync(createdPost.Post.Id);
 
         Assert.NotNull(post);
         Assert.Equal("Alice's post", post.Body); // Content unchanged
@@ -128,14 +128,14 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
         var createdPost = await createResponse.Content.ReadFromJsonAsync<PostResponse>();
 
         // Act
-        var response = await _client.DeleteAsync($"/api/posts/{createdPost!.Id}");
+        var response = await _client.DeleteAsync($"/api/posts/{createdPost!.Post.Id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var post = await dbContext.Posts.FindAsync(createdPost.Id);
+        var post = await dbContext.Posts.FindAsync(createdPost.Post.Id);
 
         Assert.Null(post); // Post deleted
     }
@@ -151,14 +151,14 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
 
         // Act: Bob tries to delete Alice's post
         await SignInAsBob();
-        var response = await _client.DeleteAsync($"/api/posts/{createdPost!.Id}");
+        var response = await _client.DeleteAsync($"/api/posts/{createdPost!.Post.Id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var post = await dbContext.Posts.FindAsync(createdPost.Id);
+        var post = await dbContext.Posts.FindAsync(createdPost.Post.Id);
 
         Assert.NotNull(post); // Post still exists
         Assert.Equal("Alice's post", post.Body);
@@ -174,10 +174,10 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
         var createdPost = await createResponse.Content.ReadFromJsonAsync<PostResponse>();
 
         // First delete
-        await _client.DeleteAsync($"/api/posts/{createdPost!.Id}");
+        await _client.DeleteAsync($"/api/posts/{createdPost!.Post.Id}");
 
         // Act: Second delete (stale)
-        var response = await _client.DeleteAsync($"/api/posts/{createdPost.Id}");
+        var response = await _client.DeleteAsync($"/api/posts/{createdPost.Post.Id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -199,7 +199,7 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
         // Act: Bob attempts to edit
         await SignInAsBob();
         var updateRequest = new { body = "Bob's unauthorized edit" };
-        var updateResponse = await _client.PatchAsJsonAsync($"/api/posts/{createdPost!.Id}", updateRequest);
+        var updateResponse = await _client.PatchAsJsonAsync($"/api/posts/{createdPost!.Post.Id}", updateRequest);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, updateResponse.StatusCode);
@@ -207,7 +207,7 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
         // Verify database unchanged
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var post = await dbContext.Posts.FindAsync(createdPost.Id);
+        var post = await dbContext.Posts.FindAsync(createdPost.Post.Id);
 
         Assert.NotNull(post);
         Assert.Equal("Alice's original post", post.Body);
@@ -225,7 +225,7 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
 
         // Act: Bob attempts to delete
         await SignInAsBob();
-        var deleteResponse = await _client.DeleteAsync($"/api/posts/{createdPost!.Id}");
+        var deleteResponse = await _client.DeleteAsync($"/api/posts/{createdPost!.Post.Id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, deleteResponse.StatusCode);
@@ -233,7 +233,7 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
         // Verify post still exists
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var post = await dbContext.Posts.FindAsync(createdPost.Id);
+        var post = await dbContext.Posts.FindAsync(createdPost.Post.Id);
 
         Assert.NotNull(post);
         Assert.Equal("Alice's post to protect", post.Body);
@@ -241,13 +241,14 @@ public class OwnPostsFlowTests : IClassFixture<TestWebApplicationFactory>
 
     #endregion
 
-    private record PostResponse(
+    private record PostSummaryDto(
         long Id,
-        string AuthorUsername,
-        string AuthorDisplayName,
-        string Body,
+        string? AuthorUsername,
+        string? AuthorDisplayName,
+        string? Body,
         DateTimeOffset CreatedAtUtc,
-        bool IsEdited,
-        DateTimeOffset? EditedAtUtc
+        bool IsEdited
     );
+
+    private record PostResponse(PostSummaryDto Post);
 }

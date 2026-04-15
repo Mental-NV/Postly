@@ -19,10 +19,7 @@ public class DirectPostAndLikesFlowTests : IDisposable
     public DirectPostAndLikesFlowTests()
     {
         _factory = new TestWebApplicationFactory();
-        _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            HandleCookies = true
-        });
+        _client = _factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
     }
 
     public void Dispose()
@@ -33,19 +30,17 @@ public class DirectPostAndLikesFlowTests : IDisposable
 
     private async Task SignInAsBob()
     {
-        var signinRequest = new { username = "bob", password = "TestPassword123" };
-        await _client.PostAsJsonAsync("/api/auth/signin", signinRequest);
+        await _client.PostAsJsonAsync("/api/auth/signin", new { username = "bob", password = "TestPassword123" });
     }
 
     private async Task<long> GetSeededPostIdAsync(string authorUsername)
     {
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
         return await dbContext.Posts
-            .Where(post => post.Author.Username == authorUsername)
-            .Select(post => post.Id)
-            .SingleAsync();
+            .Where(p => p.Author.Username == authorUsername && p.ReplyToPostId == null)
+            .Select(p => p.Id)
+            .FirstAsync();
     }
 
     private async Task DeletePostAsync(long postId)
@@ -64,33 +59,15 @@ public class DirectPostAndLikesFlowTests : IDisposable
         await SignInAsBob();
         var alicePostId = await GetSeededPostIdAsync("alice");
 
-        var likeResponse1 = await _client.PostAsync($"/api/posts/{alicePostId}/like", null);
-        var likeState1 = await likeResponse1.Content.ReadFromJsonAsync<PostInteractionState>();
-        var likeResponse2 = await _client.PostAsync($"/api/posts/{alicePostId}/like", null);
-        var likeState2 = await likeResponse2.Content.ReadFromJsonAsync<PostInteractionState>();
-        var unlikeResponse1 = await _client.DeleteAsync($"/api/posts/{alicePostId}/like");
-        var unlikeState1 = await unlikeResponse1.Content.ReadFromJsonAsync<PostInteractionState>();
-        var unlikeResponse2 = await _client.DeleteAsync($"/api/posts/{alicePostId}/like");
-        var unlikeState2 = await unlikeResponse2.Content.ReadFromJsonAsync<PostInteractionState>();
+        var likeState1 = await (await _client.PostAsync($"/api/posts/{alicePostId}/like", null)).Content.ReadFromJsonAsync<PostInteractionState>();
+        var likeState2 = await (await _client.PostAsync($"/api/posts/{alicePostId}/like", null)).Content.ReadFromJsonAsync<PostInteractionState>();
+        var unlikeState1 = await (await _client.DeleteAsync($"/api/posts/{alicePostId}/like")).Content.ReadFromJsonAsync<PostInteractionState>();
+        var unlikeState2 = await (await _client.DeleteAsync($"/api/posts/{alicePostId}/like")).Content.ReadFromJsonAsync<PostInteractionState>();
 
-        Assert.Equal(HttpStatusCode.OK, likeResponse1.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, likeResponse2.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, unlikeResponse1.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, unlikeResponse2.StatusCode);
-
-        Assert.NotNull(likeState1);
-        Assert.NotNull(likeState2);
-        Assert.NotNull(unlikeState1);
-        Assert.NotNull(unlikeState2);
-
-        Assert.Equal(1, likeState1!.LikeCount);
-        Assert.True(likeState1.LikedByViewer);
-        Assert.Equal(1, likeState2!.LikeCount);
-        Assert.True(likeState2.LikedByViewer);
-        Assert.Equal(0, unlikeState1!.LikeCount);
-        Assert.False(unlikeState1.LikedByViewer);
-        Assert.Equal(0, unlikeState2!.LikeCount);
-        Assert.False(unlikeState2.LikedByViewer);
+        Assert.Equal(1, likeState1!.LikeCount); Assert.True(likeState1.LikedByViewer);
+        Assert.Equal(1, likeState2!.LikeCount); Assert.True(likeState2.LikedByViewer);
+        Assert.Equal(0, unlikeState1!.LikeCount); Assert.False(unlikeState1.LikedByViewer);
+        Assert.Equal(0, unlikeState2!.LikeCount); Assert.False(unlikeState2.LikedByViewer);
     }
 
     [Fact]
@@ -101,26 +78,18 @@ public class DirectPostAndLikesFlowTests : IDisposable
         await _client.PostAsync("/api/profiles/alice/follow", null);
         await _client.PostAsync($"/api/posts/{alicePostId}/like", null);
 
-        var timelineResponse = await _client.GetAsync("/api/timeline");
-        var timeline = await timelineResponse.Content.ReadFromJsonAsync<TimelineResponse>();
-        var profileResponse = await _client.GetAsync("/api/profiles/alice");
-        var profile = await profileResponse.Content.ReadFromJsonAsync<ProfileResponse>();
-        var directPostResponse = await _client.GetAsync($"/api/posts/{alicePostId}");
-        var directPost = await directPostResponse.Content.ReadFromJsonAsync<PostSummary>();
+        var timeline = await (await _client.GetAsync("/api/timeline")).Content.ReadFromJsonAsync<TimelineResponse>();
+        var profile = await (await _client.GetAsync("/api/profiles/alice")).Content.ReadFromJsonAsync<ProfileResponse>();
+        var conversation = await (await _client.GetAsync($"/api/posts/{alicePostId}")).Content.ReadFromJsonAsync<ConversationResponse>();
 
-        Assert.Equal(HttpStatusCode.OK, timelineResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, profileResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, directPostResponse.StatusCode);
+        var timelinePost = Assert.Single(timeline!.Posts, p => p.Id == alicePostId);
+        var profilePost = Assert.Single(profile!.Posts, p => p.Id == alicePostId);
+        var directPost = conversation!.Target.Post;
 
-        var timelinePost = Assert.Single(timeline!.Posts, post => post.Id == alicePostId);
-        var profilePost = Assert.Single(profile!.Posts, post => post.Id == alicePostId);
-
-        Assert.True(timelinePost.LikedByViewer);
-        Assert.Equal(1, timelinePost.LikeCount);
-        Assert.True(profilePost.LikedByViewer);
-        Assert.Equal(1, profilePost.LikeCount);
-        Assert.True(directPost!.LikedByViewer);
-        Assert.Equal(1, directPost.LikeCount);
+        Assert.True(timelinePost.LikedByViewer); Assert.Equal(1, timelinePost.LikeCount);
+        Assert.True(profilePost.LikedByViewer); Assert.Equal(1, profilePost.LikeCount);
+        Assert.NotNull(directPost);
+        Assert.True(directPost!.LikedByViewer); Assert.Equal(1, directPost.LikeCount);
     }
 
     [Fact]
@@ -132,6 +101,7 @@ public class DirectPostAndLikesFlowTests : IDisposable
 
         var response = await _client.GetAsync($"/api/posts/{alicePostId}");
 
+        // Hard-deleted top-level post → 404
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -143,40 +113,27 @@ public class DirectPostAndLikesFlowTests : IDisposable
         var bobPostId = await GetSeededPostIdAsync("bob");
         await _client.PostAsync("/api/profiles/alice/follow", null);
 
-        var timelineResponse = await _client.GetAsync("/api/timeline");
-        var timeline = await timelineResponse.Content.ReadFromJsonAsync<TimelineResponse>();
-        var bobProfileResponse = await _client.GetAsync("/api/profiles/bob");
-        var bobProfile = await bobProfileResponse.Content.ReadFromJsonAsync<ProfileResponse>();
-        var aliceProfileResponse = await _client.GetAsync("/api/profiles/alice");
-        var aliceProfile = await aliceProfileResponse.Content.ReadFromJsonAsync<ProfileResponse>();
-        var bobDirectResponse = await _client.GetAsync($"/api/posts/{bobPostId}");
-        var bobDirectPost = await bobDirectResponse.Content.ReadFromJsonAsync<PostSummary>();
-        var aliceDirectResponse = await _client.GetAsync($"/api/posts/{alicePostId}");
-        var aliceDirectPost = await aliceDirectResponse.Content.ReadFromJsonAsync<PostSummary>();
+        var timeline = await (await _client.GetAsync("/api/timeline")).Content.ReadFromJsonAsync<TimelineResponse>();
+        var bobProfile = await (await _client.GetAsync("/api/profiles/bob")).Content.ReadFromJsonAsync<ProfileResponse>();
+        var aliceProfile = await (await _client.GetAsync("/api/profiles/alice")).Content.ReadFromJsonAsync<ProfileResponse>();
+        var bobConversation = await (await _client.GetAsync($"/api/posts/{bobPostId}")).Content.ReadFromJsonAsync<ConversationResponse>();
+        var aliceConversation = await (await _client.GetAsync($"/api/posts/{alicePostId}")).Content.ReadFromJsonAsync<ConversationResponse>();
 
-        Assert.Equal(HttpStatusCode.OK, timelineResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, bobProfileResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, aliceProfileResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, bobDirectResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, aliceDirectResponse.StatusCode);
+        var timelineBobPost = Assert.Single(timeline!.Posts, p => p.Id == bobPostId);
+        var timelineAlicePost = Assert.Single(timeline.Posts, p => p.Id == alicePostId);
+        var bobProfilePost = Assert.Single(bobProfile!.Posts, p => p.Id == bobPostId);
+        var aliceProfilePost = Assert.Single(aliceProfile!.Posts, p => p.Id == alicePostId);
+        var bobDirectPost = bobConversation!.Target.Post;
+        var aliceDirectPost = aliceConversation!.Target.Post;
 
-        var timelineBobPost = Assert.Single(timeline!.Posts, post => post.Id == bobPostId);
-        var timelineAlicePost = Assert.Single(timeline.Posts, post => post.Id == alicePostId);
-        var bobProfilePost = Assert.Single(bobProfile!.Posts, post => post.Id == bobPostId);
-        var aliceProfilePost = Assert.Single(aliceProfile!.Posts, post => post.Id == alicePostId);
+        Assert.True(timelineBobPost.CanEdit); Assert.True(timelineBobPost.CanDelete);
+        Assert.True(bobProfilePost.CanEdit); Assert.True(bobProfilePost.CanDelete);
+        Assert.NotNull(bobDirectPost);
+        Assert.True(bobDirectPost!.CanEdit); Assert.True(bobDirectPost.CanDelete);
 
-        Assert.True(timelineBobPost.CanEdit);
-        Assert.True(timelineBobPost.CanDelete);
-        Assert.True(bobProfilePost.CanEdit);
-        Assert.True(bobProfilePost.CanDelete);
-        Assert.True(bobDirectPost!.CanEdit);
-        Assert.True(bobDirectPost.CanDelete);
-
-        Assert.False(timelineAlicePost.CanEdit);
-        Assert.False(timelineAlicePost.CanDelete);
-        Assert.False(aliceProfilePost.CanEdit);
-        Assert.False(aliceProfilePost.CanDelete);
-        Assert.False(aliceDirectPost!.CanEdit);
-        Assert.False(aliceDirectPost.CanDelete);
+        Assert.False(timelineAlicePost.CanEdit); Assert.False(timelineAlicePost.CanDelete);
+        Assert.False(aliceProfilePost.CanEdit); Assert.False(aliceProfilePost.CanDelete);
+        Assert.NotNull(aliceDirectPost);
+        Assert.False(aliceDirectPost!.CanEdit); Assert.False(aliceDirectPost.CanDelete);
     }
 }

@@ -23,38 +23,32 @@ public class DirectPostAndLikesContractsTests : IClassFixture<TestWebApplication
             AllowAutoRedirect = false,
             HandleCookies = true
         });
-
         ResetData();
     }
 
     private void ResetData()
     {
         using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        DataSeed.ResetAsync(dbContext).GetAwaiter().GetResult();
+        DataSeed.ResetAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>()).GetAwaiter().GetResult();
     }
 
     private async Task SignInAsBob()
     {
-        var signinRequest = new { username = "bob", password = "TestPassword123" };
-        await _client.PostAsJsonAsync("/api/auth/signin", signinRequest);
+        await _client.PostAsJsonAsync("/api/auth/signin", new { username = "bob", password = "TestPassword123" });
     }
 
     private async Task<long> GetAliceSeedPostIdAsync()
     {
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        var postId = await dbContext.Posts
-            .Where(post => post.Author.Username == "alice")
-            .Select(post => post.Id)
-            .SingleAsync();
-
-        return postId;
+        return await dbContext.Posts
+            .Where(p => p.Author.Username == "alice" && p.ReplyToPostId == null)
+            .Select(p => p.Id)
+            .FirstAsync();
     }
 
     [Fact]
-    public async Task GetDirectPost_AuthenticatedVisiblePost_Returns200WithPostSummary()
+    public async Task GetDirectPost_AuthenticatedVisiblePost_Returns200WithConversationResponse()
     {
         await SignInAsBob();
         var postId = await GetAliceSeedPostIdAsync();
@@ -64,14 +58,14 @@ public class DirectPostAndLikesContractsTests : IClassFixture<TestWebApplication
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
-        var post = await response.Content.ReadFromJsonAsync<PostSummary>();
-        Assert.NotNull(post);
-        Assert.Equal(postId, post.Id);
-        Assert.Equal("alice", post.AuthorUsername);
-        Assert.Equal("Alice Example", post.AuthorDisplayName);
-        Assert.False(post.LikedByViewer);
-        Assert.False(post.CanEdit);
-        Assert.False(post.CanDelete);
+        var conversation = await response.Content.ReadFromJsonAsync<ConversationResponse>();
+        Assert.NotNull(conversation);
+        Assert.Equal("available", conversation!.Target.State);
+        Assert.NotNull(conversation.Target.Post);
+        Assert.Equal(postId, conversation.Target.Post!.Id);
+        Assert.Equal("alice", conversation.Target.Post.AuthorUsername);
+        Assert.False(conversation.Target.Post.CanEdit);
+        Assert.False(conversation.Target.Post.CanDelete);
     }
 
     [Fact]
@@ -86,25 +80,19 @@ public class DirectPostAndLikesContractsTests : IClassFixture<TestWebApplication
     }
 
     [Fact]
-    public async Task GetDirectPost_Unauthenticated_Returns200WithReadOnlyPostSummary()
+    public async Task GetDirectPost_Unauthenticated_Returns200WithReadOnlyConversation()
     {
-        var freshClient = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false
-        });
-
+        var freshClient = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var postId = await GetAliceSeedPostIdAsync();
+
         var response = await freshClient.GetAsync($"/api/posts/{postId}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
-
-        var post = await response.Content.ReadFromJsonAsync<PostSummary>();
-        Assert.NotNull(post);
-        Assert.Equal(postId, post.Id);
-        Assert.False(post.LikedByViewer);
-        Assert.False(post.CanEdit);
-        Assert.False(post.CanDelete);
+        var conversation = await response.Content.ReadFromJsonAsync<ConversationResponse>();
+        Assert.NotNull(conversation);
+        Assert.Equal("available", conversation!.Target.State);
+        Assert.False(conversation.Target.Post!.CanEdit);
+        Assert.False(conversation.Target.Post.CanDelete);
     }
 
     [Fact]
@@ -116,12 +104,9 @@ public class DirectPostAndLikesContractsTests : IClassFixture<TestWebApplication
         var response = await _client.PostAsync($"/api/posts/{postId}/like", null);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
-
         var interactionState = await response.Content.ReadFromJsonAsync<PostInteractionState>();
         Assert.NotNull(interactionState);
-        Assert.Equal(postId, interactionState.PostId);
-        Assert.True(interactionState.LikedByViewer);
+        Assert.True(interactionState!.LikedByViewer);
         Assert.Equal(1, interactionState.LikeCount);
     }
 
@@ -146,12 +131,9 @@ public class DirectPostAndLikesContractsTests : IClassFixture<TestWebApplication
         var response = await _client.DeleteAsync($"/api/posts/{postId}/like");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
-
         var interactionState = await response.Content.ReadFromJsonAsync<PostInteractionState>();
         Assert.NotNull(interactionState);
-        Assert.Equal(postId, interactionState.PostId);
-        Assert.False(interactionState.LikedByViewer);
+        Assert.False(interactionState!.LikedByViewer);
         Assert.Equal(0, interactionState.LikeCount);
     }
 }

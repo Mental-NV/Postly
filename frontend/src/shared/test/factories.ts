@@ -2,6 +2,7 @@ import type {
   PostSummary,
   ProfileResponse,
   UserProfile,
+  ConversationResponse,
 } from '../api/contracts'
 
 export function createMockPost(overrides?: Partial<PostSummary>): PostSummary {
@@ -17,6 +18,23 @@ export function createMockPost(overrides?: Partial<PostSummary>): PostSummary {
     likedByViewer: false,
     canEdit: false,
     canDelete: false,
+    isReply: false,
+    replyToPostId: null,
+    state: 'available',
+    ...overrides,
+  }
+}
+
+export function createMockConversation(
+  overrides?: Partial<ConversationResponse>
+): ConversationResponse {
+  return {
+    target: {
+      state: 'available',
+      post: createMockPost({ id: 10, authorUsername: 'alice', body: 'Conversation post' }),
+    },
+    replies: [],
+    nextCursor: null,
     ...overrides,
   }
 }

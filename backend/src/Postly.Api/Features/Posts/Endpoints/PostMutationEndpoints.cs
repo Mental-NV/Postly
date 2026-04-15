@@ -13,6 +13,9 @@ public static class PostMutationEndpoints
         group.MapPost("", async (CreatePostRequest request, CreatePostHandler handler) =>
             await handler.HandleAsync(request));
 
+        group.MapPost("{postId:long}/replies", async (long postId, CreateReplyRequest request, CreateReplyHandler handler) =>
+            await handler.HandleAsync(postId, request));
+
         group.MapPatch("{postId:long}", async (long postId, UpdatePostRequest request, UpdatePostHandler handler) =>
             await handler.HandleAsync(postId, request));
 

@@ -10,7 +10,7 @@ interface PostEditorProps {
 }
 
 export function PostEditor({ post, onSave, onCancel }: PostEditorProps): React.JSX.Element {
-  const [body, setBody] = useState(post.body)
+  const [body, setBody] = useState(post.body ?? '')
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -63,7 +63,7 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps): React.J
       <textarea
         ref={textareaRef}
         className="composer-textarea editor-textarea"
-        data-testid="editor-textarea"
+        data-testid={`post-editor-body-input-${post.id}`}
         value={body}
         onChange={(e) => { setBody(e.target.value); }}
         disabled={isPending}
@@ -88,6 +88,7 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps): React.J
               onCancel()
             }}
             disabled={isPending}
+            data-testid={`post-editor-cancel-button-${post.id}`}
           >
             Cancel
           </Button>
@@ -97,7 +98,7 @@ export function PostEditor({ post, onSave, onCancel }: PostEditorProps): React.J
               void handleSave()
             }}
             disabled={isPending || isEmpty || isOverLimit}
-            data-testid="editor-save"
+            data-testid={`post-editor-save-button-${post.id}`}
           >
             {isPending ? 'Saving...' : 'Save'}
           </Button>

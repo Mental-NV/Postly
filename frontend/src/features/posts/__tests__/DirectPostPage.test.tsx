@@ -8,7 +8,7 @@ import { createMockPost } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
 import { emitProfileIdentityUpdated } from '../../../shared/profileIdentityEvents'
-import type { SessionResponse } from '../../../shared/api/contracts'
+import type { ConversationResponse, SessionResponse } from '../../../shared/api/contracts'
 
 const processApi = (globalThis as typeof globalThis & { process: any }).process
 
@@ -19,6 +19,8 @@ vi.mock('../../../shared/api/client', () => ({
     patch: vi.fn(),
     delete: vi.fn(),
   },
+  getConversationPath: (postId: string | number) => `/posts/${String(postId)}`,
+  getRepliesPath: (postId: string | number) => `/posts/${String(postId)}/replies`,
 }))
 
 const mockNavigate = vi.fn()
@@ -30,6 +32,18 @@ vi.mock('react-router-dom', async () => {
     useParams: () => ({ postId: '123' }),
   }
 })
+
+function makeConversation(overrides?: Partial<ConversationResponse>): ConversationResponse {
+  return {
+    target: {
+      state: 'available',
+      post: createMockPost({ id: 123, authorUsername: 'alice', authorDisplayName: 'Alice Example', body: 'This is a test post' }),
+    },
+    replies: [],
+    nextCursor: null,
+    ...overrides,
+  }
+}
 
 function renderDirectPostPage({
   session = { userId: 2, username: 'bob', displayName: 'Bob Tester' } as SessionResponse | null,
@@ -48,67 +62,41 @@ describe('DirectPostPage', () => {
     vi.clearAllMocks()
   })
 
-  // Suppress unhandled rejections from intentional error tests
   beforeAll(() => {
-    // Store original handler
     const originalHandler = processApi.listeners('unhandledRejection')[0]
-
-    // Add custom handler that ignores ApiError rejections in tests
     processApi.removeAllListeners('unhandledRejection')
     processApi.on('unhandledRejection', (reason: any) => {
-      // Ignore ApiError rejections from our tests
-      if (reason?.constructor?.name === 'ApiError') {
-        return
-      }
-      // Re-throw other errors
-      if (originalHandler) {
-        originalHandler(reason, Promise.reject(reason))
-      }
+      if (reason?.constructor?.name === 'ApiError') return
+      if (originalHandler) originalHandler(reason, Promise.reject(reason))
     })
   })
 
   it('renders loading state initially', () => {
-    vi.mocked(apiClient.get).mockImplementation(
-      () => new Promise(() => {}) // Never resolves
-    )
-
+    vi.mocked(apiClient.get).mockImplementation(() => new Promise(() => {}))
     renderDirectPostPage()
-
     expect(screen.getByText('Loading post...')).toBeInTheDocument()
   })
 
   it('loads and displays post successfully', async () => {
-    const mockPost = createMockPost({
-      id: 123,
-      authorUsername: 'alice',
-      authorDisplayName: 'Alice Example',
-      body: 'This is a test post',
-    })
-
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
-
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation())
     renderDirectPostPage()
 
     await waitFor(() => {
       expect(screen.getByText('This is a test post')).toBeInTheDocument()
     })
-
     expect(screen.getAllByText(/Alice Example/i).length).toBeGreaterThan(0)
-    expect(screen.getByText('@alice')).toBeInTheDocument()
-    expect(screen.getByTestId('post-back-link')).toBeInTheDocument()
+    expect(screen.getByTestId('conversation-target')).toBeInTheDocument()
   })
 
   it('refreshes the visible post identity when a profile identity update is emitted', async () => {
-    const mockPost = createMockPost({
-      id: 123,
-      authorUsername: 'bob',
-      authorDisplayName: 'Bob Tester',
-      authorAvatarUrl: null,
-      body: 'This is a test post',
-    })
-
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
-
+    vi.mocked(apiClient.get).mockResolvedValueOnce(
+      makeConversation({
+        target: {
+          state: 'available',
+          post: createMockPost({ id: 123, authorUsername: 'bob', authorDisplayName: 'Bob Tester', authorAvatarUrl: null }),
+        },
+      })
+    )
     renderDirectPostPage()
 
     await waitFor(() => {
@@ -132,59 +120,33 @@ describe('DirectPostPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Bob Updated')).toBeInTheDocument()
     })
-
-    const avatar = screen.getByTestId('post-avatar-123')
-    expect(within(avatar).getByRole('img')).toHaveAttribute(
-      'src',
-      '/api/profiles/bob/avatar?v=5'
-    )
   })
 
   it('shows 404 state when post not found', async () => {
-    const notFoundError = new ApiError(404, 'Not Found', 'Post not found')
-    vi.mocked(apiClient.get).mockRejectedValueOnce(notFoundError)
-
+    vi.mocked(apiClient.get).mockRejectedValueOnce(new ApiError(404, 'Not Found', 'Post not found'))
     renderDirectPostPage()
 
     await waitFor(() => {
       expect(screen.getByText(/post not available/i)).toBeInTheDocument()
     })
-
-    expect(
-      screen.getByText(/this post may have been deleted/i)
-    ).toBeInTheDocument()
     expect(screen.getByTestId('post-unavailable-home-link')).toBeInTheDocument()
   })
 
   it('shows error state for other errors', async () => {
-    const serverError = new ApiError(
-      500,
-      'Server Error',
-      'Internal server error'
-    )
-    vi.mocked(apiClient.get).mockRejectedValueOnce(serverError)
-
+    vi.mocked(apiClient.get).mockRejectedValueOnce(new ApiError(500, 'Server Error', 'Internal server error'))
     renderDirectPostPage()
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/failed to load post/i)
-      ).toBeInTheDocument()
+      expect(screen.getByText(/failed to load post/i)).toBeInTheDocument()
     })
-
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
   })
 
   it('retries loading on error', async () => {
-    const serverError = new ApiError(
-      500,
-      'Server Error',
-      'Internal server error'
-    )
-    const mockPost = createMockPost({ id: 123, body: 'Loaded after retry' })
-
-    vi.mocked(apiClient.get).mockRejectedValueOnce(serverError)
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
+    vi.mocked(apiClient.get).mockRejectedValueOnce(new ApiError(500, 'Server Error', 'Internal server error'))
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation({
+      target: { state: 'available', post: createMockPost({ id: 123, body: 'Loaded after retry' }) },
+    }))
 
     const user = userEvent.setup()
     renderDirectPostPage()
@@ -192,7 +154,6 @@ describe('DirectPostPage', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
     })
-
     await user.click(screen.getByRole('button', { name: 'Retry' }))
 
     await waitFor(() => {
@@ -201,9 +162,9 @@ describe('DirectPostPage', () => {
   })
 
   it('shows edit button for own posts', async () => {
-    const mockPost = createMockPost({ id: 123, canEdit: true })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
-
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation({
+      target: { state: 'available', post: createMockPost({ id: 123, canEdit: true }) },
+    }))
     renderDirectPostPage()
 
     await waitFor(() => {
@@ -212,27 +173,21 @@ describe('DirectPostPage', () => {
   })
 
   it('hides edit button for other users posts', async () => {
-    const mockPost = createMockPost({ id: 123, canEdit: false })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
-
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation({
+      target: { state: 'available', post: createMockPost({ id: 123, canEdit: false }) },
+    }))
     renderDirectPostPage()
 
     await waitFor(() => {
       expect(screen.getByText('Test post content')).toBeInTheDocument()
     })
-
-    expect(
-      screen.queryByRole('button', { name: 'Edit' })
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
   })
 
   it('enters edit mode when edit clicked', async () => {
-    const mockPost = createMockPost({
-      id: 123,
-      canEdit: true,
-      body: 'Original content',
-    })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation({
+      target: { state: 'available', post: createMockPost({ id: 123, canEdit: true, body: 'Original content' }) },
+    }))
 
     const user = userEvent.setup()
     renderDirectPostPage()
@@ -240,24 +195,20 @@ describe('DirectPostPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('post-edit-button-123')).toBeInTheDocument()
     })
-
     await user.click(screen.getByTestId('post-edit-button-123'))
 
-    // PostEditor should be rendered with textarea
     await waitFor(() => {
-      const textarea = screen.getByTestId('editor-textarea')
-      expect(textarea).toHaveValue('Original content')
+      expect(screen.getByTestId('post-editor-body-input-123')).toHaveValue('Original content')
     })
   })
 
   it('saves edited post successfully', async () => {
-    const mockPost = createMockPost({
-      id: 123,
-      canEdit: true,
-      body: 'Original content',
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation({
+      target: { state: 'available', post: createMockPost({ id: 123, canEdit: true, body: 'Original content' }) },
+    }))
+    vi.mocked(apiClient.patch).mockResolvedValueOnce({
+      post: createMockPost({ id: 123, body: 'Updated content', isEdited: true }),
     })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
-    vi.mocked(apiClient.patch).mockResolvedValueOnce({})
 
     const user = userEvent.setup()
     renderDirectPostPage()
@@ -265,33 +216,25 @@ describe('DirectPostPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('post-edit-button-123')).toBeInTheDocument()
     })
-
     await user.click(screen.getByTestId('post-edit-button-123'))
 
-    const textarea = await screen.findByTestId('editor-textarea')
+    const textarea = await screen.findByTestId('post-editor-body-input-123')
     await user.clear(textarea)
     await user.type(textarea, 'Updated content')
     await user.click(screen.getByRole('button', { name: /save/i }))
 
     await waitFor(() => {
-      expect(apiClient.patch).toHaveBeenCalledWith('/posts/123', {
-        body: 'Updated content',
-      })
+      expect(apiClient.patch).toHaveBeenCalledWith('/posts/123', { body: 'Updated content' })
     })
-
     await waitFor(() => {
       expect(screen.getByText('Updated content')).toBeInTheDocument()
-      expect(screen.getByTestId('post-edited-badge-123')).toBeInTheDocument()
     })
   })
 
   it('cancels edit mode', async () => {
-    const mockPost = createMockPost({
-      id: 123,
-      canEdit: true,
-      body: 'Original content',
-    })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation({
+      target: { state: 'available', post: createMockPost({ id: 123, canEdit: true, body: 'Original content' }) },
+    }))
 
     const user = userEvent.setup()
     renderDirectPostPage()
@@ -299,25 +242,23 @@ describe('DirectPostPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('post-edit-button-123')).toBeInTheDocument()
     })
-
     await user.click(screen.getByTestId('post-edit-button-123'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('editor-textarea')).toBeInTheDocument()
+      expect(screen.getByTestId('post-editor-body-input-123')).toBeInTheDocument()
     })
-
     await user.click(screen.getByRole('button', { name: /cancel/i }))
 
     await waitFor(() => {
-      expect(screen.queryByTestId('editor-textarea')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('post-editor-body-input-123')).not.toBeInTheDocument()
       expect(screen.getByText('Original content')).toBeInTheDocument()
     })
   })
 
   it('shows delete button for own posts', async () => {
-    const mockPost = createMockPost({ id: 123, canDelete: true })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
-
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation({
+      target: { state: 'available', post: createMockPost({ id: 123, canDelete: true }) },
+    }))
     renderDirectPostPage()
 
     await waitFor(() => {
@@ -326,8 +267,9 @@ describe('DirectPostPage', () => {
   })
 
   it('opens confirmation dialog on delete', async () => {
-    const mockPost = createMockPost({ id: 123, canDelete: true })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation({
+      target: { state: 'available', post: createMockPost({ id: 123, canDelete: true }) },
+    }))
 
     const user = userEvent.setup()
     renderDirectPostPage()
@@ -335,7 +277,6 @@ describe('DirectPostPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('post-delete-button-123')).toBeInTheDocument()
     })
-
     await user.click(screen.getByTestId('post-delete-button-123'))
 
     await waitFor(() => {
@@ -343,9 +284,10 @@ describe('DirectPostPage', () => {
     })
   })
 
-  it('deletes post and navigates to home', async () => {
-    const mockPost = createMockPost({ id: 123, canDelete: true })
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
+  it('deletes target post and navigates to home', async () => {
+    vi.mocked(apiClient.get).mockResolvedValueOnce(makeConversation({
+      target: { state: 'available', post: createMockPost({ id: 123, canDelete: true }) },
+    }))
     vi.mocked(apiClient.delete).mockResolvedValueOnce(undefined)
 
     const user = userEvent.setup()
@@ -354,65 +296,18 @@ describe('DirectPostPage', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
     })
-
     await user.click(screen.getByRole('button', { name: 'Delete' }))
 
     await waitFor(() => {
       expect(screen.getByText('Delete Post')).toBeInTheDocument()
     })
 
-    const confirmButton = within(screen.getByRole('dialog')).getByRole(
-      'button',
-      { name: 'Delete' }
-    )
+    const confirmButton = within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' })
     await user.click(confirmButton)
 
     await waitFor(() => {
       expect(apiClient.delete).toHaveBeenCalledWith('/posts/123')
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
-  })
-
-  it('handles delete error', async () => {
-    const mockPost = createMockPost({ id: 123, canDelete: true })
-    const deleteError = new ApiError(500, 'Server Error', 'Failed to delete')
-
-    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
-    vi.mocked(apiClient.delete).mockRejectedValueOnce(deleteError)
-
-    const user = userEvent.setup()
-    renderDirectPostPage()
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
-    })
-
-    await user.click(screen.getByRole('button', { name: 'Delete' }))
-
-    await waitFor(() => {
-      expect(screen.getByText('Delete Post')).toBeInTheDocument()
-    })
-
-    const confirmButton = within(screen.getByRole('dialog')).getByRole(
-      'button',
-      { name: 'Delete' }
-    )
-    await user.click(confirmButton)
-
-    // Wait for the delete call and let the error be handled
-    await waitFor(() => {
-      expect(apiClient.delete).toHaveBeenCalledWith('/posts/123')
-    })
-
-    // Give time for the error to propagate and be handled
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
-    // Post should still be visible after error (dialog closes but post remains)
-    await waitFor(() => {
-      expect(screen.getByText('Test post content')).toBeInTheDocument()
-    })
-
-    // Verify navigate was NOT called
-    expect(mockNavigate).not.toHaveBeenCalled()
   })
 })

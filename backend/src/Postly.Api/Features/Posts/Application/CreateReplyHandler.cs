@@ -9,13 +9,13 @@ using Postly.Api.Security;
 
 namespace Postly.Api.Features.Posts.Application;
 
-public class CreatePostHandler
+public class CreateReplyHandler
 {
     private readonly AppDbContext _dbContext;
     private readonly ICurrentViewerAccessor _currentViewer;
     private readonly HttpContext _httpContext;
 
-    public CreatePostHandler(
+    public CreateReplyHandler(
         AppDbContext dbContext,
         ICurrentViewerAccessor currentViewer,
         IHttpContextAccessor httpContextAccessor)
@@ -26,7 +26,7 @@ public class CreatePostHandler
             ?? throw new InvalidOperationException("HttpContext is not available");
     }
 
-    public async Task<IResult> HandleAsync(CreatePostRequest request)
+    public async Task<IResult> HandleAsync(long postId, CreateReplyRequest request)
     {
         var userId = _currentViewer.GetCurrentUserId();
         if (userId == null)
@@ -40,19 +40,32 @@ public class CreatePostHandler
             return Results.Problem(ProblemDetailsFactory.CreateValidationProblem(errors, _httpContext.TraceIdentifier));
         }
 
-        var post = new Post
+        // Verify target post exists and is not deleted
+        var targetPost = await _dbContext.Posts.FindAsync(postId);
+        if (targetPost == null || targetPost.DeletedAtUtc != null)
+        {
+            return Results.Problem(ProblemDetailsFactory.CreateNotFoundProblem("Target post not found or unavailable", _httpContext.TraceIdentifier));
+        }
+
+        var author = await _dbContext.UserAccounts.FindAsync(userId.Value);
+        if (author == null)
+        {
+            return Results.Problem(ProblemDetailsFactory.CreateNotFoundProblem("User not found", _httpContext.TraceIdentifier));
+        }
+
+        var reply = new Post
         {
             AuthorId = userId.Value,
             Body = request.Body.Trim(),
-            CreatedAtUtc = DateTimeOffset.UtcNow
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            ReplyToPostId = postId,
+            Author = author
         };
 
-        _dbContext.Posts.Add(post);
+        _dbContext.Posts.Add(reply);
         await _dbContext.SaveChangesAsync();
 
-        await _dbContext.Entry(post).Reference(p => p.Author).LoadAsync();
-
-        var summary = PostSummaryFactory.Create(post, userId, 0, false);
-        return Results.Created($"/api/posts/{post.Id}", new PostResponse(summary));
+        var summary = PostSummaryFactory.Create(reply, userId, 0, false);
+        return Results.Created($"/api/posts/{reply.Id}", new PostResponse(summary));
     }
 }

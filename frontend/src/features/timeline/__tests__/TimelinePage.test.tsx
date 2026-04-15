@@ -268,7 +268,7 @@ describe('TimelinePage', () => {
     await user.click(editBtn)
 
     await waitFor(() => {
-      expect(screen.getByTestId('editor-textarea')).toHaveValue('Original content')
+      expect(screen.getByTestId('post-editor-body-input-1')).toHaveValue('Original content')
     })
   })
 
@@ -288,7 +288,7 @@ describe('TimelinePage', () => {
     const editBtn = await screen.findByTestId('post-edit-button-1')
     await user.click(editBtn)
 
-    const textarea = await screen.findByTestId('editor-textarea')
+    const textarea = await screen.findByTestId('post-editor-body-input-1')
     await user.clear(textarea)
     await user.type(textarea, 'Updated content')
     await user.click(screen.getByRole('button', { name: /save/i }))
