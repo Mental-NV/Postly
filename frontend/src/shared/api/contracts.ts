@@ -2,6 +2,8 @@ export interface UserProfile {
   username: string
   displayName: string
   bio?: string
+  avatarUrl?: string | null
+  hasCustomAvatar: boolean
   followerCount: number
   followingCount: number
   isSelf: boolean
@@ -12,6 +14,7 @@ export interface PostSummary {
   id: number
   authorUsername: string
   authorDisplayName: string
+  authorAvatarUrl?: string | null
   body: string
   createdAtUtc: string
   isEdited: boolean
@@ -54,6 +57,11 @@ export interface ProfileResponse {
   profile: UserProfile
   posts: PostSummary[]
   nextCursor?: string
+}
+
+export interface UpdateProfileRequest {
+  displayName: string
+  bio: string | null
 }
 
 export interface CreatePostRequest {

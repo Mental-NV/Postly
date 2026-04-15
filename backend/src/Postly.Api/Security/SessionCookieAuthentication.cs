@@ -2,9 +2,11 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Postly.Api.Features.Shared.Errors;
 using Postly.Api.Persistence;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace Postly.Api.Security;
 
@@ -29,8 +31,20 @@ public static class SessionCookieAuthentication
                 // Return 401 for API requests instead of redirecting
                 options.Events.OnRedirectToLogin = context =>
                 {
+                    var problem = ProblemDetailsFactory.CreateUnauthorizedProblem(context.HttpContext.TraceIdentifier);
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    return Task.CompletedTask;
+                    context.Response.ContentType = "application/problem+json";
+                    return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+                };
+
+                options.Events.OnRedirectToAccessDenied = context =>
+                {
+                    var problem = ProblemDetailsFactory.CreateForbiddenProblem(
+                        "Access to this resource is forbidden.",
+                        context.HttpContext.TraceIdentifier);
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    context.Response.ContentType = "application/problem+json";
+                    return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
                 };
             });
 

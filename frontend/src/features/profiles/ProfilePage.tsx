@@ -1,18 +1,41 @@
-import { useEffect, useState, useCallback } from 'react'
-import { Navigate, useLocation, useParams, useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
 import type {
   PostInteractionState,
   PostSummary,
   ProfileResponse,
+  UpdateProfileRequest,
   UserProfile,
 } from '../../shared/api/contracts'
-import { PostCard } from '../posts/post-card/PostCard'
-import { PostEditor } from '../posts/editor/PostEditor'
-import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
+import {
+  getFieldErrors,
+  getFormErrorMessage,
+  isApiError,
+} from '../../shared/api/errors'
+import {
+  applyProfileIdentityUpdateToPost,
+  emitProfileIdentityUpdated,
+} from '../../shared/profileIdentityEvents'
 import { Avatar } from '../../shared/components/Avatar'
 import { Button } from '../../shared/components/Button'
+import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { useAuth } from '../../app/providers/AuthContext'
+import { PostEditor } from '../posts/editor/PostEditor'
+import { PostCard } from '../posts/post-card/PostCard'
+
+interface ProfileFormErrors {
+  displayName?: string
+  bio?: string
+  avatar?: string
+}
+
+interface ProfileFormStatus {
+  kind: 'pending' | 'success' | 'error'
+  message: string
+}
+
+const MAX_AVATAR_UPLOAD_BYTES = 5 * 1024 * 1024
 
 export function ProfilePage(): React.JSX.Element {
   const { username } = useParams<{ username: string }>()
@@ -34,14 +57,33 @@ export function ProfilePage(): React.JSX.Element {
   )
   const [error, setError] = useState<string | null>(null)
 
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [displayNameDraft, setDisplayNameDraft] = useState('')
+  const [bioDraft, setBioDraft] = useState('')
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [profileFormErrors, setProfileFormErrors] = useState<ProfileFormErrors>(
+    {}
+  )
+  const [profileFormStatus, setProfileFormStatus] =
+    useState<ProfileFormStatus | null>(null)
+
+  const syncProfileDrafts = useCallback((currentProfile: UserProfile): void => {
+    setDisplayNameDraft(currentProfile.displayName)
+    setBioDraft(currentProfile.bio ?? '')
+    setAvatarFile(null)
+    setProfileFormErrors({})
+  }, [])
+
   const loadProfile = useCallback(async (): Promise<void> => {
-    if (!username) return
+    if (!username) {
+      return
+    }
 
     setIsLoading(true)
     setError(null)
 
-    const apiPath =
-      username === 'me' ? '/profiles/me' : `/profiles/${username}`
+    const apiPath = username === 'me' ? '/profiles/me' : `/profiles/${username}`
 
     try {
       const data = await apiClient.get<ProfileResponse>(apiPath)
@@ -50,7 +92,7 @@ export function ProfilePage(): React.JSX.Element {
       setPosts(data.posts)
       setNextCursor(data.nextCursor ?? null)
     } catch (err: unknown) {
-      if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
+      if (isApiError(err) && err.status === 404) {
         setError('User not found')
       } else {
         setError('Failed to load profile. Please try again.')
@@ -61,13 +103,16 @@ export function ProfilePage(): React.JSX.Element {
   }, [username])
 
   useEffect(() => {
-    if (!username) return
+    if (!username) {
+      return
+    }
+
     if (username === 'me' && !isAuthenticated) {
       return
     }
 
     void loadProfile()
-  }, [isAuthenticated, username, loadProfile])
+  }, [isAuthenticated, loadProfile, username])
 
   useEffect(() => {
     if (!profile?.isSelf || username !== 'me') {
@@ -77,13 +122,20 @@ export function ProfilePage(): React.JSX.Element {
     void navigate(`/u/${profile.username}`, { replace: true })
   }, [navigate, profile, username])
 
+  useEffect(() => {
+    if (profile != null && !isEditingProfile) {
+      syncProfileDrafts(profile)
+    }
+  }, [isEditingProfile, profile, syncProfileDrafts])
+
   const loadMorePosts = async (): Promise<void> => {
-    if (!username || !nextCursor || isLoadingMore) return
+    if (!username || !nextCursor || isLoadingMore) {
+      return
+    }
 
     setIsLoadingMore(true)
 
-    const apiPath =
-      username === 'me' ? '/profiles/me' : `/profiles/${username}`
+    const apiPath = username === 'me' ? '/profiles/me' : `/profiles/${username}`
 
     try {
       const data = await apiClient.get<ProfileResponse>(
@@ -100,7 +152,9 @@ export function ProfilePage(): React.JSX.Element {
   }
 
   const handleFollow = async (): Promise<void> => {
-    if (!username || !profile || isFollowPending) return
+    if (!username || !profile || isFollowPending) {
+      return
+    }
 
     setIsFollowPending(true)
     setError(null)
@@ -127,7 +181,9 @@ export function ProfilePage(): React.JSX.Element {
   }
 
   const handleUnfollow = async (): Promise<void> => {
-    if (!username || !profile || isFollowPending) return
+    if (!username || !profile || isFollowPending) {
+      return
+    }
 
     setIsFollowPending(true)
     setError(null)
@@ -183,7 +239,9 @@ export function ProfilePage(): React.JSX.Element {
   }
 
   const handleLikeToggle = async (post: PostSummary): Promise<void> => {
-    if (pendingLikePostId === post.id) return
+    if (pendingLikePostId === post.id) {
+      return
+    }
 
     setPendingLikePostId(post.id)
     setError(null)
@@ -202,12 +260,8 @@ export function ProfilePage(): React.JSX.Element {
 
     try {
       const interactionState = post.likedByViewer
-        ? await apiClient.delete<PostInteractionState>(
-            `/posts/${post.id}/like`
-          )
-        : await apiClient.post<PostInteractionState>(
-            `/posts/${post.id}/like`
-          )
+        ? await apiClient.delete<PostInteractionState>(`/posts/${post.id}/like`)
+        : await apiClient.post<PostInteractionState>(`/posts/${post.id}/like`)
 
       updatePost(post.id, (currentPost) => ({
         ...currentPost,
@@ -228,6 +282,187 @@ export function ProfilePage(): React.JSX.Element {
     } finally {
       setPendingLikePostId(null)
     }
+  }
+
+  const validateProfileDrafts = (): ProfileFormErrors => {
+    const errors: ProfileFormErrors = {}
+    const trimmedDisplayName = displayNameDraft.trim()
+    const trimmedBio = bioDraft.trim()
+
+    if (trimmedDisplayName.length < 1 || trimmedDisplayName.length > 50) {
+      errors.displayName =
+        'Display name must be between 1 and 50 characters after trimming.'
+    }
+
+    if (trimmedBio.length > 160) {
+      errors.bio = 'Bio must be 160 characters or fewer.'
+    }
+
+    if (avatarFile != null) {
+      if (!['image/jpeg', 'image/png'].includes(avatarFile.type)) {
+        errors.avatar = 'Avatar upload must be a still JPEG or PNG image.'
+      } else if (avatarFile.size === 0) {
+        errors.avatar = 'Avatar upload cannot be empty.'
+      } else if (avatarFile.size > MAX_AVATAR_UPLOAD_BYTES) {
+        errors.avatar = 'Avatar upload must be 5 MB or smaller.'
+      }
+    }
+
+    return errors
+  }
+
+  const applyProfileIdentityToPosts = (
+    currentPosts: PostSummary[],
+    currentProfile: UserProfile
+  ): PostSummary[] => {
+    return currentPosts.map((post) =>
+      applyProfileIdentityUpdateToPost(post, {
+        username: currentProfile.username,
+        displayName: currentProfile.displayName,
+        avatarUrl: currentProfile.avatarUrl ?? null,
+      })
+    )
+  }
+
+  const handleProfileSave = async (): Promise<void> => {
+    if (!profile || !profile.isSelf || isSavingProfile) {
+      return
+    }
+
+    const clientErrors = validateProfileDrafts()
+    setProfileFormErrors(clientErrors)
+
+    if (Object.keys(clientErrors).length > 0) {
+      setProfileFormStatus({
+        kind: 'error',
+        message: 'Resolve the highlighted profile fields and try again.',
+      })
+      return
+    }
+
+    const trimmedDisplayName = displayNameDraft.trim()
+    const normalizedBio = bioDraft.trim()
+    const originalProfile = profile
+    const originalPosts = posts
+
+    const profileUpdate: UpdateProfileRequest = {
+      displayName: trimmedDisplayName,
+      bio: normalizedBio.length === 0 ? null : normalizedBio,
+    }
+
+    const hasTextChanges =
+      trimmedDisplayName !== originalProfile.displayName ||
+      (normalizedBio.length === 0 ? null : normalizedBio) !==
+        (originalProfile.bio ?? null)
+
+    setIsSavingProfile(true)
+    setProfileFormStatus({
+      kind: 'pending',
+      message: 'Saving profile…',
+    })
+
+    let textUpdatedOnServer = false
+    let nextProfile = originalProfile
+
+    try {
+      if (hasTextChanges) {
+        const profileResponse = await apiClient.patch<ProfileResponse>(
+          '/profiles/me',
+          profileUpdate
+        )
+        textUpdatedOnServer = true
+        nextProfile = profileResponse.profile
+      }
+
+      if (avatarFile != null) {
+        const formData = new FormData()
+        formData.append('avatar', avatarFile)
+
+        const avatarResponse = await apiClient.putForm<ProfileResponse>(
+          '/profiles/me/avatar',
+          formData
+        )
+        nextProfile = avatarResponse.profile
+      }
+
+      setProfile(nextProfile)
+      setPosts((currentPosts) =>
+        applyProfileIdentityToPosts(currentPosts, nextProfile)
+      )
+      emitProfileIdentityUpdated(nextProfile)
+      setIsEditingProfile(false)
+      setAvatarFile(null)
+      setProfileFormErrors({})
+      setProfileFormStatus({
+        kind: 'success',
+        message: 'Profile saved.',
+      })
+    } catch (saveError: unknown) {
+      if (textUpdatedOnServer && avatarFile != null) {
+        try {
+          await apiClient.patch<ProfileResponse>('/profiles/me', {
+            displayName: originalProfile.displayName,
+            bio: originalProfile.bio ?? null,
+          })
+        } catch {
+          setProfileFormStatus({
+            kind: 'error',
+            message:
+              'Profile save failed after a partial update. Refresh to confirm the current saved profile.',
+          })
+          setIsSavingProfile(false)
+          return
+        }
+      }
+
+      setProfile(originalProfile)
+      setPosts(originalPosts)
+      setProfileFormErrors({
+        displayName: getFieldErrors(saveError, 'displayName')[0],
+        bio: getFieldErrors(saveError, 'bio')[0],
+        avatar: getFieldErrors(saveError, 'avatar')[0],
+      })
+      setProfileFormStatus({
+        kind: 'error',
+        message:
+          getFormErrorMessage(saveError) ?? 'Failed to save profile changes.',
+      })
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
+
+  const handleProfileCancel = (): void => {
+    if (!profile) {
+      return
+    }
+
+    syncProfileDrafts(profile)
+    setProfileFormStatus(null)
+    setIsEditingProfile(false)
+  }
+
+  const handleProfileEditStart = (): void => {
+    if (!profile) {
+      return
+    }
+
+    syncProfileDrafts(profile)
+    setProfileFormStatus(null)
+    setIsEditingProfile(true)
+  }
+
+  const handleAvatarInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    const selectedFile = event.target.files?.[0] ?? null
+
+    setAvatarFile(selectedFile)
+    setProfileFormErrors((currentErrors) => ({
+      ...currentErrors,
+      avatar: undefined,
+    }))
+    setProfileFormStatus(null)
   }
 
   if (username === 'me') {
@@ -284,11 +519,15 @@ export function ProfilePage(): React.JSX.Element {
     )
   }
 
-  if (!profile) return <div>Loading...</div>
+  if (!profile) {
+    return <div>Loading...</div>
+  }
+
+  const showFormStatus = profileFormStatus != null
 
   return (
     <div className="profile-page" data-testid="profile-page">
-      <header className="page-header">
+      <header className="page-header" data-testid="profile-heading">
         <Button
           variant="ghost"
           onClick={() => {
@@ -299,7 +538,9 @@ export function ProfilePage(): React.JSX.Element {
           ←
         </Button>
         <div className="header-info">
-          <h1 className="page-title" data-testid="profile-display-name">{profile.displayName}</h1>
+          <h1 className="page-title" data-testid="profile-display-name">
+            {profile.displayName}
+          </h1>
           <span className="header-post-count">{posts.length} Posts</span>
         </div>
       </header>
@@ -307,12 +548,33 @@ export function ProfilePage(): React.JSX.Element {
       <div className="profile-hero">
         <div className="profile-banner" />
         <div className="profile-avatar-row">
-          <Avatar
-            username={profile.username}
-            displayName={profile.displayName}
-            size="lg"
-            className="profile-avatar-large"
-          />
+          <div data-testid="profile-avatar-wrapper">
+            <Avatar
+              username={profile.username}
+              displayName={profile.displayName}
+              avatarUrl={profile.avatarUrl}
+              size="lg"
+              className="profile-avatar-large"
+              imageTestId="profile-avatar-image"
+              fallbackTestId="profile-avatar-fallback"
+            />
+            {profile.isSelf && isEditingProfile ? (
+              <label
+                className="profile-avatar-edit-overlay"
+                data-testid="profile-avatar-edit-overlay"
+              >
+                <span>Upload</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  data-testid="profile-avatar-input"
+                  onChange={handleAvatarInputChange}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            ) : null}
+          </div>
+
           <div className="profile-action-area">
             {isAuthenticated && !profile.isSelf ? (
               <Button
@@ -331,21 +593,105 @@ export function ProfilePage(): React.JSX.Element {
                     ? 'Unfollow'
                     : 'Follow'}
               </Button>
-            ) : isAuthenticated && profile.isSelf ? (
-              <Button variant="secondary" disabled data-testid="edit-profile-button">
-                Edit Profile
-              </Button>
+            ) : null}
+
+            {profile.isSelf ? (
+              isEditingProfile ? (
+                <div className="profile-edit-actions">
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      void handleProfileSave()
+                    }}
+                    disabled={isSavingProfile}
+                    data-testid="profile-save-button"
+                  >
+                    {isSavingProfile ? 'Saving…' : 'Save'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={handleProfileCancel}
+                    disabled={isSavingProfile}
+                    data-testid="profile-cancel-button"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={handleProfileEditStart}
+                  data-testid="profile-edit-button"
+                >
+                  Edit Profile
+                </Button>
+              )
             ) : null}
           </div>
         </div>
 
         <div className="profile-info-block">
           <div className="profile-names">
-            <h2 className="profile-display-name">{profile.displayName}</h2>
-            <span className="profile-username">@{profile.username}</span>
+            {isEditingProfile ? (
+              <div data-testid="profile-edit-form">
+                <label>
+                  <span>Display name</span>
+                  <input
+                    type="text"
+                    value={displayNameDraft}
+                    onChange={(event) => {
+                      setDisplayNameDraft(event.target.value)
+                      setProfileFormErrors((currentErrors) => ({
+                        ...currentErrors,
+                        displayName: undefined,
+                      }))
+                    }}
+                    disabled={isSavingProfile}
+                    data-testid="profile-display-name-input"
+                  />
+                </label>
+                {profileFormErrors.displayName ? (
+                  <p role="alert">{profileFormErrors.displayName}</p>
+                ) : null}
+
+                <label>
+                  <span>Bio</span>
+                  <textarea
+                    value={bioDraft}
+                    onChange={(event) => {
+                      setBioDraft(event.target.value)
+                      setProfileFormErrors((currentErrors) => ({
+                        ...currentErrors,
+                        bio: undefined,
+                      }))
+                    }}
+                    disabled={isSavingProfile}
+                    data-testid="profile-bio-input"
+                  />
+                </label>
+                <div data-testid="profile-bio-counter">
+                  {bioDraft.trim().length}/160
+                </div>
+                {profileFormErrors.bio ? (
+                  <p role="alert">{profileFormErrors.bio}</p>
+                ) : null}
+                {profileFormErrors.avatar ? (
+                  <p role="alert">{profileFormErrors.avatar}</p>
+                ) : null}
+              </div>
+            ) : (
+              <>
+                <h2 className="profile-display-name">{profile.displayName}</h2>
+                <span className="profile-username">@{profile.username}</span>
+              </>
+            )}
           </div>
 
-          {profile.bio ? <p className="profile-bio">{profile.bio}</p> : null}
+          {!isEditingProfile && profile.bio ? (
+            <p className="profile-bio" data-testid="profile-bio">
+              {profile.bio}
+            </p>
+          ) : null}
 
           <div className="profile-stats">
             <span className="stat-item">
@@ -357,6 +703,14 @@ export function ProfilePage(): React.JSX.Element {
               Followers
             </span>
           </div>
+
+          <div
+            data-testid="profile-form-status"
+            role={profileFormStatus?.kind === 'error' ? 'alert' : 'status'}
+            aria-live="polite"
+          >
+            {showFormStatus ? profileFormStatus.message : ''}
+          </div>
         </div>
 
         <nav className="profile-tabs">
@@ -364,13 +718,15 @@ export function ProfilePage(): React.JSX.Element {
         </nav>
       </div>
 
-      {error ? <div className="page-error-container" style={{ padding: '16px' }}>
+      {error ? (
+        <div className="page-error-container" style={{ padding: '16px' }}>
           <p className="page-error-text" role="alert">
             {error}
           </p>
-        </div> : null}
+        </div>
+      ) : null}
 
-      <div className="profile-posts-feed" data-testid="profile-posts-feed">
+      <div className="profile-posts-feed" data-testid="profile-posts">
         {posts.length === 0 ? (
           <div className="page-empty-state">
             <h2 className="empty-title">
@@ -390,7 +746,9 @@ export function ProfilePage(): React.JSX.Element {
                   key={post.id}
                   post={post}
                   onSave={(body) => handleEdit(post.id, body)}
-                  onCancel={() => { setEditingPostId(null); }}
+                  onCancel={() => {
+                    setEditingPostId(null)
+                  }}
                 />
               ) : (
                 <PostCard
@@ -398,8 +756,8 @@ export function ProfilePage(): React.JSX.Element {
                   post={post}
                   isLikePending={pendingLikePostId === post.id}
                   showLikeButton={isAuthenticated}
-                  onLikeToggle={(p) => {
-                    void handleLikeToggle(p)
+                  onLikeToggle={(currentPost) => {
+                    void handleLikeToggle(currentPost)
                   }}
                   onEdit={(currentPost) => {
                     setEditingPostId(currentPost.id)
@@ -411,7 +769,8 @@ export function ProfilePage(): React.JSX.Element {
               )
             )}
 
-            {nextCursor ? <div className="load-more-container">
+            {nextCursor ? (
+              <div className="load-more-container">
                 <Button
                   variant="secondary"
                   onClick={() => {
@@ -422,7 +781,8 @@ export function ProfilePage(): React.JSX.Element {
                 >
                   {isLoadingMore ? 'Loading...' : 'Load more'}
                 </Button>
-              </div> : null}
+              </div>
+            ) : null}
           </>
         )}
       </div>

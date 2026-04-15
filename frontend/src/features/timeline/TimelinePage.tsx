@@ -5,6 +5,10 @@ import { PostCard } from '../posts/post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { Button } from '../../shared/components/Button'
 import { apiClient } from '../../shared/api/client'
+import {
+  applyProfileIdentityUpdateToPost,
+  subscribeToProfileIdentityUpdates,
+} from '../../shared/profileIdentityEvents'
 import type {
   PostInteractionState,
   PostSummary,
@@ -26,6 +30,16 @@ export function TimelinePage(): React.JSX.Element {
 
   useEffect(() => {
     void loadTimeline()
+  }, [])
+
+  useEffect(() => {
+    return subscribeToProfileIdentityUpdates((update) => {
+      setPosts((currentPosts) =>
+        currentPosts.map((post) =>
+          applyProfileIdentityUpdateToPost(post, update)
+        )
+      )
+    })
   }, [])
 
   async function loadTimeline(): Promise<void> {

@@ -37,7 +37,7 @@ public class GetProfileHandler
 
         if (targetUser == null)
         {
-            return Results.NotFound(new { error = "User not found" });
+            return Results.Problem(ProblemDetailsFactory.CreateNotFoundProblem("User not found", _httpContext.TraceIdentifier));
         }
 
         return await BuildProfileResponseAsync(targetUser, currentUserId, cursor);
@@ -82,6 +82,8 @@ public class GetProfileHandler
             targetUser.Username,
             targetUser.DisplayName,
             targetUser.Bio,
+            ProfileIdentityProjection.CreateAvatarUrl(targetUser),
+            ProfileIdentityProjection.HasCustomAvatar(targetUser),
             followerCount,
             followingCount,
             isSelf,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '../../../app/providers/AuthProvider'
@@ -7,6 +7,7 @@ import { DirectPostPage } from '../DirectPostPage'
 import { createMockPost } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
+import { emitProfileIdentityUpdated } from '../../../shared/profileIdentityEvents'
 import type { SessionResponse } from '../../../shared/api/contracts'
 
 const processApi = (globalThis as typeof globalThis & { process: any }).process
@@ -95,6 +96,48 @@ describe('DirectPostPage', () => {
     expect(screen.getAllByText(/Alice Example/i).length).toBeGreaterThan(0)
     expect(screen.getByText('@alice')).toBeInTheDocument()
     expect(screen.getByTestId('post-back-link')).toBeInTheDocument()
+  })
+
+  it('refreshes the visible post identity when a profile identity update is emitted', async () => {
+    const mockPost = createMockPost({
+      id: 123,
+      authorUsername: 'bob',
+      authorDisplayName: 'Bob Tester',
+      authorAvatarUrl: null,
+      body: 'This is a test post',
+    })
+
+    vi.mocked(apiClient.get).mockResolvedValueOnce(mockPost)
+
+    renderDirectPostPage()
+
+    await waitFor(() => {
+      expect(screen.getByText('Bob Tester')).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      emitProfileIdentityUpdated({
+        username: 'bob',
+        displayName: 'Bob Updated',
+        bio: 'Updated bio',
+        avatarUrl: '/api/profiles/bob/avatar?v=5',
+        hasCustomAvatar: true,
+        followerCount: 0,
+        followingCount: 0,
+        isSelf: true,
+        isFollowedByViewer: false,
+      })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Bob Updated')).toBeInTheDocument()
+    })
+
+    const avatar = screen.getByTestId('post-avatar-123')
+    expect(within(avatar).getByRole('img')).toHaveAttribute(
+      'src',
+      '/api/profiles/bob/avatar?v=5'
+    )
   })
 
   it('shows 404 state when post not found', async () => {

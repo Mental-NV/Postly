@@ -11,6 +11,10 @@ import { PostEditor } from './editor/PostEditor'
 import { PostCard } from './post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { Button } from '../../shared/components/Button'
+import {
+  applyProfileIdentityUpdateToPost,
+  subscribeToProfileIdentityUpdates,
+} from '../../shared/profileIdentityEvents'
 
 export function DirectPostPage(): React.JSX.Element | null {
   const { postId } = useParams<{ postId: string }>()
@@ -50,6 +54,16 @@ export function DirectPostPage(): React.JSX.Element | null {
   useEffect(() => {
     void loadPost()
   }, [loadPost])
+
+  useEffect(() => {
+    return subscribeToProfileIdentityUpdates((update) => {
+      setPost((currentPost) =>
+        currentPost == null
+          ? currentPost
+          : applyProfileIdentityUpdateToPost(currentPost, update)
+      )
+    })
+  }, [])
 
   const handleEdit = async (postId: number, newBody: string): Promise<void> => {
     await apiClient.patch(`/posts/${String(postId)}`, { body: newBody })
@@ -182,7 +196,11 @@ export function DirectPostPage(): React.JSX.Element | null {
   if (!post) return null
 
   return (
-    <div className="post-detail-page" data-testid="post-page">
+    <div
+      className="post-detail-page"
+      data-testid="post-page"
+      aria-label="Conversation"
+    >
       <header className="page-header">
         <Button
           variant="ghost"
@@ -203,7 +221,7 @@ export function DirectPostPage(): React.JSX.Element | null {
           </p>
         </div> : null}
 
-      <div className="post-detail-content">
+      <div className="post-detail-content" data-testid="conversation-page">
         {editingPostId === post.id ? (
           <PostEditor
             post={post}

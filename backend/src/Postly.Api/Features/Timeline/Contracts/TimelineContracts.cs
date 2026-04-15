@@ -4,6 +4,7 @@ public record PostSummary(
     long Id,
     string AuthorUsername,
     string AuthorDisplayName,
+    string? AuthorAvatarUrl,
     string Body,
     DateTimeOffset CreatedAtUtc,
     bool IsEdited,
