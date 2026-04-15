@@ -47,4 +47,14 @@ public class NotificationsFlowTests : IClassFixture<TestWebApplicationFactory>
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task OpenNotification_Unauthenticated_Returns401()
+    {
+        // Act - Try to open a notification without authentication
+        var response = await _client.PostAsync("/api/notifications/1/open", null);
+
+        // Assert - Should return 401 for unauthenticated request
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
 }
