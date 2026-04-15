@@ -67,6 +67,21 @@ public class FollowUserHandler
         };
 
         _dbContext.Follows.Add(follow);
+
+        // 6. Create notification for the followed user (only if not self-action)
+        if (currentUserId.Value != targetUser.Id)
+        {
+            var notification = new Notification
+            {
+                RecipientUserId = targetUser.Id,
+                ActorUserId = currentUserId.Value,
+                Kind = "follow",
+                ProfileUserId = currentUserId.Value,
+                CreatedAtUtc = DateTimeOffset.UtcNow
+            };
+            _dbContext.Notifications.Add(notification);
+        }
+
         await _dbContext.SaveChangesAsync();
 
         return Results.NoContent();

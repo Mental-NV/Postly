@@ -98,3 +98,31 @@ export interface CreateReplyRequest {
 export interface PostResponse {
   post: PostSummary
 }
+
+export interface NotificationSummary {
+  id: number
+  kind: 'follow' | 'like' | 'reply'
+  actorUsername: string
+  actorDisplayName: string
+  actorAvatarUrl?: string | null
+  createdAtUtc: string
+  isRead: boolean
+  destinationKind: 'profile' | 'post' | 'conversation'
+  destinationRoute: string
+  destinationState: 'available' | 'unavailable'
+}
+
+export interface NotificationsResponse {
+  notifications: NotificationSummary[]
+}
+
+export interface NotificationDestination {
+  kind: 'profile' | 'post' | 'conversation' | 'notification-unavailable'
+  route: string
+  state: 'available' | 'unavailable'
+}
+
+export interface NotificationOpenResponse {
+  notification: NotificationSummary
+  destination: NotificationDestination
+}

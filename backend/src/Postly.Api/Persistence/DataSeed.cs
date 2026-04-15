@@ -139,10 +139,76 @@ public static class DataSeed
 
         context.Posts.AddRange(replies);
         await context.SaveChangesAsync();
+
+        // Seed notifications for Bob (UF-08, UF-09, UF-10)
+        // 1. Unread follow notification (available destination)
+        var followNotification = new Notification
+        {
+            RecipientUserId = bob.Id,
+            ActorUserId = alice.Id,
+            Kind = "follow",
+            ProfileUserId = alice.Id,
+            CreatedAtUtc = now.AddMinutes(-3),
+            ReadAtUtc = null
+        };
+
+        // 2. Unread like notification (available destination)
+        var likeNotification = new Notification
+        {
+            RecipientUserId = bob.Id,
+            ActorUserId = charlie.Id,
+            Kind = "like",
+            PostId = bobPost.Id,
+            CreatedAtUtc = now.AddMinutes(-2),
+            ReadAtUtc = null
+        };
+
+        // 3. Create a deleted post for unavailable destination notification
+        var deletedPost = new Post
+        {
+            AuthorId = bob.Id,
+            Body = "This post will be deleted",
+            CreatedAtUtc = now.AddMinutes(-15),
+            DeletedAtUtc = now.AddMinutes(-5)
+        };
+        context.Posts.Add(deletedPost);
+        await context.SaveChangesAsync();
+
+        // 4. Unread reply notification (unavailable destination - deleted post)
+        var unavailableNotification = new Notification
+        {
+            RecipientUserId = bob.Id,
+            ActorUserId = alice.Id,
+            Kind = "reply",
+            PostId = deletedPost.Id,
+            ReplyPostId = deletedPost.Id,
+            CreatedAtUtc = now.AddMinutes(-4),
+            ReadAtUtc = null
+        };
+
+        // 5. Read notification for testing read state
+        var readNotification = new Notification
+        {
+            RecipientUserId = bob.Id,
+            ActorUserId = charlie.Id,
+            Kind = "follow",
+            ProfileUserId = charlie.Id,
+            CreatedAtUtc = now.AddMinutes(-10),
+            ReadAtUtc = now.AddMinutes(-8)
+        };
+
+        context.Notifications.AddRange(
+            followNotification,
+            likeNotification,
+            unavailableNotification,
+            readNotification
+        );
+        await context.SaveChangesAsync();
     }
 
     public static async Task ResetAsync(AppDbContext context)
     {
+        context.Notifications.RemoveRange(context.Notifications);
         context.Likes.RemoveRange(context.Likes);
         context.Follows.RemoveRange(context.Follows);
         context.Posts.RemoveRange(context.Posts);

@@ -32,8 +32,11 @@ public class LikePostHandler
             return Results.Problem(ProblemDetailsFactory.CreateUnauthorizedProblem(_httpContext.TraceIdentifier));
         }
 
-        var postExists = await _dbContext.Posts.AnyAsync(post => post.Id == postId);
-        if (!postExists)
+        var post = await _dbContext.Posts
+            .Include(p => p.Author)
+            .FirstOrDefaultAsync(p => p.Id == postId);
+            
+        if (post == null)
         {
             return Results.Problem(ProblemDetailsFactory.CreateNotFoundProblem("Post not found", _httpContext.TraceIdentifier));
         }
@@ -47,6 +50,20 @@ public class LikePostHandler
                 PostId = postId,
                 CreatedAtUtc = DateTimeOffset.UtcNow
             });
+
+            // Create notification for the post author (only if not self-action)
+            if (viewerId.Value != post.AuthorId)
+            {
+                var notification = new Notification
+                {
+                    RecipientUserId = post.AuthorId,
+                    ActorUserId = viewerId.Value,
+                    Kind = "like",
+                    PostId = postId,
+                    CreatedAtUtc = DateTimeOffset.UtcNow
+                };
+                _dbContext.Notifications.Add(notification);
+            }
 
             await _dbContext.SaveChangesAsync();
         }

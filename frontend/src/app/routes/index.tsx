@@ -4,6 +4,8 @@ import { SigninPage } from '../../features/auth/signin/SigninPage'
 import { TimelinePage } from '../../features/timeline/TimelinePage'
 import { ProfilePage } from '../../features/profiles/ProfilePage'
 import { DirectPostPage } from '../../features/posts/DirectPostPage'
+import { NotificationsPage } from '../../features/notifications/NotificationsPage'
+import { NotificationUnavailablePage } from '../../features/notifications/NotificationUnavailablePage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { MainLayout } from '../../shared/components/MainLayout'
 
@@ -36,6 +38,26 @@ export function AppRoutes(): React.JSX.Element {
           <MainLayout>
             <DirectPostPage />
           </MainLayout>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <NotificationsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications/unavailable"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <NotificationUnavailablePage />
+            </MainLayout>
+          </ProtectedRoute>
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />
