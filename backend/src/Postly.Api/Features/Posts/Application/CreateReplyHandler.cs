@@ -63,22 +63,6 @@ public class CreateReplyHandler
         };
 
         _dbContext.Posts.Add(reply);
-
-        // Create notification for the target post author (only if not self-action)
-        if (userId.Value != targetPost.AuthorId)
-        {
-            var notification = new Notification
-            {
-                RecipientUserId = targetPost.AuthorId,
-                ActorUserId = userId.Value,
-                Kind = "reply",
-                PostId = postId,
-                ReplyPostId = reply.Id,
-                CreatedAtUtc = DateTimeOffset.UtcNow
-            };
-            _dbContext.Notifications.Add(notification);
-        }
-
         await _dbContext.SaveChangesAsync();
 
         var summary = PostSummaryFactory.Create(reply, userId, 0, false);

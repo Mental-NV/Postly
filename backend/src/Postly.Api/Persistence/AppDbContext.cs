@@ -14,7 +14,6 @@ public class AppDbContext : DbContext
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<Follow> Follows => Set<Follow>();
     public DbSet<Like> Likes => Set<Like>();
-    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
