@@ -54,9 +54,9 @@ export function NotificationsPage(): React.JSX.Element {
 
       // Navigate to destination
       if (response.destination.state === 'available') {
-        navigate(response.destination.route)
+        void navigate(response.destination.route)
       } else {
-        navigate('/notifications/unavailable')
+        void navigate('/notifications/unavailable')
       }
     } catch (err) {
       console.error('Failed to open notification:', err)
@@ -103,7 +103,15 @@ export function NotificationsPage(): React.JSX.Element {
           <div
             key={notification.id}
             data-testid={`notification-item-${notification.id}`}
+            role="button"
+            tabIndex={0}
             onClick={() => void handleNotificationClick(notification.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                void handleNotificationClick(notification.id)
+              }
+            }}
             style={{
               padding: '1rem',
               borderBottom: '1px solid #ccc',

@@ -35,7 +35,7 @@ export function PostLikeButton({
           data-testid={`post-like-count-${postId}`}
           className="action-count"
         >
-          {likeCount > 0 ? likeCount : ''}
+          {likeCount !== 0 ? likeCount : ''}
         </span>
       </Button>
     </div>
