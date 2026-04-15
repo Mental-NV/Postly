@@ -25,12 +25,16 @@ public class GetNotificationsHandler
         var notifications = await _context.Notifications
             .Include(n => n.ActorUser)
             .Where(n => n.RecipientUserId == userId.Value)
-            .OrderByDescending(n => n.CreatedAtUtc)
-            .ThenByDescending(n => n.Id)
             .Take(50)
             .ToListAsync();
 
-        var summaries = notifications.Select(n => new NotificationSummary(
+        // Order in memory since SQLite doesn't support DateTimeOffset ordering
+        var orderedNotifications = notifications
+            .OrderByDescending(n => n.CreatedAtUtc)
+            .ThenByDescending(n => n.Id)
+            .ToList();
+
+        var summaries = orderedNotifications.Select(n => new NotificationSummary(
             n.Id,
             n.Kind,
             n.ActorUser.Username,
