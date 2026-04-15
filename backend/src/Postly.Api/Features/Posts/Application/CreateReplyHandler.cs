@@ -58,11 +58,25 @@ public class CreateReplyHandler
             AuthorId = userId.Value,
             Body = request.Body.Trim(),
             CreatedAtUtc = DateTimeOffset.UtcNow,
-            ReplyToPostId = postId,
-            Author = author
+            ReplyToPostId = postId
         };
 
         _dbContext.Posts.Add(reply);
+
+        // Create notification if not replying to own post
+        // if (targetPost.AuthorId != userId.Value)
+        // {
+        //     _dbContext.Notifications.Add(new Notification
+        //     {
+        //         RecipientUserId = targetPost.AuthorId,
+        //         ActorUserId = userId.Value,
+        //         Kind = "reply",
+        //         PostId = postId,
+        //         ReplyPostId = reply.Id,
+        //         CreatedAtUtc = DateTimeOffset.UtcNow
+        //     });
+        // }
+
         await _dbContext.SaveChangesAsync();
 
         var summary = PostSummaryFactory.Create(reply, userId, 0, false);

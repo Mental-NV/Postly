@@ -41,12 +41,28 @@ public class LikePostHandler
         var existingLike = await _dbContext.Likes.FindAsync(viewerId.Value, postId);
         if (existingLike == null)
         {
+            // Get post details for notification
+            var post = await _dbContext.Posts.FirstAsync(p => p.Id == postId);
+
             _dbContext.Likes.Add(new Like
             {
                 UserAccountId = viewerId.Value,
                 PostId = postId,
                 CreatedAtUtc = DateTimeOffset.UtcNow
             });
+
+            // Create notification if not liking own post
+            // if (post.AuthorId != viewerId.Value)
+            // {
+            //     _dbContext.Notifications.Add(new Notification
+            //     {
+            //         RecipientUserId = post.AuthorId,
+            //         ActorUserId = viewerId.Value,
+            //         Kind = "like",
+            //         PostId = postId,
+            //         CreatedAtUtc = DateTimeOffset.UtcNow
+            //     });
+            // }
 
             await _dbContext.SaveChangesAsync();
         }

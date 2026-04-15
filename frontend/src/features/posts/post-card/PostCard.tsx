@@ -158,7 +158,7 @@ export function PostCard({
                   data-testid={`post-like-count-${post.id}`}
                   className="action-count"
                 >
-                  {post.likeCount > 0 ? post.likeCount : ''}
+                  {post.likeCount !== 0 ? post.likeCount : ''}
                 </span>
               </div>
             </div>

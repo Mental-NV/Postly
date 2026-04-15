@@ -67,6 +67,17 @@ public class FollowUserHandler
         };
 
         _dbContext.Follows.Add(follow);
+
+        // Create notification
+        // _dbContext.Notifications.Add(new Notification
+        // {
+        //     RecipientUserId = targetUser.Id,
+        //     ActorUserId = currentUserId.Value,
+        //     Kind = "follow",
+        //     ProfileUserId = targetUser.Id,
+        //     CreatedAtUtc = DateTimeOffset.UtcNow
+        // });
+
         await _dbContext.SaveChangesAsync();
 
         return Results.NoContent();
