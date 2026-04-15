@@ -111,6 +111,7 @@ specs/002-profile-replies-notifications/
 ├── plan.md
 ├── user-flows.md
 ├── frontend-requirements.md
+├── ui-ux-design.md
 ├── openapi.yaml
 ├── data-model.md
 ├── quickstart.md
@@ -583,8 +584,8 @@ responsibilities below stay technical and implementation-oriented.
   - data model: cursor-bearing read models over `Post` and `Notification`
 
 Supporting artifacts created or refreshed:
-`user-flows.md`, `frontend-requirements.md`, `openapi.yaml`, `data-model.md`,
-`quickstart.md`, and `research.md`.
+`user-flows.md`, `frontend-requirements.md`, `ui-ux-design.md`,
+`openapi.yaml`, `data-model.md`, `quickstart.md`, and `research.md`.
 
 ## Complexity Tracking
 

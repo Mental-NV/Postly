@@ -309,7 +309,7 @@ delivery readiness across all Round 2 stories.
 3. After US2 lands:
    - Developer A: US3
    - Developer B: US4
-4. Finish with Polish and `/speckit.analyze` before `/speckit.implement`.
+4. Run `/speckit.analyze` as the final planning gate before `/speckit.implement`, then finish delivery with Polish during implementation.
 
 ---
 
