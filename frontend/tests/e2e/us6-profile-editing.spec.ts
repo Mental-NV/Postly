@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import {
   createCanvasPngUpload,
   createInvalidSvgUpload,
+  getAssetAvatar001,
   signIn,
 } from './helpers'
 
@@ -70,11 +71,7 @@ test.describe('User Story 6: Profile editing and avatar replacement', () => {
       .getByTestId('profile-bio-input')
       .fill('Updated profile bio for the profile editing story.')
     await page.getByTestId('profile-avatar-input').setInputFiles(
-      await createCanvasPngUpload(page, {
-        width: 320,
-        height: 400,
-        transparent: true,
-      })
+      await getAssetAvatar001()
     )
     await page.getByTestId('profile-save-button').click()
 

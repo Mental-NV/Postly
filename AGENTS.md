@@ -21,7 +21,7 @@ tests/
 - `cd frontend && npm run build`
 - `cd frontend && npm run lint`
 - `cd frontend && npm run test:ci`
-- `cd frontend && npm run test:e2e`
+- `cd frontend && npm run test:e2e:ci`
 - `dotnet restore Postly.sln`
 - `dotnet build Postly.sln --configuration Release --no-restore`
 - `dotnet test backend/tests/Postly.Api.UnitTests/Postly.Api.UnitTests.csproj --configuration Release --no-build`

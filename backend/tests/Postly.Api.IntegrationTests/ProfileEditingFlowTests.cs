@@ -163,6 +163,55 @@ public class ProfileEditingFlowTests : IDisposable
         Assert.Equal(beforeResponse.Profile.Bio, afterResponse.Profile.Bio);
     }
 
+    [Fact]
+    public async Task PutAvatar_Asset001Upload_NormalizesTo512x512Jpeg()
+    {
+        await SignInAsBobAsync();
+
+        var assetPath = FindAssetPath("001.jpg");
+        var avatarBytes = await File.ReadAllBytesAsync(assetPath);
+
+        using var content = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent(avatarBytes);
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+        content.Add(fileContent, "avatar", "001.jpg");
+        var response = await _client.PutAsync("/api/profiles/me/avatar", content);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = await dbContext.UserAccounts.SingleAsync(account => account.Username == "bob");
+
+        Assert.Equal("image/jpeg", user.AvatarContentType);
+        Assert.NotNull(user.AvatarBytes);
+
+        await using var normalizedStream = new MemoryStream(user.AvatarBytes!);
+        using var image = await Image.LoadAsync<Rgb24>(normalizedStream);
+        Assert.Equal(512, image.Width);
+        Assert.Equal(512, image.Height);
+    }
+
+    private string FindAssetPath(string fileName)
+    {
+        var currentDir = Directory.GetCurrentDirectory();
+        // Try various locations depending on where the test is running from
+        var pathsToTry = new[]
+        {
+            Path.Combine(currentDir, "backend", "tests", "assets", "avatars", fileName),
+            Path.Combine(currentDir, "..", "..", "..", "assets", "avatars", fileName),
+            Path.Combine(currentDir, "assets", "avatars", fileName),
+            "/home/mental/projects/Postly/backend/tests/assets/avatars/" + fileName
+        };
+
+        foreach (var path in pathsToTry)
+        {
+            if (File.Exists(path)) return path;
+        }
+
+        throw new FileNotFoundException($"Could not find asset {fileName}");
+    }
+
     private async Task SignInAsBobAsync()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/signin", new

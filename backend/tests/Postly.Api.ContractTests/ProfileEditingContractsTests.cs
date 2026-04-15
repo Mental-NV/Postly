@@ -80,7 +80,9 @@ public class ProfileEditingContractsTests : IDisposable
     {
         await SignInAsBobAsync();
 
-        var avatarResponse = await UploadAvatarAsync(await CreatePngAsync(320, 320));
+        var assetPath = FindAssetPath("001.jpg");
+        var avatarBytes = await File.ReadAllBytesAsync(assetPath);
+        var avatarResponse = await UploadAvatarAsync(avatarBytes, "image/jpeg", "001.jpg");
         Assert.Equal(HttpStatusCode.OK, avatarResponse.StatusCode);
 
         var anonymousClient = _factory.CreateClient();
@@ -99,6 +101,25 @@ public class ProfileEditingContractsTests : IDisposable
         Assert.Equal("image/jpeg", publicAvatarResponse.Content.Headers.ContentType?.MediaType);
     }
 
+    private string FindAssetPath(string fileName)
+    {
+        var currentDir = Directory.GetCurrentDirectory();
+        var pathsToTry = new[]
+        {
+            Path.Combine(currentDir, "..", "..", "..", "backend", "tests", "assets", "avatars", fileName),
+            Path.Combine(currentDir, "..", "..", "..", "assets", "avatars", fileName),
+            Path.Combine(currentDir, "assets", "avatars", fileName),
+            "/home/mental/projects/Postly/backend/tests/assets/avatars/" + fileName
+        };
+
+        foreach (var path in pathsToTry)
+        {
+            if (File.Exists(path)) return path;
+        }
+
+        throw new FileNotFoundException($"Could not find asset {fileName}");
+    }
+
     private async Task SignInAsBobAsync()
     {
         var response = await _client.PostAsJsonAsync("/api/auth/signin", new
@@ -110,12 +131,12 @@ public class ProfileEditingContractsTests : IDisposable
         response.EnsureSuccessStatusCode();
     }
 
-    private async Task<HttpResponseMessage> UploadAvatarAsync(byte[] avatarBytes)
+    private async Task<HttpResponseMessage> UploadAvatarAsync(byte[] avatarBytes, string contentType = "image/png", string fileName = "avatar.png")
     {
         using var content = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(avatarBytes);
-        fileContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-        content.Add(fileContent, "avatar", "avatar.png");
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        content.Add(fileContent, "avatar", fileName);
 
         return await _client.PutAsync("/api/profiles/me/avatar", content);
     }

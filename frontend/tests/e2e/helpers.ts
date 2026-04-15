@@ -1,5 +1,24 @@
 import { Buffer } from 'node:buffer'
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { expect, type FilePayload, type Page } from '@playwright/test'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+export async function getAssetAvatar001(): Promise<FilePayload> {
+  const assetPath = path.resolve(
+    __dirname,
+    '../../../backend/tests/assets/avatars/001.jpg'
+  )
+  const buffer = await fs.readFile(assetPath)
+  return {
+    name: '001.jpg',
+    mimeType: 'image/jpeg',
+    buffer,
+  }
+}
 
 export async function signIn(
   page: Page,
