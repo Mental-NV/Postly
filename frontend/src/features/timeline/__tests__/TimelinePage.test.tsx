@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TimelinePage } from '../TimelinePage'
 import { createMockPost } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
+import { emitProfileIdentityUpdated } from '../../../shared/profileIdentityEvents'
 import { renderWithProviders, mockAuthenticatedSession } from '../../../shared/test/helpers'
 
 const processApi = (globalThis as typeof globalThis & { process: any }).process
@@ -59,6 +60,51 @@ describe('TimelinePage', () => {
       expect(screen.getByText('First post')).toBeInTheDocument()
       expect(screen.getByText('Second post')).toBeInTheDocument()
     })
+  })
+
+  it('refreshes visible author identity when a profile identity update is emitted', async () => {
+    const mockData = {
+      posts: [
+        createMockPost({
+          id: 1,
+          authorUsername: 'bob',
+          authorDisplayName: 'Bob Tester',
+          authorAvatarUrl: null,
+        }),
+      ],
+      nextCursor: null,
+    }
+    vi.mocked(apiClient.get).mockResolvedValueOnce(mockData)
+
+    renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
+
+    await waitFor(() => {
+      expect(screen.getByText('Bob Tester')).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      emitProfileIdentityUpdated({
+        username: 'bob',
+        displayName: 'Bob Updated',
+        bio: 'Updated bio',
+        avatarUrl: '/api/profiles/bob/avatar?v=2',
+        hasCustomAvatar: true,
+        followerCount: 0,
+        followingCount: 0,
+        isSelf: true,
+        isFollowedByViewer: false,
+      })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('Bob Updated')).toBeInTheDocument()
+    })
+
+    const avatar = screen.getByTestId('post-avatar-1')
+    expect(within(avatar).getByRole('img')).toHaveAttribute(
+      'src',
+      '/api/profiles/bob/avatar?v=2'
+    )
   })
 
   it('shows error state on load failure', async () => {

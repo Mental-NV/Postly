@@ -34,36 +34,36 @@ responsibilities -> `UserAccount`, `ProfileView`, `PostSummary`
 
 ### Story-Owned Foundations for User Story 1
 
-- [ ] T005 [US1] Extend profile identity persistence for display-name, bio, and avatar state in `backend/src/Postly.Api/Persistence/Entities/UserAccount.cs` and `backend/src/Postly.Api/Persistence/AppDbContext.cs`
-- [ ] T006 [US1] Add EF Core configuration and indexes for profile identity and avatar state in `backend/src/Postly.Api/Persistence/Configurations/UserAccountConfiguration.cs`
-- [ ] T007 [US1] Create the EF Core migration for profile identity and avatar schema changes in `backend/src/Postly.Api/Persistence/Migrations/`
-- [ ] T008 [US1] Expand shared frontend API contracts and client helpers for profile editing and avatar replacement in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
-- [ ] T009 [US1] Create story-specific test roots for profiles in `backend/tests/Postly.Api.UnitTests/Features/Profiles/` and `frontend/src/features/profiles/__tests__/`
+- [X] T005 [US1] Extend profile identity persistence for display-name, bio, and avatar state in `backend/src/Postly.Api/Persistence/Entities/UserAccount.cs` and `backend/src/Postly.Api/Persistence/AppDbContext.cs`
+- [X] T006 [US1] Add EF Core configuration and indexes for profile identity and avatar state in `backend/src/Postly.Api/Persistence/Configurations/UserAccountConfiguration.cs`
+- [X] T007 [US1] Create the EF Core migration for profile identity and avatar schema changes in `backend/src/Postly.Api/Persistence/Migrations/`
+- [X] T008 [US1] Expand shared frontend API contracts and client helpers for profile editing and avatar replacement in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
+- [X] T009 [US1] Create story-specific test roots for profiles in `backend/tests/Postly.Api.UnitTests/Features/Profiles/` and `frontend/src/features/profiles/__tests__/`
 
 ### Tests for User Story 1 (REQUIRED) ⚠️
 
-- [ ] T010 [P] [US1] Add backend unit coverage for profile validation, owner-only authorization, avatar format/size/dimension rules, avatar normalization to 512x512 high-quality JPEG, metadata stripping, transparency flattening, and avatar fallback projection in `backend/tests/Postly.Api.UnitTests/Features/Profiles/ProfileEditValidationTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Profiles/ProfileAvatarProjectionTests.cs`
-- [ ] T011 [P] [US1] Add backend contract coverage for anonymous `401` on `PATCH /api/profiles/me` and `PUT /api/profiles/me/avatar`, avatar upload validation failures, versioned `avatarUrl` responses, anonymous success on preserved public reads `GET /api/profiles/{username}` and `GET /api/profiles/{username}/avatar`, and `image/jpeg` delivery from `GET /api/profiles/{username}/avatar` in `backend/tests/Postly.Api.ContractTests/ProfileEditingContractsTests.cs`
-- [ ] T012 [P] [US1] Add backend integration coverage for successful profile edits, avatar replacement with normalized JPEG storage, invalid or malformed avatar replacement preserving prior data, and unchanged persisted identity on failure in `backend/tests/Postly.Api.IntegrationTests/ProfileEditingFlowTests.cs`
-- [ ] T013 [P] [US1] Add frontend component coverage for inline profile edit states, avatar input constraints, validation messaging, pending save, versioned avatar refresh, broken-image fallback, and avatar fallback rendering in `frontend/src/features/profiles/__tests__/profile-editing-ui.test.tsx`
-- [ ] T014 [P] [US1] Add Playwright coverage for `UF-01`, `UF-02`, and `UF-03` in `frontend/tests/e2e/us6-profile-editing.spec.ts`
+- [X] T010 [P] [US1] Add backend unit coverage for profile validation, owner-only authorization, avatar format/size/dimension rules, avatar normalization to 512x512 high-quality JPEG, metadata stripping, transparency flattening, and avatar fallback projection in `backend/tests/Postly.Api.UnitTests/Features/Profiles/ProfileEditValidationTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Profiles/ProfileAvatarProjectionTests.cs`
+- [X] T011 [P] [US1] Add backend contract coverage for anonymous `401` on `PATCH /api/profiles/me` and `PUT /api/profiles/me/avatar`, avatar upload validation failures, versioned `avatarUrl` responses, anonymous success on preserved public reads `GET /api/profiles/{username}` and `GET /api/profiles/{username}/avatar`, and `image/jpeg` delivery from `GET /api/profiles/{username}/avatar` in `backend/tests/Postly.Api.ContractTests/ProfileEditingContractsTests.cs`
+- [X] T012 [P] [US1] Add backend integration coverage for successful profile edits, avatar replacement with normalized JPEG storage, invalid or malformed avatar replacement preserving prior data, and unchanged persisted identity on failure in `backend/tests/Postly.Api.IntegrationTests/ProfileEditingFlowTests.cs`
+- [X] T013 [P] [US1] Add frontend component coverage for inline profile edit states, avatar input constraints, validation messaging, pending save, versioned avatar refresh, broken-image fallback, and avatar fallback rendering in `frontend/src/features/profiles/__tests__/profile-editing-ui.test.tsx`
+- [X] T014 [P] [US1] Add Playwright coverage for `UF-01`, `UF-02`, and `UF-03` in `frontend/tests/e2e/us6-profile-editing.spec.ts`
 
 ### Backend Implementation for User Story 1
 
-- [ ] T015 [US1] Implement profile-edit request and response contracts in `backend/src/Postly.Api/Features/Profiles/Contracts/ProfileContracts.cs`
-- [ ] T016 [US1] Implement display name/bio update and avatar replacement handlers with JPEG/PNG validation, deterministic normalization to 512x512 high-quality JPEG, metadata stripping, transparency flattening, and unchanged-on-failure semantics in `backend/src/Postly.Api/Features/Profiles/Application/UpdateProfileHandler.cs` and `backend/src/Postly.Api/Features/Profiles/Application/ReplaceAvatarHandler.cs`
-- [ ] T017 [US1] Implement owner-only profile-edit and avatar endpoints in `backend/src/Postly.Api/Features/Profiles/Endpoints/ProfileEndpoints.cs` and wire them in `backend/src/Postly.Api/Program.cs`
-- [ ] T018 [US1] Implement cross-surface identity projection and avatar metadata updates in `backend/src/Postly.Api/Features/Profiles/Application/GetProfileHandler.cs`, `backend/src/Postly.Api/Features/Timeline/Application/GetTimelineHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/GetPostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/PostSummaryFactory.cs`
+- [X] T015 [US1] Implement profile-edit request and response contracts in `backend/src/Postly.Api/Features/Profiles/Contracts/ProfileContracts.cs`
+- [X] T016 [US1] Implement display name/bio update and avatar replacement handlers with JPEG/PNG validation, deterministic normalization to 512x512 high-quality JPEG, metadata stripping, transparency flattening, and unchanged-on-failure semantics in `backend/src/Postly.Api/Features/Profiles/Application/UpdateProfileHandler.cs` and `backend/src/Postly.Api/Features/Profiles/Application/ReplaceAvatarHandler.cs`
+- [X] T017 [US1] Implement owner-only profile-edit and avatar endpoints in `backend/src/Postly.Api/Features/Profiles/Endpoints/ProfileEndpoints.cs` and wire them in `backend/src/Postly.Api/Program.cs`
+- [X] T018 [US1] Implement cross-surface identity projection and avatar metadata updates in `backend/src/Postly.Api/Features/Profiles/Application/GetProfileHandler.cs`, `backend/src/Postly.Api/Features/Timeline/Application/GetTimelineHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/GetPostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/PostSummaryFactory.cs`
 
 ### Frontend Implementation for User Story 1
 
-- [ ] T019 [US1] Implement inline own-profile edit mode, field validation, form status, and pending-save behavior in `frontend/src/features/profiles/ProfilePage.tsx`
-- [ ] T020 [US1] Implement avatar upload controls with JPEG/PNG input constraints plus fallback-first avatar rendering in `frontend/src/shared/components/Avatar.tsx` and `frontend/src/features/profiles/ProfilePage.tsx`
-- [ ] T021 [US1] Implement cross-surface identity refresh on profile, timeline, and conversation views using returned versioned avatar URLs in `frontend/src/features/timeline/TimelinePage.tsx`, `frontend/src/features/posts/DirectPostPage.tsx`, and `frontend/src/shared/components/PostCard.tsx`
+- [X] T019 [US1] Implement inline own-profile edit mode, field validation, form status, and pending-save behavior in `frontend/src/features/profiles/ProfilePage.tsx`
+- [X] T020 [US1] Implement avatar upload controls with JPEG/PNG input constraints plus fallback-first avatar rendering in `frontend/src/shared/components/Avatar.tsx` and `frontend/src/features/profiles/ProfilePage.tsx`
+- [X] T021 [US1] Implement cross-surface identity refresh on profile, timeline, and conversation views using returned versioned avatar URLs in `frontend/src/features/timeline/TimelinePage.tsx`, `frontend/src/features/posts/DirectPostPage.tsx`, and `frontend/src/shared/components/PostCard.tsx`
 
 ### Contracts, Data, Fixtures, and Documentation for User Story 1
 
-- [ ] T022 [US1] Add deterministic profile-edit, valid avatar upload, invalid avatar upload, and avatar-fallback fixtures for Bob identity surfaces in `backend/src/Postly.Api/Persistence/DataSeed.cs`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
+- [X] T022 [US1] Add deterministic profile-edit, valid avatar upload, invalid avatar upload, and avatar-fallback fixtures for Bob identity surfaces in `backend/src/Postly.Api/Persistence/DataSeed.cs`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
 
 **Checkpoint**: User Story 1 is independently testable.
 

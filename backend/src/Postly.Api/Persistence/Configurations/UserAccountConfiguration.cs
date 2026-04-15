@@ -30,6 +30,13 @@ public class UserAccountConfiguration : IEntityTypeConfiguration<UserAccount>
         builder.Property(u => u.Bio)
             .HasMaxLength(160);
 
+        builder.Property(u => u.AvatarContentType)
+            .HasMaxLength(32);
+
+        builder.Property(u => u.AvatarBytes);
+
+        builder.Property(u => u.AvatarUpdatedAtUtc);
+
         builder.Property(u => u.PasswordHash)
             .IsRequired();
 

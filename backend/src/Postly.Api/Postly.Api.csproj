@@ -16,6 +16,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.4" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
   <!-- Mirror frontend/dist into wwwroot so the backend always serves the built SPA from one place -->
@@ -28,9 +29,7 @@
 
     <Delete Files="@(ExistingSpaFiles)" />
 
-    <Copy SourceFiles="@(SpaDistFiles)"
-          DestinationFiles="@(SpaDistFiles->'$(SpaWwwrootPath)%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(SpaDistFiles)" DestinationFiles="@(SpaDistFiles->'$(SpaWwwrootPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

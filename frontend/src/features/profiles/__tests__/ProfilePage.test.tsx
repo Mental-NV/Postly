@@ -18,6 +18,8 @@ vi.mock('../../../shared/api/client', () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),
+    patch: vi.fn(),
+    putForm: vi.fn(),
     delete: vi.fn(),
   },
 }))

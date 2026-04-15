@@ -1,10 +1,14 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 interface AvatarProps {
   username: string
   displayName: string
+  avatarUrl?: string | null
   size?: 'sm' | 'md' | 'lg'
   className?: string
+  wrapperTestId?: string
+  imageTestId?: string
+  fallbackTestId?: string
 }
 
 const COLORS = [
@@ -21,9 +25,19 @@ const COLORS = [
 export function Avatar({
   username,
   displayName,
+  avatarUrl = null,
   size = 'md',
   className = '',
+  wrapperTestId,
+  imageTestId,
+  fallbackTestId,
 }: AvatarProps): React.JSX.Element {
+  const [hasImageError, setHasImageError] = useState(false)
+
+  useEffect(() => {
+    setHasImageError(false)
+  }, [avatarUrl])
+
   const backgroundColor = useMemo(() => {
     let hash = 0
     for (let i = 0; i < username.length; i++) {
@@ -48,14 +62,34 @@ export function Avatar({
   }
 
   const classes = `avatar ${sizeClasses[size]} ${className}`.trim()
+  const showImage = avatarUrl != null && !hasImageError
 
   return (
     <div
       className={classes}
-      style={{ backgroundColor }}
       aria-label={displayName}
+      data-testid={wrapperTestId}
     >
-      {initials}
+      {showImage ? (
+        <img
+          src={avatarUrl}
+          alt={displayName}
+          className="avatar-image"
+          data-testid={imageTestId}
+          onError={() => {
+            setHasImageError(true)
+          }}
+        />
+      ) : (
+        <div
+          style={{ backgroundColor }}
+          className="avatar-fallback"
+          data-testid={fallbackTestId}
+          aria-hidden="true"
+        >
+          {initials}
+        </div>
+      )}
     </div>
   )
 }

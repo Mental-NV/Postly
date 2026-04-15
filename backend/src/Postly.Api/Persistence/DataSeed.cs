@@ -8,6 +8,15 @@ public static class DataSeed
     private const string BobPassword = "TestPassword123";
     private const string AlicePassword = "TestPassword123";
     private const string CharliePassword = "TestPassword123";
+    public const string BobUsername = "bob";
+    public const string BobDisplayName = "Bob Tester";
+    public const string BobBio = "Primary seeded user for Postly e2e flows.";
+    public const string BobPostBody = "Seed post from Bob";
+    public const string AliceUsername = "alice";
+    public const string AliceDisplayName = "Alice Example";
+    public const string AliceBio =
+        "Seeded profile used for follow, like, and redirect scenarios.";
+    public const string AlicePostBody = "Seed post from Alice";
 
     public static async Task SeedAsync(AppDbContext context)
     {
@@ -21,22 +30,30 @@ public static class DataSeed
 
         var bob = new UserAccount
         {
-            Username = "bob",
-            NormalizedUsername = "BOB",
-            DisplayName = "Bob Tester",
-            Bio = "Primary seeded user for Postly e2e flows.",
+            Username = BobUsername,
+            NormalizedUsername = BobUsername.ToUpperInvariant(),
+            DisplayName = BobDisplayName,
+            Bio = BobBio,
             PasswordHash = string.Empty,
+            // Seed users start without a custom avatar so fallback and
+            // replacement flows are deterministic in US1.
+            AvatarContentType = null,
+            AvatarBytes = null,
+            AvatarUpdatedAtUtc = null,
             CreatedAtUtc = now
         };
         bob.PasswordHash = passwordHasher.HashPassword(bob, BobPassword);
 
         var alice = new UserAccount
         {
-            Username = "alice",
-            NormalizedUsername = "ALICE",
-            DisplayName = "Alice Example",
-            Bio = "Seeded profile used for follow, like, and redirect scenarios.",
+            Username = AliceUsername,
+            NormalizedUsername = AliceUsername.ToUpperInvariant(),
+            DisplayName = AliceDisplayName,
+            Bio = AliceBio,
             PasswordHash = string.Empty,
+            AvatarContentType = null,
+            AvatarBytes = null,
+            AvatarUpdatedAtUtc = null,
             CreatedAtUtc = now
         };
         alice.PasswordHash = passwordHasher.HashPassword(alice, AlicePassword);
@@ -48,6 +65,9 @@ public static class DataSeed
             DisplayName = "Charlie Test",
             Bio = "Additional test user.",
             PasswordHash = string.Empty,
+            AvatarContentType = null,
+            AvatarBytes = null,
+            AvatarUpdatedAtUtc = null,
             CreatedAtUtc = now
         };
         charlie.PasswordHash = passwordHasher.HashPassword(charlie, CharliePassword);
@@ -58,14 +78,14 @@ public static class DataSeed
         var alicePost = new Post
         {
             AuthorId = alice.Id,
-            Body = "Seed post from Alice",
+            Body = AlicePostBody,
             CreatedAtUtc = now
         };
 
         var bobPost = new Post
         {
             AuthorId = bob.Id,
-            Body = "Seed post from Bob",
+            Body = BobPostBody,
             CreatedAtUtc = now.AddMinutes(-5)
         };
 

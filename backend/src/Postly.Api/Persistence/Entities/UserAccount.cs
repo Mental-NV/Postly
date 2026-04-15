@@ -7,6 +7,9 @@ public class UserAccount
     public required string NormalizedUsername { get; set; }
     public required string DisplayName { get; set; }
     public string? Bio { get; set; }
+    public string? AvatarContentType { get; set; }
+    public byte[]? AvatarBytes { get; set; }
+    public DateTimeOffset? AvatarUpdatedAtUtc { get; set; }
     public required string PasswordHash { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
 

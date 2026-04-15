@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Postly.Api.Features.Profiles.Application;
 using Postly.Api.Features.Timeline.Contracts;
 using Postly.Api.Persistence;
 using Postly.Api.Persistence.Entities;
@@ -56,6 +57,7 @@ internal static class PostSummaryFactory
             post.Id,
             post.Author.Username,
             post.Author.DisplayName,
+            ProfileIdentityProjection.CreateAvatarUrl(post.Author),
             post.Body,
             post.CreatedAtUtc,
             post.EditedAtUtc != null,

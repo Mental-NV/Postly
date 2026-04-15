@@ -10,6 +10,7 @@ export function setupApiMocks() {
   vi.mocked(apiClient.get).mockClear()
   vi.mocked(apiClient.post).mockClear()
   vi.mocked(apiClient.patch).mockClear()
+  vi.mocked(apiClient.putForm).mockClear()
   vi.mocked(apiClient.delete).mockClear()
 }
 

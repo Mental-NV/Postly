@@ -14,3 +14,27 @@ export class ApiError extends Error {
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError
 }
+
+export function getFieldErrors(
+  error: unknown,
+  field: string
+): string[] {
+  if (!isApiError(error)) {
+    return []
+  }
+
+  return error.errors?.[field] ?? []
+}
+
+export function getFormErrorMessage(error: unknown): string | null {
+  if (!isApiError(error)) {
+    return null
+  }
+
+  if (error.detail) {
+    return error.detail
+  }
+
+  const firstErrorEntry = Object.values(error.errors ?? {})[0]
+  return firstErrorEntry?.[0] ?? error.title
+}

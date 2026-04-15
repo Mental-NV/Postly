@@ -37,6 +37,9 @@ builder.Services.AddScoped<LikePostHandler>();
 builder.Services.AddScoped<UnlikePostHandler>();
 builder.Services.AddScoped<GetTimelineHandler>();
 builder.Services.AddScoped<GetProfileHandler>();
+builder.Services.AddScoped<UpdateProfileHandler>();
+builder.Services.AddScoped<ReplaceAvatarHandler>();
+builder.Services.AddScoped<ProfileAvatarProcessor>();
 builder.Services.AddScoped<FollowUserHandler>();
 builder.Services.AddScoped<UnfollowUserHandler>();
 

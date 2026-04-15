@@ -71,7 +71,9 @@ export function PostCard({
           <Avatar
             username={post.authorUsername}
             displayName={post.authorDisplayName}
+            avatarUrl={post.authorAvatarUrl}
             size="sm"
+            wrapperTestId={`post-avatar-${post.id}`}
           />
         </Link>
       </div>

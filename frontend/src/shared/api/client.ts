@@ -69,6 +69,15 @@ export const apiClient = {
     return handleResponse<T>(response)
   },
 
+  async putForm<T>(path: string, formData: FormData): Promise<T> {
+    const response = await fetch(`${API_BASE}${path}`, {
+      method: 'PUT',
+      credentials: 'same-origin',
+      body: formData,
+    })
+    return handleResponse<T>(response)
+  },
+
   async delete<T>(path: string): Promise<T> {
     const response = await fetch(`${API_BASE}${path}`, {
       method: 'DELETE',
