@@ -23,6 +23,7 @@ import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { useAuth } from '../../app/providers/AuthContext'
 import { PostEditor } from '../posts/editor/PostEditor'
 import { PostCard } from '../posts/post-card/PostCard'
+import { Camera } from 'lucide-react'
 
 interface ProfileFormErrors {
   displayName?: string
@@ -543,9 +544,31 @@ export function ProfilePage(): React.JSX.Element {
           </h1>
           <span className="header-post-count">{posts.length} Posts</span>
         </div>
+        {profile.isSelf && isEditingProfile ? (
+          <div className="profile-header-edit-actions">
+            <Button
+              variant="primary"
+              onClick={() => {
+                void handleProfileSave()
+              }}
+              disabled={isSavingProfile}
+              data-testid="profile-save-button"
+            >
+              {isSavingProfile ? 'Saving…' : 'Save'}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleProfileCancel}
+              disabled={isSavingProfile}
+              data-testid="profile-cancel-button"
+            >
+              Cancel
+            </Button>
+          </div>
+        ) : null}
       </header>
 
-      <div className="profile-hero">
+      <div className={`profile-hero ${isEditingProfile ? 'is-editing' : ''}`}>
         <div className="profile-banner" />
         <div className="profile-avatar-row">
           <div data-testid="profile-avatar-wrapper">
@@ -563,7 +586,8 @@ export function ProfilePage(): React.JSX.Element {
                 className="profile-avatar-edit-overlay"
                 data-testid="profile-avatar-edit-overlay"
               >
-                <span>Upload</span>
+                <Camera size={16} aria-hidden="true" />
+                <span>Change</span>
                 <input
                   type="file"
                   accept="image/jpeg,image/png"
@@ -596,28 +620,7 @@ export function ProfilePage(): React.JSX.Element {
             ) : null}
 
             {profile.isSelf ? (
-              isEditingProfile ? (
-                <div className="profile-edit-actions">
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      void handleProfileSave()
-                    }}
-                    disabled={isSavingProfile}
-                    data-testid="profile-save-button"
-                  >
-                    {isSavingProfile ? 'Saving…' : 'Save'}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={handleProfileCancel}
-                    disabled={isSavingProfile}
-                    data-testid="profile-cancel-button"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
+              isEditingProfile ? null : (
                 <Button
                   variant="secondary"
                   onClick={handleProfileEditStart}
@@ -633,9 +636,9 @@ export function ProfilePage(): React.JSX.Element {
         <div className="profile-info-block">
           <div className="profile-names">
             {isEditingProfile ? (
-              <div data-testid="profile-edit-form">
-                <label>
-                  <span>Display name</span>
+              <div className="profile-edit-form" data-testid="profile-edit-form">
+                <label className="profile-edit-label">
+                  <span className="profile-edit-label-text">Display name</span>
                   <input
                     type="text"
                     value={displayNameDraft}
@@ -647,15 +650,18 @@ export function ProfilePage(): React.JSX.Element {
                       }))
                     }}
                     disabled={isSavingProfile}
+                    className="profile-edit-input profile-edit-input-display-name"
                     data-testid="profile-display-name-input"
                   />
                 </label>
                 {profileFormErrors.displayName ? (
-                  <p role="alert">{profileFormErrors.displayName}</p>
+                  <p role="alert" className="profile-edit-error">
+                    {profileFormErrors.displayName}
+                  </p>
                 ) : null}
 
-                <label>
-                  <span>Bio</span>
+                <label className="profile-edit-label profile-bio-field">
+                  <span className="profile-edit-label-text">Bio</span>
                   <textarea
                     value={bioDraft}
                     onChange={(event) => {
@@ -666,17 +672,25 @@ export function ProfilePage(): React.JSX.Element {
                       }))
                     }}
                     disabled={isSavingProfile}
+                    className="profile-edit-input profile-edit-textarea"
                     data-testid="profile-bio-input"
                   />
+                  <div
+                    className="profile-bio-counter"
+                    data-testid="profile-bio-counter"
+                  >
+                    {bioDraft.trim().length}/160
+                  </div>
                 </label>
-                <div data-testid="profile-bio-counter">
-                  {bioDraft.trim().length}/160
-                </div>
                 {profileFormErrors.bio ? (
-                  <p role="alert">{profileFormErrors.bio}</p>
+                  <p role="alert" className="profile-edit-error">
+                    {profileFormErrors.bio}
+                  </p>
                 ) : null}
                 {profileFormErrors.avatar ? (
-                  <p role="alert">{profileFormErrors.avatar}</p>
+                  <p role="alert" className="profile-edit-error">
+                    {profileFormErrors.avatar}
+                  </p>
                 ) : null}
               </div>
             ) : (
@@ -693,7 +707,9 @@ export function ProfilePage(): React.JSX.Element {
             </p>
           ) : null}
 
-          <div className="profile-stats">
+          <div
+            className={`profile-stats ${isEditingProfile ? 'profile-stats-editing' : ''}`}
+          >
             <span className="stat-item">
               <strong className="stat-value">{profile.followingCount}</strong>{' '}
               Following
