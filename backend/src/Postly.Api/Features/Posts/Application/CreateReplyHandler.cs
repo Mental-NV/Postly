@@ -64,18 +64,18 @@ public class CreateReplyHandler
         _dbContext.Posts.Add(reply);
 
         // Create notification if not replying to own post
-        // if (targetPost.AuthorId != userId.Value)
-        // {
-        //     _dbContext.Notifications.Add(new Notification
-        //     {
-        //         RecipientUserId = targetPost.AuthorId,
-        //         ActorUserId = userId.Value,
-        //         Kind = "reply",
-        //         PostId = postId,
-        //         ReplyPostId = reply.Id,
-        //         CreatedAtUtc = DateTimeOffset.UtcNow
-        //     });
-        // }
+        if (targetPost.AuthorId != userId.Value)
+        {
+            _dbContext.Notifications.Add(new Notification
+            {
+                RecipientUserId = targetPost.AuthorId,
+                ActorUserId = userId.Value,
+                Kind = "reply",
+                PostId = postId,
+                ReplyPostId = reply.Id,
+                CreatedAtUtc = DateTimeOffset.UtcNow
+            });
+        }
 
         await _dbContext.SaveChangesAsync();
 

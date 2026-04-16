@@ -143,6 +143,7 @@ public static class DataSeed
 
     public static async Task ResetAsync(AppDbContext context)
     {
+        context.Notifications.RemoveRange(context.Notifications);
         context.Likes.RemoveRange(context.Likes);
         context.Follows.RemoveRange(context.Follows);
         context.Posts.RemoveRange(context.Posts);

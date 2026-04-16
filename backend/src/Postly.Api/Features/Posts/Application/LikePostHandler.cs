@@ -52,17 +52,17 @@ public class LikePostHandler
             });
 
             // Create notification if not liking own post
-            // if (post.AuthorId != viewerId.Value)
-            // {
-            //     _dbContext.Notifications.Add(new Notification
-            //     {
-            //         RecipientUserId = post.AuthorId,
-            //         ActorUserId = viewerId.Value,
-            //         Kind = "like",
-            //         PostId = postId,
-            //         CreatedAtUtc = DateTimeOffset.UtcNow
-            //     });
-            // }
+            if (post.AuthorId != viewerId.Value)
+            {
+                _dbContext.Notifications.Add(new Notification
+                {
+                    RecipientUserId = post.AuthorId,
+                    ActorUserId = viewerId.Value,
+                    Kind = "like",
+                    PostId = postId,
+                    CreatedAtUtc = DateTimeOffset.UtcNow
+                });
+            }
 
             await _dbContext.SaveChangesAsync();
         }
