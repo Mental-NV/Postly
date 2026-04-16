@@ -1,9 +1,11 @@
 import type {
-  PostSummary,
-  ProfileResponse,
-  UserProfile,
   ConversationResponse,
   NotificationSummary,
+  PostSummary,
+  ProfileResponse,
+  ReplyPageResponse,
+  TimelineResponse,
+  UserProfile,
 } from '../api/contracts'
 
 export function createMockPost(overrides?: Partial<PostSummary>): PostSummary {
@@ -34,6 +36,26 @@ export function createMockConversation(
       state: 'available',
       post: createMockPost({ id: 10, authorUsername: 'alice', body: 'Conversation post' }),
     },
+    replies: [],
+    nextCursor: null,
+    ...overrides,
+  }
+}
+
+export function createMockTimeline(
+  overrides?: Partial<TimelineResponse>
+): TimelineResponse {
+  return {
+    posts: [createMockPost()],
+    nextCursor: null,
+    ...overrides,
+  }
+}
+
+export function createMockReplyPage(
+  overrides?: Partial<ReplyPageResponse>
+): ReplyPageResponse {
+  return {
     replies: [],
     nextCursor: null,
     ...overrides,
@@ -97,7 +119,7 @@ export function createMockBobProfileEditFixture(
         ...overrides?.post,
       }),
     ],
-    nextCursor: undefined,
+    nextCursor: null,
   }
 }
 
@@ -128,4 +150,18 @@ export function createMockNotification(
     destinationState: 'available',
     ...overrides,
   }
+}
+
+export function createContinuationPosts(
+  count: number,
+  overrides?: Partial<PostSummary>
+): PostSummary[] {
+  return Array.from({ length: count }, (_, index) =>
+    createMockPost({
+      id: index + 1,
+      body: `Continuation post ${index + 1}`,
+      createdAtUtc: new Date(Date.now() - index * 60_000).toISOString(),
+      ...overrides,
+    })
+  )
 }

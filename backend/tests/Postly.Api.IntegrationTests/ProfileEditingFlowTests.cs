@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Postly.Api.Features.Posts.Contracts;
 using Postly.Api.Features.Profiles.Contracts;
 using Postly.Api.Features.Timeline.Contracts;
 using Postly.Api.Persistence;

@@ -1,9 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { apiClient } from '../../shared/api/client'
+import {
+  apiClient,
+  getConversationPath,
+  getRepliesPath,
+} from '../../shared/api/client'
 import type {
   ConversationResponse,
   PostInteractionState,
+  ReplyPageResponse,
   PostSummary,
   PostResponse,
 } from '../../shared/api/contracts'
@@ -14,9 +19,15 @@ import { PostCard } from './post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { Button } from '../../shared/components/Button'
 import {
+  ContinuationEndState,
+  ContinuationErrorState,
+  ContinuationLoadingState,
+} from '../../shared/components/LoadingState'
+import {
   applyProfileIdentityUpdateToPost,
   subscribeToProfileIdentityUpdates,
 } from '../../shared/profileIdentityEvents'
+import { useContinuationCollection } from '../../shared/hooks/useContinuationCollection'
 
 export function DirectPostPage(): React.JSX.Element | null {
   const { postId } = useParams<{ postId: string }>()
@@ -31,6 +42,36 @@ export function DirectPostPage(): React.JSX.Element | null {
   const [deletingPostId, setDeletingPostId] = useState<number | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isLikePending, setIsLikePending] = useState(false)
+  const {
+    items: replies,
+    setItems: setReplies,
+    reset,
+    retry,
+    sentinelRef,
+    status: continuationStatus,
+    errorMessage: continuationError,
+    shouldRenderContinuation,
+  } = useContinuationCollection<PostSummary>({
+    getKey: (reply) => reply.id,
+    loadMore: async (cursor) => {
+      if (postId == null) {
+        return {
+          items: [],
+          nextCursor: null,
+        }
+      }
+
+      const data = await apiClient.get<ReplyPageResponse>(
+        getRepliesPath(postId, cursor)
+      )
+
+      return {
+        items: data.replies,
+        nextCursor: data.nextCursor,
+      }
+    },
+    loadMoreErrorMessage: 'Failed to load more replies. Please try again.',
+  })
 
   // Reply composer state
   const [replyBody, setReplyBody] = useState('')
@@ -46,8 +87,14 @@ export function DirectPostPage(): React.JSX.Element | null {
     setNotFound(false)
 
     try {
-      const data = await apiClient.get<ConversationResponse>(`/posts/${String(postId)}`)
+      const data = await apiClient.get<ConversationResponse>(
+        getConversationPath(postId)
+      )
       setConversation(data)
+      reset({
+        items: data.replies,
+        nextCursor: data.nextCursor,
+      })
     } catch (err: unknown) {
       if (isApiError(err) && err.status === 404) {
         setNotFound(true)
@@ -70,13 +117,15 @@ export function DirectPostPage(): React.JSX.Element | null {
         const updatedTarget = current.target.post
           ? { ...current.target, post: applyProfileIdentityUpdateToPost(current.target.post, update) }
           : current.target
-        const updatedReplies = current.replies.map((r) =>
-          applyProfileIdentityUpdateToPost(r, update)
-        )
-        return { ...current, target: updatedTarget, replies: updatedReplies }
+        return { ...current, target: updatedTarget }
       })
+      setReplies((currentReplies) =>
+        currentReplies.map((reply) =>
+          applyProfileIdentityUpdateToPost(reply, update)
+        )
+      )
     })
-  }, [])
+  }, [setReplies])
 
   const handleEdit = async (id: number, newBody: string): Promise<void> => {
     const result = await apiClient.patch<PostResponse>(`/posts/${String(id)}`, { body: newBody })
@@ -86,11 +135,11 @@ export function DirectPostPage(): React.JSX.Element | null {
       if (current.target.post?.id === id) {
         return { ...current, target: { ...current.target, post: result.post } }
       }
-      return {
-        ...current,
-        replies: current.replies.map((r) => (r.id === id ? result.post : r)),
-      }
+      return current
     })
+    setReplies((currentReplies) =>
+      currentReplies.map((reply) => (reply.id === id ? result.post : reply))
+    )
   }
 
   const handleDelete = async (id: number): Promise<void> => {
@@ -123,36 +172,50 @@ export function DirectPostPage(): React.JSX.Element | null {
       if (current.target.post?.id === currentPost.id) {
         return { ...current, target: { ...current.target, post: optimistic } }
       }
-      return { ...current, replies: current.replies.map((r) => (r.id === currentPost.id ? optimistic : r)) }
+      return current
     })
+    setReplies((currentReplies) =>
+      currentReplies.map((reply) =>
+        reply.id === currentPost.id ? optimistic : reply
+      )
+    )
 
     try {
       const interactionState = currentPost.likedByViewer
         ? await apiClient.delete<PostInteractionState>(`/posts/${String(currentPost.id)}/like`)
         : await apiClient.post<PostInteractionState>(`/posts/${String(currentPost.id)}/like`)
+      const updateReply = (reply: PostSummary): PostSummary =>
+        reply.id === currentPost.id
+          ? {
+              ...reply,
+              likedByViewer: interactionState.likedByViewer,
+              likeCount: interactionState.likeCount,
+            }
+          : reply
 
       setConversation((current) => {
         if (!current) return current
-        const update = (p: PostSummary): PostSummary =>
-          p.id === currentPost.id
-            ? { ...p, likedByViewer: interactionState.likedByViewer, likeCount: interactionState.likeCount }
-            : p
         return {
           ...current,
-          target: current.target.post ? { ...current.target, post: update(current.target.post) } : current.target,
-          replies: current.replies.map(update),
+          target: current.target.post
+            ? { ...current.target, post: updateReply(current.target.post) }
+            : current.target,
         }
       })
+      setReplies((currentReplies) => currentReplies.map(updateReply))
     } catch {
+      const revertReply = (reply: PostSummary): PostSummary =>
+        reply.id === currentPost.id ? currentPost : reply
       setConversation((current) => {
         if (!current) return current
-        const revert = (p: PostSummary): PostSummary => (p.id === currentPost.id ? currentPost : p)
         return {
           ...current,
-          target: current.target.post ? { ...current.target, post: revert(current.target.post) } : current.target,
-          replies: current.replies.map(revert),
+          target: current.target.post
+            ? { ...current.target, post: revertReply(current.target.post) }
+            : current.target,
         }
       })
+      setReplies((currentReplies) => currentReplies.map(revertReply))
     } finally {
       setIsLikePending(false)
     }
@@ -165,9 +228,7 @@ export function DirectPostPage(): React.JSX.Element | null {
     try {
       const result = await apiClient.post<PostResponse>(`/posts/${String(postId)}/replies`, { body: replyBody.trim() })
       setReplyBody('')
-      setConversation((current) =>
-        current ? { ...current, replies: [result.post, ...current.replies] } : current
-      )
+      setReplies((currentReplies) => [result.post, ...currentReplies])
     } catch (err: unknown) {
       if (isApiError(err)) {
         setReplyError(err.detail !== undefined ? err.detail : err.title)
@@ -294,7 +355,7 @@ export function DirectPostPage(): React.JSX.Element | null {
 
       {/* Replies list */}
       <div className="conversation-replies" data-testid="conversation-replies">
-        {conversation.replies.map((reply) => (
+        {replies.map((reply) => (
           reply.state === 'deleted' ? (
             <PostCard key={reply.id} post={reply} showLikeButton={false} showLikeCount={false} />
           ) : editingPostId === reply.id ? (
@@ -316,6 +377,30 @@ export function DirectPostPage(): React.JSX.Element | null {
             />
           )
         ))}
+        {shouldRenderContinuation ? (
+          <>
+            <div
+              data-testid="collection-continuation-sentinel"
+              ref={sentinelRef}
+              aria-hidden="true"
+            />
+            {continuationStatus === 'loading-more' ? (
+              <ContinuationLoadingState message="Loading more replies…" />
+            ) : null}
+            {continuationStatus === 'load-more-error' &&
+            continuationError != null ? (
+              <ContinuationErrorState
+                message={continuationError}
+                onRetry={() => {
+                  void retry()
+                }}
+              />
+            ) : null}
+            {continuationStatus === 'exhausted' ? (
+              <ContinuationEndState message="You've reached the end of the road." />
+            ) : null}
+          </>
+        ) : null}
       </div>
 
       </div>

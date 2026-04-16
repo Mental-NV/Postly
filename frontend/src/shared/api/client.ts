@@ -87,12 +87,41 @@ export const apiClient = {
   },
 }
 
-export function getConversationPath(postId: number | string, cursor?: string | null): string {
-  const params = cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''
-  return `/posts/${String(postId)}${params}`
+export function withCursorQuery(
+  path: string,
+  cursor?: string | null
+): string {
+  if (cursor == null || cursor.length === 0) {
+    return path
+  }
+
+  const separator = path.includes('?') ? '&' : '?'
+  return `${path}${separator}cursor=${encodeURIComponent(cursor)}`
 }
 
-export function getRepliesPath(postId: number | string, cursor?: string | null): string {
-  const params = cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''
-  return `/posts/${String(postId)}/replies${params}`
+export function getTimelinePath(cursor?: string | null): string {
+  return withCursorQuery('/timeline', cursor)
+}
+
+export function getProfilePath(
+  username: string,
+  cursor?: string | null
+): string {
+  const normalizedUsername =
+    username === 'me' ? 'me' : encodeURIComponent(username)
+  return withCursorQuery(`/profiles/${normalizedUsername}`, cursor)
+}
+
+export function getConversationPath(
+  postId: number | string,
+  cursor?: string | null
+): string {
+  return withCursorQuery(`/posts/${String(postId)}`, cursor)
+}
+
+export function getRepliesPath(
+  postId: number | string,
+  cursor?: string | null
+): string {
+  return withCursorQuery(`/posts/${String(postId)}/replies`, cursor)
 }

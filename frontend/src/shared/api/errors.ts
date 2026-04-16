@@ -38,3 +38,22 @@ export function getFormErrorMessage(error: unknown): string | null {
   const firstErrorEntry = Object.values(error.errors ?? {})[0]
   return firstErrorEntry?.[0] ?? error.title
 }
+
+export function getApiErrorMessage(
+  error: unknown,
+  fallbackMessage: string
+): string {
+  if (!isApiError(error)) {
+    return fallbackMessage
+  }
+
+  if (error.detail != null && error.detail.length > 0) {
+    return error.detail
+  }
+
+  if (error.title.length > 0) {
+    return error.title
+  }
+
+  return fallbackMessage
+}

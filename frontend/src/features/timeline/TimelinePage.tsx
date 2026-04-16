@@ -4,7 +4,15 @@ import { PostEditor } from '../posts/editor/PostEditor'
 import { PostCard } from '../posts/post-card/PostCard'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
 import { Button } from '../../shared/components/Button'
-import { apiClient } from '../../shared/api/client'
+import {
+  apiClient,
+  getTimelinePath,
+} from '../../shared/api/client'
+import {
+  ContinuationEndState,
+  ContinuationErrorState,
+  ContinuationLoadingState,
+} from '../../shared/components/LoadingState'
 import {
   applyProfileIdentityUpdateToPost,
   subscribeToProfileIdentityUpdates,
@@ -14,19 +22,37 @@ import type {
   PostSummary,
   TimelineResponse,
 } from '../../shared/api/contracts'
+import { useContinuationCollection } from '../../shared/hooks/useContinuationCollection'
 
 export function TimelinePage(): React.JSX.Element {
-  const [posts, setPosts] = useState<PostSummary[]>([])
-  const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [editingPostId, setEditingPostId] = useState<number | null>(null)
   const [deletingPostId, setDeletingPostId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [pendingLikePostId, setPendingLikePostId] = useState<number | null>(
     null
   )
   const [error, setError] = useState<string | null>(null)
+  const {
+    items: posts,
+    setItems: setPosts,
+    reset,
+    retry,
+    sentinelRef,
+    status: continuationStatus,
+    errorMessage: continuationError,
+    shouldRenderContinuation,
+  } = useContinuationCollection<PostSummary>({
+    getKey: (post) => post.id,
+    loadMore: async (cursor) => {
+      const data = await apiClient.get<TimelineResponse>(getTimelinePath(cursor))
+      return {
+        items: data.posts,
+        nextCursor: data.nextCursor,
+      }
+    },
+    loadMoreErrorMessage: 'Failed to load more posts. Please try again.',
+  })
 
   useEffect(() => {
     void loadTimeline()
@@ -47,33 +73,15 @@ export function TimelinePage(): React.JSX.Element {
     setError(null)
 
     try {
-      const data = await apiClient.get<TimelineResponse>('/timeline')
-
-      setPosts(data.posts)
-      setNextCursor(data.nextCursor ?? null)
+      const data = await apiClient.get<TimelineResponse>(getTimelinePath())
+      reset({
+        items: data.posts,
+        nextCursor: data.nextCursor,
+      })
     } catch {
       setError('Failed to load timeline. Please try again.')
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  async function loadMorePosts(): Promise<void> {
-    if (!nextCursor || isLoadingMore) return
-
-    setIsLoadingMore(true)
-
-    try {
-      const data = await apiClient.get<TimelineResponse>(
-        `/timeline?cursor=${nextCursor}`
-      )
-
-      setPosts((prev) => [...prev, ...data.posts])
-      setNextCursor(data.nextCursor ?? null)
-    } catch {
-      setError('Failed to load more posts')
-    } finally {
-      setIsLoadingMore(false)
     }
   }
 
@@ -229,18 +237,30 @@ export function TimelinePage(): React.JSX.Element {
               )
             )}
 
-            {nextCursor ? <div className="load-more-container">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    void loadMorePosts()
-                  }}
-                  disabled={isLoadingMore}
-                  className="load-more-btn"
-                >
-                  {isLoadingMore ? 'Loading...' : 'Load more'}
-                </Button>
-              </div> : null}
+            {shouldRenderContinuation ? (
+              <>
+                <div
+                  data-testid="collection-continuation-sentinel"
+                  ref={sentinelRef}
+                  aria-hidden="true"
+                />
+                {continuationStatus === 'loading-more' ? (
+                  <ContinuationLoadingState message="Loading more posts…" />
+                ) : null}
+                {continuationStatus === 'load-more-error' &&
+                continuationError != null ? (
+                  <ContinuationErrorState
+                    message={continuationError}
+                    onRetry={() => {
+                      void retry()
+                    }}
+                  />
+                ) : null}
+                {continuationStatus === 'exhausted' ? (
+                  <ContinuationEndState message="You've reached the end of the road." />
+                ) : null}
+              </>
+            ) : null}
           </>
         )}
       </div>

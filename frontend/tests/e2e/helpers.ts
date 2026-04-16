@@ -135,3 +135,40 @@ export async function createNotificationViaReply(
     data: { body },
   })
 }
+
+export async function failNextContinuationRequestOnce(
+  page: Page,
+  matcher: string | RegExp,
+  {
+    status = 500,
+    type = 'CONTINUATION_FAILED',
+    title = 'Unable to load more content',
+    detail = 'Please try again.',
+  }: {
+    status?: number
+    type?: string
+    title?: string
+    detail?: string
+  } = {}
+): Promise<void> {
+  let hasFailed = false
+
+  await page.route(matcher, async (route) => {
+    const requestUrl = route.request().url()
+    if (!hasFailed && requestUrl.includes('cursor=')) {
+      hasFailed = true
+      await route.fulfill({
+        status,
+        contentType: 'application/problem+json',
+        body: JSON.stringify({
+          type,
+          title,
+          detail,
+        }),
+      })
+      return
+    }
+
+    await route.continue()
+  })
+}

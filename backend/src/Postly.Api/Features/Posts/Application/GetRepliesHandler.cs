@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Postly.Api.Features.Posts.Contracts;
 using Postly.Api.Features.Shared.Errors;
+using Postly.Api.Features.Shared.Pagination;
 using Postly.Api.Features.Timeline.Contracts;
 using Postly.Api.Persistence;
 using Postly.Api.Security;
@@ -40,37 +42,28 @@ public class GetRepliesHandler
             .Where(p => p.ReplyToPostId == postId)
             .ToListAsync();
 
-        DateTimeOffset cursorTime = DateTimeOffset.MaxValue;
-        long cursorId = long.MaxValue;
-        if (!string.IsNullOrEmpty(cursor))
+        if (!OpaqueCursor.TryParse(cursor, out var parsedCursor))
         {
-            var parts = cursor.Split('_');
-            if (parts.Length == 2 && DateTimeOffset.TryParse(parts[0], out var ct) && long.TryParse(parts[1], out var ci))
-            {
-                cursorTime = ct;
-                cursorId = ci;
-            }
+            return Results.Problem(ProblemDetailsFactory.CreateValidationProblem(
+                new Dictionary<string, string[]>
+                {
+                    ["cursor"] = ["Cursor must be a valid continuation token."]
+                },
+                _httpContext.TraceIdentifier));
         }
 
-        var replies = allReplies
-            .Where(p => cursorTime == DateTimeOffset.MaxValue ||
-                        p.CreatedAtUtc < cursorTime ||
-                        (p.CreatedAtUtc == cursorTime && p.Id < cursorId))
-            .OrderByDescending(p => p.CreatedAtUtc)
-            .ThenByDescending(p => p.Id)
-            .Take(PageSize + 1)
-            .ToList();
+        var page = OpaqueCursorPagination.Paginate(
+            allReplies,
+            parsedCursor,
+            PageSize,
+            reply => reply.CreatedAtUtc,
+            reply => reply.Id);
 
-        string? nextCursor = null;
-        if (replies.Count > PageSize)
-        {
-            replies = replies.Take(PageSize).ToList();
-            var last = replies.Last();
-            nextCursor = $"{last.CreatedAtUtc:O}_{last.Id}";
-        }
+        var replySummaries = await PostSummaryFactory.CreateManyAsync(
+            _dbContext,
+            page.Items,
+            userId);
 
-        var replySummaries = await PostSummaryFactory.CreateManyAsync(_dbContext, replies, userId);
-
-        return Results.Ok(new ReplyPageResponse(replySummaries, nextCursor));
+        return Results.Ok(new ReplyPageResponse(replySummaries, page.NextCursor));
     }
 }
