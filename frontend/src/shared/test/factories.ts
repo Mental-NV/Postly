@@ -3,6 +3,7 @@ import type {
   ProfileResponse,
   UserProfile,
   ConversationResponse,
+  NotificationSummary,
 } from '../api/contracts'
 
 export function createMockPost(overrides?: Partial<PostSummary>): PostSummary {
@@ -110,4 +111,21 @@ export function createMockBobAvatarFallbackFixture(): ProfileResponse {
       authorAvatarUrl: null,
     },
   })
+}
+
+export function createMockNotification(
+  overrides?: Partial<NotificationSummary>
+): NotificationSummary {
+  return {
+    id: 1,
+    kind: 'follow',
+    actorUsername: 'alice',
+    actorDisplayName: 'Alice Example',
+    createdAtUtc: new Date().toISOString(),
+    isRead: false,
+    destinationKind: 'profile',
+    destinationRoute: '/u/alice',
+    destinationState: 'available',
+    ...overrides,
+  }
 }

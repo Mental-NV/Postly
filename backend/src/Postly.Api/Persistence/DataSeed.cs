@@ -139,6 +139,68 @@ public static class DataSeed
 
         context.Posts.AddRange(replies);
         await context.SaveChangesAsync();
+
+        // Seed notifications for Bob
+        // Follow notification (available)
+        context.Notifications.Add(new Notification
+        {
+            RecipientUserId = bob.Id,
+            ActorUserId = alice.Id,
+            ActorUsername = alice.Username,
+            ActorDisplayName = alice.DisplayName,
+            Kind = "follow",
+            ProfileUserId = bob.Id,
+            CreatedAtUtc = now.AddMinutes(-3)
+        });
+
+        // Like notification (available)
+        context.Notifications.Add(new Notification
+        {
+            RecipientUserId = bob.Id,
+            ActorUserId = alice.Id,
+            ActorUsername = alice.Username,
+            ActorDisplayName = alice.DisplayName,
+            Kind = "like",
+            PostId = bobPost.Id,
+            CreatedAtUtc = now.AddMinutes(-2)
+        });
+
+        // Reply notification (available)
+        context.Notifications.Add(new Notification
+        {
+            RecipientUserId = bob.Id,
+            ActorUserId = alice.Id,
+            ActorUsername = alice.Username,
+            ActorDisplayName = alice.DisplayName,
+            Kind = "reply",
+            PostId = conversationPost.Id,
+            ReplyPostId = aliceReply.Id,
+            CreatedAtUtc = now.AddMinutes(-1)
+        });
+
+        // Unavailable notification (for deleted post)
+        var deletedPost = new Post
+        {
+            AuthorId = bob.Id,
+            Body = "Post that will be deleted",
+            CreatedAtUtc = now.AddMinutes(-8),
+            DeletedAtUtc = now.AddMinutes(-4)
+        };
+        context.Posts.Add(deletedPost);
+        await context.SaveChangesAsync();
+
+        context.Notifications.Add(new Notification
+        {
+            RecipientUserId = bob.Id,
+            ActorUserId = charlie.Id,
+            ActorUsername = charlie.Username,
+            ActorDisplayName = charlie.DisplayName,
+            Kind = "like",
+            PostId = deletedPost.Id,
+            CreatedAtUtc = now.AddMinutes(-4)
+        });
+
+        await context.SaveChangesAsync();
     }
 
     public static async Task ResetAsync(AppDbContext context)

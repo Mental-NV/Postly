@@ -54,10 +54,13 @@ public class LikePostHandler
             // Create notification if not liking own post
             if (post.AuthorId != viewerId.Value)
             {
+                var actor = await _dbContext.UserAccounts.FindAsync(viewerId.Value);
                 _dbContext.Notifications.Add(new Notification
                 {
                     RecipientUserId = post.AuthorId,
                     ActorUserId = viewerId.Value,
+                    ActorUsername = actor!.Username,
+                    ActorDisplayName = actor.DisplayName,
                     Kind = "like",
                     PostId = postId,
                     CreatedAtUtc = DateTimeOffset.UtcNow

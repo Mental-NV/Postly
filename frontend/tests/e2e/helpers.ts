@@ -106,3 +106,32 @@ export function createInvalidSvgUpload(
     ),
   }
 }
+
+export async function goToNotifications(page: Page): Promise<void> {
+  await page.goto('/notifications')
+  await expect(page.getByTestId('notifications-page')).toBeVisible()
+}
+
+export async function createNotificationViaFollow(
+  page: Page,
+  targetUsername: string
+): Promise<void> {
+  await page.request.post(`/api/profiles/${targetUsername}/follow`)
+}
+
+export async function createNotificationViaLike(
+  page: Page,
+  postId: number
+): Promise<void> {
+  await page.request.post(`/api/posts/${postId}/like`)
+}
+
+export async function createNotificationViaReply(
+  page: Page,
+  postId: number,
+  body: string
+): Promise<void> {
+  await page.request.post(`/api/posts/${postId}/replies`, {
+    data: { body },
+  })
+}

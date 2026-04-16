@@ -80,4 +80,32 @@ public static class TestDataBuilder
             CreatedAtUtc = DateTimeOffset.UtcNow
         };
     }
+
+    public static Notification CreateNotification(
+        long? id = null,
+        long? recipientUserId = null,
+        long? actorUserId = null,
+        string? actorUsername = null,
+        string? actorDisplayName = null,
+        string? kind = null,
+        long? profileUserId = null,
+        long? postId = null,
+        long? replyPostId = null,
+        DateTimeOffset? readAtUtc = null)
+    {
+        return new Notification
+        {
+            Id = id ?? 1,
+            RecipientUserId = recipientUserId ?? 1,
+            ActorUserId = actorUserId ?? 2,
+            ActorUsername = actorUsername ?? "actor",
+            ActorDisplayName = actorDisplayName ?? "Actor User",
+            Kind = kind ?? "follow",
+            ProfileUserId = profileUserId,
+            PostId = postId,
+            ReplyPostId = replyPostId,
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            ReadAtUtc = readAtUtc
+        };
+    }
 }

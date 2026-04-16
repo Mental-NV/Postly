@@ -70,6 +70,8 @@ public class CreateReplyHandler
             {
                 RecipientUserId = targetPost.AuthorId,
                 ActorUserId = userId.Value,
+                ActorUsername = author.Username,
+                ActorDisplayName = author.DisplayName,
                 Kind = "reply",
                 PostId = postId,
                 ReplyPostId = reply.Id,

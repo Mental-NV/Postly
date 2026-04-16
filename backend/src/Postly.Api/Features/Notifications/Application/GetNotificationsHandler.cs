@@ -23,7 +23,6 @@ public class GetNotificationsHandler
             return Results.Unauthorized();
 
         var notifications = await _context.Notifications
-            .Include(n => n.ActorUser)
             .Where(n => n.RecipientUserId == userId.Value)
             .Take(50)
             .ToListAsync();
@@ -37,8 +36,8 @@ public class GetNotificationsHandler
         var summaries = orderedNotifications.Select(n => new NotificationSummary(
             n.Id,
             n.Kind,
-            n.ActorUser.Username,
-            n.ActorUser.DisplayName,
+            n.ActorUsername,
+            n.ActorDisplayName,
             n.CreatedAtUtc,
             n.ReadAtUtc.HasValue,
             GetDestinationKind(n),
@@ -64,7 +63,7 @@ public class GetNotificationsHandler
     {
         return notification.Kind switch
         {
-            "follow" => $"/u/{notification.ActorUser.Username}",
+            "follow" => $"/u/{notification.ActorUsername}",
             "like" => $"/posts/{notification.PostId}",
             "reply" => $"/posts/{notification.PostId}",
             _ => "/"
