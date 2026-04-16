@@ -23,6 +23,10 @@ vi.mock('../../../shared/api/client', () => ({
     putForm: vi.fn(),
     delete: vi.fn(),
   },
+  getProfilePath: (username: string, cursor?: string | null) =>
+    cursor != null
+      ? `/profiles/${username}?cursor=${cursor}`
+      : `/profiles/${username}`,
 }))
 
 function renderProfileEditingPage({
@@ -54,7 +58,7 @@ function renderProfileEditingPage({
   const profileResponse: ProfileResponse = {
     profile,
     posts,
-    nextCursor: undefined,
+    nextCursor: null,
   }
 
   vi.mocked(apiClient.get).mockResolvedValue(profileResponse)
@@ -159,7 +163,7 @@ describe('profile editing UI', () => {
         isSelf: true,
       }),
       posts: [],
-      nextCursor: undefined,
+      nextCursor: null,
     })
 
     await waitFor(() => {

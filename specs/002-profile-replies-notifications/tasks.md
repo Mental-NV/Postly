@@ -192,27 +192,27 @@ responsibilities -> cursor-bearing `TimelineResponse`, `ProfileResponse`,
 
 ### Story-Owned Foundations for User Story 4
 
-- [ ] T060 [US4] Expand shared frontend API contracts and client helpers for continuation response shapes on timeline, profile, and conversation surfaces in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
-- [ ] T061 [US4] Add the one-shot continuation failure helper and shared continuation-specific frontend test plumbing in `frontend/src/shared/test/fetch-mock.ts`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
-- [ ] T062 [US4] Create story-specific timeline/continuation test roots in `backend/tests/Postly.Api.UnitTests/Features/Timeline/`, `frontend/src/features/timeline/__tests__/`, and continuation-specific posts/profile test folders where missing
+- [X] T060 [US4] Expand shared frontend API contracts and client helpers for continuation response shapes on timeline, profile, and conversation surfaces in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
+- [X] T061 [US4] Add the one-shot continuation failure helper and shared continuation-specific frontend test plumbing in `frontend/src/shared/test/fetch-mock.ts`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
+- [X] T062 [US4] Create story-specific timeline/continuation test roots in `backend/tests/Postly.Api.UnitTests/Features/Timeline/`, `frontend/src/features/timeline/__tests__/`, and continuation-specific posts/profile test folders where missing
 
 ### Tests for User Story 4 (REQUIRED) ⚠️
 
-- [ ] T063 [P] [US4] Add backend unit coverage for retry-safe cursor semantics, duplicate prevention, and exhausted-list behavior in `backend/tests/Postly.Api.UnitTests/Features/Timeline/ContinuationCursorTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Posts/ReplyContinuationTests.cs`
-- [ ] T064 [P] [US4] Add backend contract coverage for continuation response shape and error outcomes on timeline, profile, and conversation reads in `backend/tests/Postly.Api.ContractTests/ContinuationContractsTests.cs`
-- [ ] T065 [P] [US4] Add backend integration coverage for timeline/profile/conversation continuation success, retry-after-failure, and explicit exhaustion behavior in `backend/tests/Postly.Api.IntegrationTests/ContinuationFlowTests.cs`
-- [ ] T066 [P] [US4] Add frontend component coverage for the shared continuation hook plus timeline, profile, and conversation loading/retry/end states using the one-shot fetch-mock continuation failure helper in `frontend/src/shared/test/use-continuation-collection.test.tsx`, `frontend/src/features/timeline/__tests__/continuation-state-ui.test.tsx`, `frontend/src/features/profiles/__tests__/profile-continuation-ui.test.tsx`, and `frontend/src/features/posts/__tests__/conversation-continuation-ui.test.tsx`
+- [X] T063 [P] [US4] Add backend unit coverage for retry-safe cursor semantics, duplicate prevention, and exhausted-list behavior in `backend/tests/Postly.Api.UnitTests/Features/Timeline/ContinuationCursorTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Posts/ReplyContinuationTests.cs`
+- [X] T064 [P] [US4] Add backend contract coverage for continuation response shape and error outcomes on timeline, profile, and conversation reads in `backend/tests/Postly.Api.ContractTests/ContinuationContractsTests.cs`
+- [X] T065 [P] [US4] Add backend integration coverage for timeline/profile/conversation continuation success, retry-after-failure, and explicit exhaustion behavior in `backend/tests/Postly.Api.IntegrationTests/ContinuationFlowTests.cs`
+- [X] T066 [P] [US4] Add frontend component coverage for the shared continuation hook plus timeline, profile, and conversation loading/retry/end states using the one-shot fetch-mock continuation failure helper in `frontend/src/shared/test/use-continuation-collection.test.tsx`, `frontend/src/features/timeline/__tests__/continuation-state-ui.test.tsx`, `frontend/src/features/profiles/__tests__/profile-continuation-ui.test.tsx`, and `frontend/src/features/posts/__tests__/conversation-continuation-ui.test.tsx`
 - [ ] T067 [P] [US4] Add Playwright coverage for `UF-11`, `UF-12`, and `UF-13` in `frontend/tests/e2e/us9-continuation-loading.spec.ts` using route interception to fail the first matching continuation request once for retry scenarios
 
 ### Backend Implementation for User Story 4
 
-- [ ] T068 [US4] Implement continuation contract fields for timeline, profile, and conversation reads in `backend/src/Postly.Api/Features/Timeline/Contracts/TimelineContracts.cs`, `backend/src/Postly.Api/Features/Profiles/Contracts/ProfileContracts.cs`, and `backend/src/Postly.Api/Features/Posts/Contracts/PostQueryContracts.cs`
-- [ ] T069 [US4] Implement retry-safe cursor pagination and exhausted-state behavior in `backend/src/Postly.Api/Features/Timeline/Application/GetTimelineHandler.cs`, `backend/src/Postly.Api/Features/Profiles/Application/GetProfileHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/GetPostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/GetRepliesHandler.cs`
+- [X] T068 [US4] Implement continuation contract fields for timeline, profile, and conversation reads in `backend/src/Postly.Api/Features/Timeline/Contracts/TimelineContracts.cs`, `backend/src/Postly.Api/Features/Profiles/Contracts/ProfileContracts.cs`, and `backend/src/Postly.Api/Features/Posts/Contracts/PostQueryContracts.cs`
+- [X] T069 [US4] Implement retry-safe cursor pagination and exhausted-state behavior in `backend/src/Postly.Api/Features/Timeline/Application/GetTimelineHandler.cs`, `backend/src/Postly.Api/Features/Profiles/Application/GetProfileHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/GetPostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/GetRepliesHandler.cs`
 
 ### Frontend Implementation for User Story 4
 
-- [ ] T070 [US4] Implement the shared automatic continuation hook and sentinel state handling in `frontend/src/shared/hooks/useContinuationCollection.ts` and `frontend/src/shared/components/LoadingState.tsx`
-- [ ] T071 [US4] Integrate continuation loading, retry, and end-of-list states into `frontend/src/features/timeline/TimelinePage.tsx`, `frontend/src/features/profiles/ProfilePage.tsx`, and `frontend/src/features/posts/DirectPostPage.tsx`
+- [X] T070 [US4] Implement the shared automatic continuation hook and sentinel state handling in `frontend/src/shared/hooks/useContinuationCollection.ts` and `frontend/src/shared/components/LoadingState.tsx`
+- [X] T071 [US4] Integrate continuation loading, retry, and end-of-list states into `frontend/src/features/timeline/TimelinePage.tsx`, `frontend/src/features/profiles/ProfilePage.tsx`, and `frontend/src/features/posts/DirectPostPage.tsx`
 
 ### Contracts, Data, Fixtures, and Documentation for User Story 4
 

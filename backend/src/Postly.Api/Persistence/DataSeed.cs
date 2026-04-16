@@ -16,6 +16,8 @@ public static class DataSeed
     public const string AliceDisplayName = "Alice Example";
     public const string AliceBio = "Seeded profile used for follow, like, and redirect scenarios.";
     public const string AlicePostBody = "Seed post from Alice";
+    public const int AdditionalBobTimelinePosts = 25;
+    public const int AdditionalAliceProfilePosts = 25;
 
     // Conversation with replies spanning multiple pages
     public const string ConversationPostBody = "Seed conversation post for reply flows";
@@ -99,6 +101,31 @@ public static class DataSeed
         };
 
         context.Posts.AddRange(alicePost, bobPost, conversationPost);
+        await context.SaveChangesAsync();
+
+        var timelineAndProfilePosts = new List<Post>();
+
+        for (var i = 1; i <= AdditionalBobTimelinePosts; i++)
+        {
+            timelineAndProfilePosts.Add(new Post
+            {
+                AuthorId = bob.Id,
+                Body = $"Bob continuation timeline post #{i}",
+                CreatedAtUtc = now.AddMinutes(-10 - i)
+            });
+        }
+
+        for (var i = 1; i <= AdditionalAliceProfilePosts; i++)
+        {
+            timelineAndProfilePosts.Add(new Post
+            {
+                AuthorId = alice.Id,
+                Body = $"Alice continuation profile post #{i}",
+                CreatedAtUtc = now.AddMinutes(-i)
+            });
+        }
+
+        context.Posts.AddRange(timelineAndProfilePosts);
         await context.SaveChangesAsync();
 
         // Seed replies on conversationPost:
