@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Postly.Api.Features.Posts.Application;
 using Postly.Api.Features.Shared.Errors;
-using Postly.Api.Features.Shared.Pagination;
 using Postly.Api.Features.Timeline.Contracts;
 using Postly.Api.Persistence;
 using Postly.Api.Security;
@@ -35,14 +34,16 @@ public class GetTimelineHandler
             return Results.Problem(ProblemDetailsFactory.CreateUnauthorizedProblem(_httpContext.TraceIdentifier));
         }
 
-        if (!OpaqueCursor.TryParse(cursor, out var parsedCursor))
+        // 2. Parse cursor
+        DateTimeOffset cursorTime = DateTimeOffset.MaxValue;
+        long cursorId = long.MaxValue;
+
+        if (!string.IsNullOrEmpty(cursor))
         {
-            return Results.Problem(ProblemDetailsFactory.CreateValidationProblem(
-                new Dictionary<string, string[]>
-                {
-                    ["cursor"] = ["Cursor must be a valid continuation token."]
-                },
-                _httpContext.TraceIdentifier));
+            if (!TryParseCursor(cursor, out cursorTime, out cursorId))
+            {
+                return Results.BadRequest(new { error = "Invalid cursor format" });
+            }
         }
 
         // 3. Get followed user IDs (materialize to avoid complex subquery)
@@ -60,18 +61,54 @@ public class GetTimelineHandler
             .Where(p => authorIds.Contains(p.AuthorId) && p.ReplyToPostId == null && p.DeletedAtUtc == null)
             .ToListAsync();
 
-        var page = OpaqueCursorPagination.Paginate(
-            allPosts,
-            parsedCursor,
-            PageSize,
-            post => post.CreatedAtUtc,
-            post => post.Id);
+        // 5. Apply cursor filter and sort in memory
+        var posts = allPosts
+            .Where(p => cursorTime == DateTimeOffset.MaxValue ||
+                       p.CreatedAtUtc < cursorTime ||
+                       (p.CreatedAtUtc == cursorTime && p.Id < cursorId))
+            .OrderByDescending(p => p.CreatedAtUtc)
+            .ThenByDescending(p => p.Id)
+            .Take(PageSize + 1)
+            .ToList();
 
-        var postSummaries = await PostSummaryFactory.CreateManyAsync(
-            _dbContext,
-            page.Items,
-            userId.Value);
+        // 6. Calculate viewer context for each post
+        var visiblePosts = posts.Take(PageSize).ToArray();
+        var postSummaries = await PostSummaryFactory.CreateManyAsync(_dbContext, visiblePosts, userId.Value);
 
-        return Results.Ok(new TimelineResponse(postSummaries, page.NextCursor));
+        // 7. Generate next cursor if more posts exist
+        string? nextCursor = null;
+        if (posts.Count > PageSize)
+        {
+            var lastPost = posts[PageSize - 1];
+            nextCursor = EncodeCursor(lastPost.CreatedAtUtc, lastPost.Id);
+        }
+
+        return Results.Ok(new TimelineResponse(postSummaries, nextCursor));
+    }
+
+    private static bool TryParseCursor(string cursor, out DateTimeOffset time, out long id)
+    {
+        time = DateTimeOffset.MinValue;
+        id = 0;
+
+        try
+        {
+            var parts = cursor.Split('_');
+            if (parts.Length != 2)
+                return false;
+
+            time = DateTimeOffset.Parse(parts[0]);
+            id = long.Parse(parts[1]);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string EncodeCursor(DateTimeOffset time, long id)
+    {
+        return $"{time:O}_{id}";
     }
 }

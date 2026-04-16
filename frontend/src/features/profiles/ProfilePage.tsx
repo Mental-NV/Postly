@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
-import {
-  apiClient,
-  getProfilePath,
-} from '../../shared/api/client'
+import { apiClient } from '../../shared/api/client'
 import type {
   PostInteractionState,
   PostSummary,
@@ -23,16 +20,10 @@ import {
 import { Avatar } from '../../shared/components/Avatar'
 import { Button } from '../../shared/components/Button'
 import { ConfirmDialog } from '../../shared/components/ConfirmDialog'
-import {
-  ContinuationEndState,
-  ContinuationErrorState,
-  ContinuationLoadingState,
-} from '../../shared/components/LoadingState'
 import { useAuth } from '../../app/providers/AuthContext'
 import { PostEditor } from '../posts/editor/PostEditor'
 import { PostCard } from '../posts/post-card/PostCard'
 import { Camera } from 'lucide-react'
-import { useContinuationCollection } from '../../shared/hooks/useContinuationCollection'
 
 interface ProfileFormErrors {
   displayName?: string
@@ -54,44 +45,18 @@ export function ProfilePage(): React.JSX.Element {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [posts, setPosts] = useState<PostSummary[]>([])
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [editingPostId, setEditingPostId] = useState<number | null>(null)
   const [deletingPostId, setDeletingPostId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isFollowPending, setIsFollowPending] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [pendingLikePostId, setPendingLikePostId] = useState<number | null>(
     null
   )
   const [error, setError] = useState<string | null>(null)
-  const {
-    items: posts,
-    setItems: setPosts,
-    reset,
-    retry,
-    sentinelRef,
-    status: continuationStatus,
-    errorMessage: continuationError,
-    shouldRenderContinuation,
-  } = useContinuationCollection<PostSummary>({
-    getKey: (post) => post.id,
-    loadMore: async (cursor) => {
-      if (!username) {
-        return {
-          items: [],
-          nextCursor: null,
-        }
-      }
-
-      const data = await apiClient.get<ProfileResponse>(
-        getProfilePath(username, cursor)
-      )
-      return {
-        items: data.posts,
-        nextCursor: data.nextCursor,
-      }
-    },
-    loadMoreErrorMessage: 'Failed to load more posts. Please try again.',
-  })
 
   const [isEditingProfile, setIsEditingProfile] = useState(false)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
@@ -119,14 +84,14 @@ export function ProfilePage(): React.JSX.Element {
     setIsLoading(true)
     setError(null)
 
+    const apiPath = username === 'me' ? '/profiles/me' : `/profiles/${username}`
+
     try {
-      const data = await apiClient.get<ProfileResponse>(getProfilePath(username))
+      const data = await apiClient.get<ProfileResponse>(apiPath)
 
       setProfile(data.profile)
-      reset({
-        items: data.posts,
-        nextCursor: data.nextCursor,
-      })
+      setPosts(data.posts)
+      setNextCursor(data.nextCursor ?? null)
     } catch (err: unknown) {
       if (isApiError(err) && err.status === 404) {
         setError('User not found')
@@ -163,6 +128,29 @@ export function ProfilePage(): React.JSX.Element {
       syncProfileDrafts(profile)
     }
   }, [isEditingProfile, profile, syncProfileDrafts])
+
+  const loadMorePosts = async (): Promise<void> => {
+    if (!username || !nextCursor || isLoadingMore) {
+      return
+    }
+
+    setIsLoadingMore(true)
+
+    const apiPath = username === 'me' ? '/profiles/me' : `/profiles/${username}`
+
+    try {
+      const data = await apiClient.get<ProfileResponse>(
+        `${apiPath}?cursor=${nextCursor}`
+      )
+
+      setPosts((currentPosts) => [...currentPosts, ...data.posts])
+      setNextCursor(data.nextCursor ?? null)
+    } catch {
+      setError('Failed to load more posts')
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   const handleFollow = async (): Promise<void> => {
     if (!username || !profile || isFollowPending) {
@@ -797,29 +785,19 @@ export function ProfilePage(): React.JSX.Element {
               )
             )}
 
-            {shouldRenderContinuation ? (
-              <>
-                <div
-                  data-testid="collection-continuation-sentinel"
-                  ref={sentinelRef}
-                  aria-hidden="true"
-                />
-                {continuationStatus === 'loading-more' ? (
-                  <ContinuationLoadingState message="Loading more posts…" />
-                ) : null}
-                {continuationStatus === 'load-more-error' &&
-                continuationError != null ? (
-                  <ContinuationErrorState
-                    message={continuationError}
-                    onRetry={() => {
-                      void retry()
-                    }}
-                  />
-                ) : null}
-                {continuationStatus === 'exhausted' ? (
-                  <ContinuationEndState message="No more posts to show." />
-                ) : null}
-              </>
+            {nextCursor ? (
+              <div className="load-more-container">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    void loadMorePosts()
+                  }}
+                  disabled={isLoadingMore}
+                  className="load-more-btn"
+                >
+                  {isLoadingMore ? 'Loading...' : 'Load more'}
+                </Button>
+              </div>
             ) : null}
           </>
         )}

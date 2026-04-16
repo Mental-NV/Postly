@@ -6,7 +6,6 @@ import { createMockPost } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
 import { emitProfileIdentityUpdated } from '../../../shared/profileIdentityEvents'
 import { renderWithProviders, mockAuthenticatedSession } from '../../../shared/test/helpers'
-import { installMockIntersectionObserver } from '../../../shared/test/intersection-observer'
 
 const processApi = (globalThis as typeof globalThis & { process: any }).process
 
@@ -17,8 +16,6 @@ vi.mock('../../../shared/api/client', () => ({
     patch: vi.fn(),
     delete: vi.fn(),
   },
-  getTimelinePath: (cursor?: string | null) =>
-    cursor != null ? `/timeline?cursor=${cursor}` : '/timeline',
 }))
 
 describe('TimelinePage', () => {
@@ -193,8 +190,7 @@ describe('TimelinePage', () => {
   })
 
   // Pagination Tests
-  it('loads more posts when the continuation sentinel is reached', async () => {
-    const observer = installMockIntersectionObserver()
+  it('loads more posts with pagination', async () => {
     const initialData = {
       posts: [createMockPost({ id: 1, body: 'First post' })],
       nextCursor: 'cursor123',
@@ -207,22 +203,21 @@ describe('TimelinePage', () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce(initialData)
     vi.mocked(apiClient.get).mockResolvedValueOnce(moreData)
 
+    const user = userEvent.setup()
     renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
-    const sentinel = await screen.findByTestId('collection-continuation-sentinel')
-
-    await act(async () => {
-      observer.trigger(sentinel)
-    })
+    const loadMoreBtn = await screen.findByRole('button', { name: /load more/i })
+    await user.click(loadMoreBtn)
 
     await waitFor(() => {
       expect(screen.getByText('Second post')).toBeInTheDocument()
-      expect(screen.getByTestId('collection-end-state')).toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: /load more/i })
+      ).not.toBeInTheDocument()
     })
   })
 
-  it('shows loading state while automatically loading more posts', async () => {
-    const observer = installMockIntersectionObserver()
+  it('shows loading state while loading more', async () => {
     const initialData = {
       posts: [createMockPost({ id: 1, body: 'First post' })],
       nextCursor: 'cursor123',
@@ -233,17 +228,13 @@ describe('TimelinePage', () => {
       () => new Promise((resolve) => setTimeout(resolve, 100))
     )
 
+    const user = userEvent.setup()
     renderWithProviders(<TimelinePage />, { session: mockAuthenticatedSession() })
 
-    const sentinel = await screen.findByTestId('collection-continuation-sentinel')
+    const loadMoreBtn = await screen.findByRole('button', { name: /load more/i })
+    await user.click(loadMoreBtn)
 
-    await act(async () => {
-      observer.trigger(sentinel)
-    })
-
-    expect(
-      screen.getByTestId('collection-continuation-loading')
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /loading/i })).toBeDisabled()
   })
 
   // Edit Post Tests

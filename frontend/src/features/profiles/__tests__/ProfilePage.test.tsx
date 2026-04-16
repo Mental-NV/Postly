@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider } from '../../../app/providers/AuthProvider'
@@ -10,7 +10,6 @@ import {
 } from '../../../shared/test/factories'
 import { apiClient } from '../../../shared/api/client'
 import { ApiError } from '../../../shared/api/errors'
-import { installMockIntersectionObserver } from '../../../shared/test/intersection-observer'
 import type { SessionResponse } from '../../../shared/api/contracts'
 
 const processApi = (globalThis as typeof globalThis & { process: any }).process
@@ -23,10 +22,6 @@ vi.mock('../../../shared/api/client', () => ({
     putForm: vi.fn(),
     delete: vi.fn(),
   },
-  getProfilePath: (username: string, cursor?: string | null) =>
-    cursor != null
-      ? `/profiles/${username}?cursor=${cursor}`
-      : `/profiles/${username}`,
 }))
 
 function renderProfilePage(
@@ -429,22 +424,23 @@ describe('ProfilePage', () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce(initialData)
     vi.mocked(apiClient.get).mockResolvedValueOnce(moreData)
 
-    const observer = installMockIntersectionObserver()
+    const user = userEvent.setup()
     renderProfilePage('alice')
 
     await waitFor(() => {
       expect(screen.getByText('First post')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Load more' })
+      ).toBeInTheDocument()
     })
 
-    const sentinel = await screen.findByTestId('collection-continuation-sentinel')
-
-    await act(async () => {
-      observer.trigger(sentinel)
-    })
+    await user.click(screen.getByRole('button', { name: 'Load more' }))
 
     await waitFor(() => {
       expect(screen.getByText('Second post')).toBeInTheDocument()
-      expect(screen.getByTestId('collection-end-state')).toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: 'Load more' })
+      ).not.toBeInTheDocument()
     })
 
     expect(apiClient.get).toHaveBeenCalledWith(
@@ -497,19 +493,18 @@ describe('ProfilePage', () => {
     vi.mocked(apiClient.get).mockResolvedValueOnce(canonicalData)
     vi.mocked(apiClient.get).mockResolvedValueOnce(moreData)
 
-    const observer = installMockIntersectionObserver()
+    const user = userEvent.setup()
     renderProfilePage('me')
 
     await waitFor(() => {
       expect(screen.getByTestId('current-pathname')).toHaveTextContent('/u/alice')
       expect(screen.getByText('First post')).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Load more' })
+      ).toBeInTheDocument()
     })
 
-    const sentinel = await screen.findByTestId('collection-continuation-sentinel')
-
-    await act(async () => {
-      observer.trigger(sentinel)
-    })
+    await user.click(screen.getByRole('button', { name: 'Load more' }))
 
     await waitFor(() => {
       expect(apiClient.get).toHaveBeenCalledWith(

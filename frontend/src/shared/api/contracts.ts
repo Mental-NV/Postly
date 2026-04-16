@@ -35,12 +35,12 @@ export interface ConversationTarget {
 export interface ConversationResponse {
   target: ConversationTarget
   replies: PostSummary[]
-  nextCursor: string | null
+  nextCursor?: string | null
 }
 
 export interface ReplyPageResponse {
   replies: PostSummary[]
-  nextCursor: string | null
+  nextCursor?: string | null
 }
 
 export interface PostInteractionState {
@@ -95,13 +95,13 @@ export interface SessionResponse {
 
 export interface TimelineResponse {
   posts: PostSummary[]
-  nextCursor: string | null
+  nextCursor?: string
 }
 
 export interface ProfileResponse {
   profile: UserProfile
   posts: PostSummary[]
-  nextCursor: string | null
+  nextCursor?: string
 }
 
 export interface UpdateProfileRequest {
@@ -124,9 +124,3 @@ export interface CreateReplyRequest {
 export interface PostResponse {
   post: PostSummary
 }
-
-export type ContinuationState =
-  | 'idle'
-  | 'loading-more'
-  | 'load-more-error'
-  | 'exhausted'
