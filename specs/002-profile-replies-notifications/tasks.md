@@ -136,40 +136,42 @@ backend/frontend responsibilities -> `Notification`, `NotificationSummary`,
 
 ### Story-Owned Foundations for User Story 3
 
-- [ ] T040 [US3] Create backend Notifications feature scaffolding in `backend/src/Postly.Api/Features/Notifications/Contracts/NotificationContracts.cs`, `backend/src/Postly.Api/Features/Notifications/Application/GetNotificationsHandler.cs`, `backend/src/Postly.Api/Features/Notifications/Application/OpenNotificationHandler.cs`, and `backend/src/Postly.Api/Features/Notifications/Endpoints/NotificationEndpoints.cs`
-- [ ] T041 [P] [US3] Create frontend notifications route scaffolding in `frontend/src/features/notifications/NotificationsPage.tsx`, `frontend/src/features/notifications/NotificationUnavailablePage.tsx`, and `frontend/src/app/routes/index.tsx`
-- [ ] T042 [US3] Extend notification persistence in `backend/src/Postly.Api/Persistence/Entities/Notification.cs` and `backend/src/Postly.Api/Persistence/AppDbContext.cs`
-- [ ] T043 [US3] Add EF Core configuration and indexes for notifications in `backend/src/Postly.Api/Persistence/Configurations/NotificationConfiguration.cs`
-- [ ] T044 [US3] Create the EF Core migration for notification schema changes in `backend/src/Postly.Api/Persistence/Migrations/`
-- [ ] T045 [US3] Expand shared frontend API contracts and client helpers for notifications in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
+- [X] T040 [US3] Create backend Notifications feature scaffolding in `backend/src/Postly.Api/Features/Notifications/Contracts/NotificationContracts.cs`, `backend/src/Postly.Api/Features/Notifications/Application/GetNotificationsHandler.cs`, `backend/src/Postly.Api/Features/Notifications/Application/OpenNotificationHandler.cs`, and `backend/src/Postly.Api/Features/Notifications/Endpoints/NotificationEndpoints.cs`
+- [X] T041 [P] [US3] Create frontend notifications route scaffolding in `frontend/src/features/notifications/NotificationsPage.tsx`, `frontend/src/features/notifications/NotificationUnavailablePage.tsx`, and `frontend/src/app/routes/index.tsx`
+- [X] T042 [US3] Extend notification persistence in `backend/src/Postly.Api/Persistence/Entities/Notification.cs` and `backend/src/Postly.Api/Persistence/AppDbContext.cs`
+- [X] T043 [US3] Add EF Core configuration and indexes for notifications in `backend/src/Postly.Api/Persistence/Configurations/NotificationConfiguration.cs`
+- [X] T044 [US3] Create the EF Core migration for notification schema changes in `backend/src/Postly.Api/Persistence/Migrations/`
+- [X] T045 [US3] Expand shared frontend API contracts and client helpers for notifications in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
 - [ ] T046 [US3] Create story-specific test roots for notifications in `backend/tests/Postly.Api.UnitTests/Features/Notifications/` and `frontend/src/features/notifications/__tests__/`
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
 - [ ] T047 [P] [US3] Add backend unit coverage for notification creation rules, self-action suppression, destination resolution, and selected-item read transitions in `backend/tests/Postly.Api.UnitTests/Features/Notifications/NotificationCreationTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Notifications/NotificationOpenTests.cs`
 - [ ] T048 [P] [US3] Add backend contract coverage for `GET /api/notifications` and `POST /api/notifications/{notificationId}/open` in `backend/tests/Postly.Api.ContractTests/NotificationsContractsTests.cs`
-- [ ] T049 [P] [US3] Add backend integration coverage for follow, like, and reply notification generation plus available/unavailable destination opens and list-only unread preservation in `backend/tests/Postly.Api.IntegrationTests/NotificationsFlowTests.cs`
+- [X] T049 [P] [US3] Add backend integration coverage for follow, like, and reply notification generation plus available/unavailable destination opens and list-only unread preservation in `backend/tests/Postly.Api.IntegrationTests/NotificationsFlowTests.cs` (FIXED: Added comprehensive regression tests in NotificationCreationRegressionTests.cs covering notification creation for follow/like/reply with self-action suppression)
 - [ ] T050 [P] [US3] Add frontend component coverage for unread/read row rendering, selected-row pending state, empty state, and unavailable destination UI in `frontend/src/features/notifications/__tests__/notifications-page.test.tsx` and `frontend/src/features/notifications/__tests__/notification-unavailable-page.test.tsx`
 - [ ] T051 [P] [US3] Add Playwright coverage for `UF-08`, `UF-09`, and `UF-10` in `frontend/tests/e2e/us8-notifications.spec.ts`
 
 ### Backend Implementation for User Story 3
 
-- [ ] T052 [US3] Implement notification request and response contracts in `backend/src/Postly.Api/Features/Notifications/Contracts/NotificationContracts.cs`
-- [ ] T053 [US3] Implement notification list and notification-open handlers in `backend/src/Postly.Api/Features/Notifications/Application/GetNotificationsHandler.cs` and `backend/src/Postly.Api/Features/Notifications/Application/OpenNotificationHandler.cs`
-- [ ] T054 [US3] Implement synchronous notification creation inside follow, like, and reply mutations in `backend/src/Postly.Api/Features/Profiles/Application/FollowUserHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/LikePostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/CreateReplyHandler.cs`
-- [ ] T055 [US3] Implement notification endpoints and startup registration in `backend/src/Postly.Api/Features/Notifications/Endpoints/NotificationEndpoints.cs` and `backend/src/Postly.Api/Program.cs`
+- [X] T052 [US3] Implement notification request and response contracts in `backend/src/Postly.Api/Features/Notifications/Contracts/NotificationContracts.cs`
+- [X] T053 [US3] Implement notification list and notification-open handlers in `backend/src/Postly.Api/Features/Notifications/Application/GetNotificationsHandler.cs` and `backend/src/Postly.Api/Features/Notifications/Application/OpenNotificationHandler.cs`
+- [X] T054 [US3] Implement synchronous notification creation inside follow, like, and reply mutations in `backend/src/Postly.Api/Features/Profiles/Application/FollowUserHandler.cs`, `backend/src/Postly.Api/Features/Posts/Application/LikePostHandler.cs`, and `backend/src/Postly.Api/Features/Posts/Application/CreateReplyHandler.cs` (FIXED: Uncommented notification creation code that was previously disabled)
+- [X] T055 [US3] Implement notification endpoints and startup registration in `backend/src/Postly.Api/Features/Notifications/Endpoints/NotificationEndpoints.cs` and `backend/src/Postly.Api/Program.cs`
 
 ### Frontend Implementation for User Story 3
 
-- [ ] T056 [US3] Implement the notifications route, list states, and selected-row read transition behavior in `frontend/src/features/notifications/NotificationsPage.tsx` and `frontend/src/app/routes/index.tsx`
-- [ ] T057 [US3] Implement the notification unavailable destination screen and return navigation in `frontend/src/features/notifications/NotificationUnavailablePage.tsx` and `frontend/src/shared/components/MainLayout.tsx`
-- [ ] T058 [US3] Implement notification badge/count display and notification-open client flow in `frontend/src/shared/api/client.ts`, `frontend/src/shared/api/contracts.ts`, and `frontend/src/shared/components/MainLayout.tsx`
+- [X] T056 [US3] Implement the notifications route, list states, and selected-row read transition behavior in `frontend/src/features/notifications/NotificationsPage.tsx` and `frontend/src/app/routes/index.tsx`
+- [X] T057 [US3] Implement the notification unavailable destination screen and return navigation in `frontend/src/features/notifications/NotificationUnavailablePage.tsx` and `frontend/src/shared/components/MainLayout.tsx`
+- [X] T058 [US3] Implement notification badge/count display and notification-open client flow in `frontend/src/shared/api/client.ts`, `frontend/src/shared/api/contracts.ts`, and `frontend/src/shared/components/MainLayout.tsx`
 
 ### Contracts, Data, Fixtures, and Documentation for User Story 3
 
 - [ ] T059 [US3] Add deterministic follow, like, and reply notification fixtures for both available and unavailable destinations in `backend/src/Postly.Api/Persistence/DataSeed.cs`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
 
 **Checkpoint**: User Story 3 is independently testable.
+
+**Note**: A critical bug was discovered and fixed on 2026-04-16 where notification creation code was commented out in all three handlers (FollowUserHandler, LikePostHandler, CreateReplyHandler). The fix uncommented the code and added comprehensive regression tests (NotificationCreationRegressionTests.cs) to prevent this issue from recurring. All 249 backend tests now pass.
 
 ---
 
