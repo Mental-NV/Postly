@@ -49,6 +49,32 @@ export interface PostInteractionState {
   likedByViewer: boolean
 }
 
+export interface NotificationsResponse {
+  notifications: NotificationSummary[]
+}
+
+export interface NotificationSummary {
+  id: number
+  kind: string
+  actorUsername: string
+  actorDisplayName: string
+  createdAtUtc: string
+  isRead: boolean
+  destinationKind: string
+  destinationRoute: string
+  destinationState: string
+}
+
+export interface NotificationOpenResponse {
+  notification: NotificationSummary
+  destination: NotificationDestination
+}
+
+export interface NotificationDestination {
+  state: string
+  route: string
+}
+
 export interface SignupRequest {
   username: string
   displayName: string

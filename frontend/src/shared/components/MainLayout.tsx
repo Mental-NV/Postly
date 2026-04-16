@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink, Link, useNavigate } from 'react-router-dom'
-import { Home, User, LogOut } from 'lucide-react'
+import { Home, User, Bell, LogOut } from 'lucide-react'
 import { useAuth } from '../../app/providers/AuthContext'
 import { Button } from './Button'
 
@@ -46,6 +46,16 @@ export function MainLayout({ children }: MainLayoutProps): React.JSX.Element {
                 >
                   <User size={24} />
                   <span className="nav-link-text">Profile</span>
+                </NavLink>
+                <NavLink
+                  to="/notifications"
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'active' : ''}`
+                  }
+                  data-testid="nav-notifications-link"
+                >
+                  <Bell size={24} />
+                  <span className="nav-link-text">Notifications</span>
                 </NavLink>
               </nav>
               <div className="nav-footer">
