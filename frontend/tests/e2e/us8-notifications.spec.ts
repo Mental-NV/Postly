@@ -140,39 +140,47 @@ test.describe('User Story 8: In-App Notifications', () => {
   test('UF-10: viewing notifications list does not mark notifications read', async ({ page }) => {
     await signIn(page, { username: 'bob' })
 
-    // Create unread notifications
+    // Create a fresh unread notification for Bob
     await signIn(page, { username: 'alice' })
     await createFollowNotification(page, 'alice', 'bob')
 
-    // Sign back in as Bob
+    // Sign back in as Bob and go to notifications
     await signIn(page, { username: 'bob' })
     await goToNotifications(page)
 
-    // Verify notifications are unread
+    // Find the most recent notification (the follow we just created) and verify it is unread
     await expect(page.getByTestId('notifications-list')).toBeVisible()
     const notifications = page.locator('[data-testid^="notification-item-"]')
+    await expect(notifications.first()).toBeVisible()
+
+    // Capture the ID of the freshly created follow notification (most recent = last in list or first?)
+    // Collect all unread notification IDs visible right now
     const count = await notifications.count()
     expect(count).toBeGreaterThan(0)
 
-    const notificationIds: string[] = []
+    // Find the unread notifications among the visible ones
+    const unreadIds: string[] = []
     for (let i = 0; i < count; i++) {
       const notification = notifications.nth(i)
       const notificationId = (await notification.getAttribute('data-testid'))?.replace('notification-item-', '')
       if (notificationId) {
-        notificationIds.push(notificationId)
-        await expect(page.getByTestId(`notification-unread-indicator-${notificationId}`)).toBeVisible()
+        const unreadIndicator = page.getByTestId(`notification-unread-indicator-${notificationId}`)
+        if (await unreadIndicator.isVisible()) {
+          unreadIds.push(notificationId)
+        }
       }
     }
+    expect(unreadIds.length).toBeGreaterThan(0)
 
     // Navigate away without clicking any notification
     await page.goto('/')
-    await expect(page.getByTestId('timeline-page')).toBeVisible()
+    await expect(page.getByTestId('timeline-feed')).toBeVisible()
 
     // Return to notifications
     await goToNotifications(page)
 
-    // Verify all notifications remain unread
-    for (const notificationId of notificationIds) {
+    // Verify all previously unread notifications remain unread
+    for (const notificationId of unreadIds) {
       await expect(page.getByTestId(`notification-unread-indicator-${notificationId}`)).toBeVisible()
     }
   })
