@@ -65,7 +65,7 @@ responsibilities -> `UserAccount`, `ProfileView`, `PostSummary`
 
 - [X] T022 [US1] Add deterministic profile-edit, valid avatar upload, invalid avatar upload, and avatar-fallback fixtures for Bob identity surfaces in `backend/src/Postly.Api/Persistence/DataSeed.cs`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
 
-**Checkpoint**: User Story 1 is independently testable.
+**Checkpoint**: User Story 1 is independently testable. ✅ COMPLETE
 
 ---
 
@@ -115,7 +115,7 @@ backend/frontend responsibilities -> `Post`, `ConversationView`, `PostSummary`
 
 - [X] T039 [US2] Add deterministic reply ownership, unavailable-parent, and multi-page conversation fixtures in `backend/src/Postly.Api/Persistence/DataSeed.cs`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
 
-**Checkpoint**: User Story 2 is independently testable.
+**Checkpoint**: User Story 2 is independently testable. ✅ COMPLETE
 
 ---
 
@@ -142,15 +142,15 @@ backend/frontend responsibilities -> `Notification`, `NotificationSummary`,
 - [X] T043 [US3] Add EF Core configuration and indexes for notifications in `backend/src/Postly.Api/Persistence/Configurations/NotificationConfiguration.cs`
 - [X] T044 [US3] Create the EF Core migration for notification schema changes in `backend/src/Postly.Api/Persistence/Migrations/`
 - [X] T045 [US3] Expand shared frontend API contracts and client helpers for notifications in `frontend/src/shared/api/contracts.ts`, `frontend/src/shared/api/client.ts`, and `frontend/src/shared/api/errors.ts`
-- [ ] T046 [US3] Create story-specific test roots for notifications in `backend/tests/Postly.Api.UnitTests/Features/Notifications/` and `frontend/src/features/notifications/__tests__/`
+- [X] T046 [US3] Create story-specific test roots for notifications in `backend/tests/Postly.Api.UnitTests/Features/Notifications/` and `frontend/src/features/notifications/__tests__/`
 
 ### Tests for User Story 3 (REQUIRED) ⚠️
 
-- [ ] T047 [P] [US3] Add backend unit coverage for notification creation rules, self-action suppression, destination resolution, and selected-item read transitions in `backend/tests/Postly.Api.UnitTests/Features/Notifications/NotificationCreationTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Notifications/NotificationOpenTests.cs`
-- [ ] T048 [P] [US3] Add backend contract coverage for `GET /api/notifications` and `POST /api/notifications/{notificationId}/open` in `backend/tests/Postly.Api.ContractTests/NotificationsContractsTests.cs`
+- [X] T047 [P] [US3] Add backend unit coverage for notification creation rules, self-action suppression, destination resolution, and selected-item read transitions in `backend/tests/Postly.Api.UnitTests/Features/Notifications/NotificationCreationTests.cs` and `backend/tests/Postly.Api.UnitTests/Features/Notifications/NotificationOpenTests.cs`
+- [X] T048 [P] [US3] Add backend contract coverage for `GET /api/notifications` and `POST /api/notifications/{notificationId}/open` in `backend/tests/Postly.Api.ContractTests/NotificationsContractsTests.cs`
 - [X] T049 [P] [US3] Add backend integration coverage for follow, like, and reply notification generation plus available/unavailable destination opens and list-only unread preservation in `backend/tests/Postly.Api.IntegrationTests/NotificationsFlowTests.cs` (FIXED: Added comprehensive regression tests in NotificationCreationRegressionTests.cs covering notification creation for follow/like/reply with self-action suppression)
-- [ ] T050 [P] [US3] Add frontend component coverage for unread/read row rendering, selected-row pending state, empty state, and unavailable destination UI in `frontend/src/features/notifications/__tests__/notifications-page.test.tsx` and `frontend/src/features/notifications/__tests__/notification-unavailable-page.test.tsx`
-- [ ] T051 [P] [US3] Add Playwright coverage for `UF-08`, `UF-09`, and `UF-10` in `frontend/tests/e2e/us8-notifications.spec.ts`
+- [X] T050 [P] [US3] Add frontend component coverage for unread/read row rendering, selected-row pending state, empty state, and unavailable destination UI in `frontend/src/features/notifications/__tests__/notifications-page.test.tsx` and `frontend/src/features/notifications/__tests__/notification-unavailable-page.test.tsx`
+- [X] T051 [P] [US3] Add Playwright coverage for `UF-08`, `UF-09`, and `UF-10` in `frontend/tests/e2e/us8-notifications.spec.ts`
 
 ### Backend Implementation for User Story 3
 
@@ -167,9 +167,9 @@ backend/frontend responsibilities -> `Notification`, `NotificationSummary`,
 
 ### Contracts, Data, Fixtures, and Documentation for User Story 3
 
-- [ ] T059 [US3] Add deterministic follow, like, and reply notification fixtures for both available and unavailable destinations in `backend/src/Postly.Api/Persistence/DataSeed.cs`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
+- [X] T059 [US3] Add deterministic follow, like, and reply notification fixtures for both available and unavailable destinations in `backend/src/Postly.Api/Persistence/DataSeed.cs`, `frontend/src/shared/test/factories.ts`, and `frontend/tests/e2e/helpers.ts`
 
-**Checkpoint**: User Story 3 is independently testable.
+**Checkpoint**: User Story 3 is independently testable. ✅ COMPLETE
 
 **Note**: A critical bug was discovered and fixed on 2026-04-16 where notification creation code was commented out in all three handlers (FollowUserHandler, LikePostHandler, CreateReplyHandler). The fix uncommented the code and added comprehensive regression tests (NotificationCreationRegressionTests.cs) to prevent this issue from recurring. All 249 backend tests now pass.
 
