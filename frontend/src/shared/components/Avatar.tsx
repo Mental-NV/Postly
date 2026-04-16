@@ -82,7 +82,12 @@ export function Avatar({
         />
       ) : (
         <div
-          style={{ backgroundColor }}
+          style={{
+            backgroundColor,
+            width: '100%',
+            height: '100%',
+            borderRadius: 'inherit',
+          }}
           className="avatar-fallback"
           data-testid={fallbackTestId}
           aria-hidden="true"
