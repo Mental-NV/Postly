@@ -14,6 +14,14 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .IsRequired()
             .HasMaxLength(50);
 
+        builder.Property(n => n.ActorUsername)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.Property(n => n.ActorDisplayName)
+            .IsRequired()
+            .HasMaxLength(100);
+
         builder.HasOne(n => n.RecipientUser)
             .WithMany()
             .HasForeignKey(n => n.RecipientUserId)
@@ -22,7 +30,8 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.HasOne(n => n.ActorUser)
             .WithMany()
             .HasForeignKey(n => n.ActorUserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
 
         builder.HasIndex(n => new { n.RecipientUserId, n.CreatedAtUtc, n.Id })
             .HasDatabaseName("IX_Notifications_RecipientUserId_CreatedAtUtc_Id");

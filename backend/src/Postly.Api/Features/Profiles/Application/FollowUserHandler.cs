@@ -69,10 +69,13 @@ public class FollowUserHandler
         _dbContext.Follows.Add(follow);
 
         // Create notification
+        var currentUser = await _dbContext.UserAccounts.FindAsync(currentUserId.Value);
         _dbContext.Notifications.Add(new Notification
         {
             RecipientUserId = targetUser.Id,
             ActorUserId = currentUserId.Value,
+            ActorUsername = currentUser!.Username,
+            ActorDisplayName = currentUser.DisplayName,
             Kind = "follow",
             ProfileUserId = targetUser.Id,
             CreatedAtUtc = DateTimeOffset.UtcNow

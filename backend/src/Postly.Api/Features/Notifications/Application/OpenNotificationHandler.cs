@@ -23,7 +23,6 @@ public class OpenNotificationHandler
             return Results.Unauthorized();
 
         var notification = await _context.Notifications
-            .Include(n => n.ActorUser)
             .FirstOrDefaultAsync(n => n.Id == notificationId && n.RecipientUserId == userId.Value);
 
         if (notification == null)
@@ -42,8 +41,8 @@ public class OpenNotificationHandler
         var summary = new NotificationSummary(
             notification.Id,
             notification.Kind,
-            notification.ActorUser.Username,
-            notification.ActorUser.DisplayName,
+            notification.ActorUsername,
+            notification.ActorDisplayName,
             notification.CreatedAtUtc,
             true,
             GetDestinationKind(notification),
@@ -73,7 +72,7 @@ public class OpenNotificationHandler
 
         return notification.Kind switch
         {
-            "follow" => $"/u/{notification.ActorUser.Username}",
+            "follow" => $"/u/{notification.ActorUsername}",
             "like" => $"/posts/{notification.PostId}",
             "reply" => $"/posts/{notification.PostId}",
             _ => "/"
