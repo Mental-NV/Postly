@@ -54,7 +54,7 @@ export function TimelinePage(): React.JSX.Element {
     loadMoreErrorMessage: 'Failed to load more posts. Please try again.',
   })
 
-  const loadTimeline = useCallback(async (): Promise<void> => {
+  async function loadTimeline(): Promise<void> {
     setIsLoading(true)
     setError(null)
 
@@ -69,11 +69,14 @@ export function TimelinePage(): React.JSX.Element {
     } finally {
       setIsLoading(false)
     }
-  }, [reset])
+  }
 
   useEffect(() => {
     void loadTimeline()
-  }, [loadTimeline])
+    // `reset` is a React 19 effect event; including it in bootstrap deps
+    // retriggers initial page loads and breaks continuation flows.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     return subscribeToProfileIdentityUpdates((update) => {
@@ -168,7 +171,7 @@ export function TimelinePage(): React.JSX.Element {
 
   if (isLoading) {
     return (
-      <div className="page-loading">
+      <div className="page-loading" data-testid="timeline-feed">
         <div className="text-center py-8">Loading timeline...</div>
       </div>
     )

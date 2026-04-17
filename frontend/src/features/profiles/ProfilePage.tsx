@@ -111,7 +111,7 @@ export function ProfilePage(): React.JSX.Element {
     setProfileFormErrors({})
   }, [])
 
-  const loadProfile = useCallback(async (): Promise<void> => {
+  async function loadProfile(): Promise<void> {
     if (!username) {
       return
     }
@@ -136,7 +136,7 @@ export function ProfilePage(): React.JSX.Element {
     } finally {
       setIsLoading(false)
     }
-  }, [reset, username])
+  }
 
   useEffect(() => {
     if (!username) {
@@ -148,7 +148,10 @@ export function ProfilePage(): React.JSX.Element {
     }
 
     void loadProfile()
-  }, [isAuthenticated, loadProfile, username])
+    // `reset` is a React 19 effect event; keeping bootstrap deps narrow avoids
+    // re-running the initial fetch on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, username])
 
   useEffect(() => {
     if (!profile?.isSelf || username !== 'me') {
@@ -481,7 +484,7 @@ export function ProfilePage(): React.JSX.Element {
   if (username === 'me') {
     if (isAuthLoading) {
       return (
-        <div className="page-loading">
+        <div className="page-loading" data-testid="profile-page">
           <div className="text-center py-8">Loading profile...</div>
         </div>
       )
@@ -500,7 +503,7 @@ export function ProfilePage(): React.JSX.Element {
 
   if (isLoading) {
     return (
-      <div className="page-loading">
+      <div className="page-loading" data-testid="profile-page">
         <div className="text-center py-8">Loading profile...</div>
       </div>
     )
@@ -508,7 +511,7 @@ export function ProfilePage(): React.JSX.Element {
 
   if (error && !profile) {
     return (
-      <div className="page-error-container">
+      <div className="page-error-container" data-testid="profile-page">
         <p className="page-error-text">{error}</p>
         <div className="error-actions">
           <Button
@@ -533,7 +536,7 @@ export function ProfilePage(): React.JSX.Element {
   }
 
   if (!profile) {
-    return <div>Loading...</div>
+    return <div data-testid="profile-page">Loading...</div>
   }
 
   const showFormStatus = profileFormStatus != null

@@ -15,7 +15,7 @@ export default defineConfig({
   reporter: 'html',
   use: {
     baseURL: 'http://localhost:5000',
-    trace: 'on-first-retry',
+    trace: process.env.CI ? 'on-first-retry' : 'off',
   },
 
   projects: [
@@ -32,11 +32,15 @@ export default defineConfig({
       ASPNETCORE_ENVIRONMENT: 'Development',
       DOTNET_ENVIRONMENT: 'Development',
       ConnectionStrings__DefaultConnection: `Data Source=${e2eDatabasePath}`,
+      Logging__LogLevel__Default: 'Warning',
+      Logging__LogLevel__Microsoft: 'Warning',
+      'Logging__LogLevel__Microsoft.Hosting.Lifetime': 'Warning',
+      'Logging__LogLevel__Microsoft.EntityFrameworkCore': 'Warning',
     },
     url: 'http://localhost:5000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
-    stdout: 'pipe',
+    stdout: 'ignore',
     stderr: 'pipe',
   },
 })

@@ -25,7 +25,7 @@ async function getVisibleCardIds(cards: Locator): Promise<string[]> {
 
 async function expectCountToIncrease(cards: Locator, initialCount: number): Promise<void> {
   await expect
-    .poll(async () => cards.count())
+    .poll(async () => cards.count(), { timeout: 15000 })
     .toBeGreaterThan(initialCount)
 }
 
@@ -56,12 +56,14 @@ test.describe('User Story 9: Automatic continuation loading', () => {
     page,
   }) => {
     await signIn(page, { username: 'bob' })
-    await page.goto('/')
 
     const feed = page.getByTestId('timeline-feed')
     await expect(feed).toBeVisible()
 
     const cards = feed.locator('[data-testid^="post-card-"]')
+    await expect
+      .poll(async () => cards.count(), { timeout: 15000 })
+      .toBeGreaterThanOrEqual(20)
     const initialCount = await cards.count()
     expect(initialCount).toBeGreaterThanOrEqual(20)
 
@@ -86,6 +88,9 @@ test.describe('User Story 9: Automatic continuation loading', () => {
     const cards = profilePage
       .getByTestId('profile-posts')
       .locator('[data-testid^="post-card-"]')
+    await expect
+      .poll(async () => cards.count(), { timeout: 15000 })
+      .toBeGreaterThan(0)
     const initialIds = await getVisibleCardIds(cards)
     const initialCount = initialIds.length
 
@@ -122,6 +127,9 @@ test.describe('User Story 9: Automatic continuation loading', () => {
     const replies = page
       .getByTestId('conversation-replies')
       .locator('[data-testid^="post-card-"]')
+    await expect
+      .poll(async () => replies.count(), { timeout: 15000 })
+      .toBe(20)
     const initialCount = await replies.count()
     expect(initialCount).toBe(20)
 

@@ -40,7 +40,9 @@ function HookHarness({
       items: [createMockPost({ id: 1, body: 'Initial visible post' })],
       nextCursor: 'cursor-1',
     })
-  }, [reset])
+    // `reset` is an effect event; this harness should seed visible items once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div>

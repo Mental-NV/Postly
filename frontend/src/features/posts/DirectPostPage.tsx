@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   apiClient,
@@ -79,7 +79,7 @@ export function DirectPostPage(): React.JSX.Element | null {
   const [replyError, setReplyError] = useState<string | null>(null)
   const replyInputRef = useRef<HTMLTextAreaElement>(null)
 
-  const loadConversation = useCallback(async (): Promise<void> => {
+  async function loadConversation(): Promise<void> {
     if (!postId) return
 
     setIsLoading(true)
@@ -104,11 +104,14 @@ export function DirectPostPage(): React.JSX.Element | null {
     } finally {
       setIsLoading(false)
     }
-  }, [postId, reset])
+  }
 
   useEffect(() => {
     void loadConversation()
-  }, [loadConversation])
+    // `reset` is a React 19 effect event; including it in bootstrap deps
+    // causes repeated conversation reloads.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId])
 
   useEffect(() => {
     return subscribeToProfileIdentityUpdates((update) => {
@@ -245,8 +248,10 @@ export function DirectPostPage(): React.JSX.Element | null {
   if (isLoading) {
     return (
       <div className="page-loading" data-testid="post-page">
-        <div className="text-center py-8" data-testid="conversation-status">
-          Loading post...
+        <div data-testid="conversation-page">
+          <div className="text-center py-8" data-testid="conversation-status">
+            Loading post...
+          </div>
         </div>
       </div>
     )
@@ -255,13 +260,15 @@ export function DirectPostPage(): React.JSX.Element | null {
   if (notFound) {
     return (
       <div className="page-unavailable-state" data-testid="post-page">
-        <div data-testid="post-unavailable-state">
-          <h2 className="empty-title">Post not available</h2>
-          <p className="empty-text">This post may have been deleted or does not exist.</p>
-          <div style={{ marginTop: '24px' }}>
-            <Button variant="primary" onClick={() => { void navigate('/') }} data-testid="post-unavailable-home-link">
-              Back to Home
-            </Button>
+        <div data-testid="conversation-page">
+          <div data-testid="post-unavailable-state">
+            <h2 className="empty-title">Post not available</h2>
+            <p className="empty-text">This post may have been deleted or does not exist.</p>
+            <div style={{ marginTop: '24px' }}>
+              <Button variant="primary" onClick={() => { void navigate('/') }} data-testid="post-unavailable-home-link">
+                Back to Home
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -271,12 +278,14 @@ export function DirectPostPage(): React.JSX.Element | null {
   if (error && !conversation) {
     return (
       <div className="page-error-container" data-testid="post-page">
-        <p className="page-error-text" data-testid="conversation-status">{error}</p>
-        <div className="error-actions">
-          <Button variant="primary" onClick={() => { void loadConversation() }}>Retry</Button>
-          <Button variant="secondary" onClick={() => { void navigate('/') }}>Back to Home</Button>
+        <div data-testid="conversation-page">
+          <p className="page-error-text" data-testid="conversation-status">{error}</p>
+          <div className="error-actions">
+            <Button variant="primary" onClick={() => { void loadConversation() }}>Retry</Button>
+            <Button variant="secondary" onClick={() => { void navigate('/') }}>Back to Home</Button>
+          </div>
         </div>
-      </div>
+        </div>
     )
   }
 

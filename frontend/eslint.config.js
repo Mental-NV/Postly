@@ -7,7 +7,7 @@ import jsxA11y from 'eslint-plugin-jsx-a11y'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'playwright-report', '*.config.ts', '*.config.js', 'tests/**/*', 'e2e/**/*'] },
+  { ignores: ['dist', 'coverage', 'playwright-report', 'test-results', '*.config.ts', '*.config.js', 'tests/**/*', 'e2e/**/*'] },
 
   // Base configuration for all TypeScript files
   {

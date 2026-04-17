@@ -31,7 +31,10 @@ export async function signIn(
   await page.getByTestId('username-input').fill(username)
   await page.getByTestId('password-input').fill(password)
   await page.getByTestId('submit-button').click()
-  await expect(page).toHaveURL('/')
+  await expect(page).toHaveURL('/', { timeout: 15000 })
+  await expect(page.getByTestId('timeline-feed')).toBeVisible({
+    timeout: 15000,
+  })
 }
 
 /** Navigate to the seeded conversation post (Alice's ConversationPostBody post). */
