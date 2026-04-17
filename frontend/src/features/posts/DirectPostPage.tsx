@@ -104,7 +104,7 @@ export function DirectPostPage(): React.JSX.Element | null {
     } finally {
       setIsLoading(false)
     }
-  }, [postId])
+  }, [postId, reset])
 
   useEffect(() => {
     void loadConversation()

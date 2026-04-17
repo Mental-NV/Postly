@@ -136,7 +136,7 @@ export function ProfilePage(): React.JSX.Element {
     } finally {
       setIsLoading(false)
     }
-  }, [username])
+  }, [reset, username])
 
   useEffect(() => {
     if (!username) {

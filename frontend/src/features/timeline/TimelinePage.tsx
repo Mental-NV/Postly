@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Composer } from '../posts/composer/Composer'
 import { PostEditor } from '../posts/editor/PostEditor'
 import { PostCard } from '../posts/post-card/PostCard'
@@ -54,21 +54,7 @@ export function TimelinePage(): React.JSX.Element {
     loadMoreErrorMessage: 'Failed to load more posts. Please try again.',
   })
 
-  useEffect(() => {
-    void loadTimeline()
-  }, [])
-
-  useEffect(() => {
-    return subscribeToProfileIdentityUpdates((update) => {
-      setPosts((currentPosts) =>
-        currentPosts.map((post) =>
-          applyProfileIdentityUpdateToPost(post, update)
-        )
-      )
-    })
-  }, [])
-
-  async function loadTimeline(): Promise<void> {
+  const loadTimeline = useCallback(async (): Promise<void> => {
     setIsLoading(true)
     setError(null)
 
@@ -83,7 +69,21 @@ export function TimelinePage(): React.JSX.Element {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [reset])
+
+  useEffect(() => {
+    void loadTimeline()
+  }, [loadTimeline])
+
+  useEffect(() => {
+    return subscribeToProfileIdentityUpdates((update) => {
+      setPosts((currentPosts) =>
+        currentPosts.map((post) =>
+          applyProfileIdentityUpdateToPost(post, update)
+        )
+      )
+    })
+  }, [setPosts])
 
   async function handlePostCreated(): Promise<void> {
     // Reload timeline to show new post

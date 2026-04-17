@@ -40,7 +40,7 @@ function HookHarness({
       items: [createMockPost({ id: 1, body: 'Initial visible post' })],
       nextCursor: 'cursor-1',
     })
-  }, [])
+  }, [reset])
 
   return (
     <div>
