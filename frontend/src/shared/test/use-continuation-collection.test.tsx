@@ -107,6 +107,13 @@ describe('useContinuationCollection', () => {
       ).toBeInTheDocument()
     })
     expect(screen.getByText('Initial visible post')).toBeInTheDocument()
+    expect(loadMore).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      observer.trigger(sentinel)
+    })
+
+    expect(loadMore).toHaveBeenCalledTimes(1)
 
     await user.click(screen.getByTestId('collection-continuation-retry'))
 

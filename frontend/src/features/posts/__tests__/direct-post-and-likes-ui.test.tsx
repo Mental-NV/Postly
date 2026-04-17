@@ -17,6 +17,8 @@ vi.mock('../../../shared/api/client', () => ({
     patch: vi.fn(),
     delete: vi.fn(),
   },
+  getTimelinePath: (cursor?: string | null) =>
+    cursor != null ? `/timeline?cursor=${cursor}` : '/timeline',
 }))
 
 describe('Direct post and likes UI', () => {

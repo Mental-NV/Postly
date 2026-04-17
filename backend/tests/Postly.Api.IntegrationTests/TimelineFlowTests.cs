@@ -11,6 +11,8 @@ namespace Postly.Api.IntegrationTests;
 
 public class TimelineFlowTests : IDisposable
 {
+    private const int ContinuationPageSize = 20;
+
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
@@ -83,7 +85,8 @@ public class TimelineFlowTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var data = await response.Content.ReadFromJsonAsync<TimelineResponse>();
         Assert.NotNull(data);
-        Assert.Equal(2, data.Posts.Length);
+        Assert.Equal(ContinuationPageSize, data.Posts.Length);
+        Assert.NotNull(data.NextCursor);
         Assert.All(data.Posts, p => Assert.Equal("bob", p.AuthorUsername));
         Assert.All(data.Posts, p => Assert.True(p.CanEdit));
         Assert.All(data.Posts, p => Assert.True(p.CanDelete));
@@ -163,7 +166,7 @@ public class TimelineFlowTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
         var data1 = await response1.Content.ReadFromJsonAsync<TimelineResponse>();
         Assert.NotNull(data1);
-        Assert.Equal(20, data1.Posts.Length);
+        Assert.Equal(ContinuationPageSize, data1.Posts.Length);
         Assert.NotNull(data1.NextCursor);
 
         // Act - Second page
@@ -173,8 +176,27 @@ public class TimelineFlowTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
         var data2 = await response2.Content.ReadFromJsonAsync<TimelineResponse>();
         Assert.NotNull(data2);
-        Assert.Equal(7, data2.Posts.Length); // 25 new + 2 seeded = 27 total, so 7 on page 2
-        Assert.Null(data2.NextCursor);
+        Assert.Equal(ContinuationPageSize, data2.Posts.Length);
+        Assert.NotNull(data2.NextCursor);
+
+        // Act - Third page
+        var response3 = await _client.GetAsync($"/api/timeline?cursor={Uri.EscapeDataString(data2.NextCursor)}");
+
+        // Assert - Third page
+        Assert.Equal(HttpStatusCode.OK, response3.StatusCode);
+        var data3 = await response3.Content.ReadFromJsonAsync<TimelineResponse>();
+        Assert.NotNull(data3);
+        Assert.Equal(12, data3.Posts.Length);
+        Assert.Null(data3.NextCursor);
+
+        var allIds = data1.Posts
+            .Concat(data2.Posts)
+            .Concat(data3.Posts)
+            .Select(post => post.Id)
+            .ToArray();
+
+        Assert.Equal(52, allIds.Length);
+        Assert.Equal(allIds.Length, allIds.Distinct().Count());
     }
 
     [Fact]

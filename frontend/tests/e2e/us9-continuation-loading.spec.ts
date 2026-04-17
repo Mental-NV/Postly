@@ -1,9 +1,13 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import {
-  failNextContinuationRequestOnce,
-  goToConversationPost,
   signIn,
 } from './helpers'
+
+interface CreatedPostResponse {
+  post: {
+    id: number
+  }
+}
 
 async function getVisibleCardIds(cards: Locator): Promise<string[]> {
   const count = await cards.count()
@@ -23,6 +27,28 @@ async function expectCountToIncrease(cards: Locator, initialCount: number): Prom
   await expect
     .poll(async () => cards.count())
     .toBeGreaterThan(initialCount)
+}
+
+async function createDedicatedConversationThread(
+  page: Page,
+  replyCount = 22
+): Promise<number> {
+  const timestamp = Date.now()
+  const createPostResponse = await page.request.post('/api/posts', {
+    data: { body: `UF-13 dedicated conversation ${timestamp}` },
+  })
+  expect(createPostResponse.ok()).toBeTruthy()
+
+  const { post } = await createPostResponse.json() as CreatedPostResponse
+
+  for (let index = 1; index <= replyCount; index += 1) {
+    const replyResponse = await page.request.post(`/api/posts/${post.id}/replies`, {
+      data: { body: `UF-13 reply ${timestamp}-${index}` },
+    })
+    expect(replyResponse.ok()).toBeTruthy()
+  }
+
+  return post.id
 }
 
 test.describe('User Story 9: Automatic continuation loading', () => {
@@ -52,30 +78,34 @@ test.describe('User Story 9: Automatic continuation loading', () => {
     page,
   }) => {
     await signIn(page, { username: 'bob' })
-    await failNextContinuationRequestOnce(page, /\/api\/profiles\/alice(\?.*)?$/)
+    const profilePage = await page.context().newPage()
 
-    await page.goto('/u/alice')
-    await expect(page.getByTestId('profile-page')).toBeVisible()
+    await profilePage.goto('/u/alice')
+    await expect(profilePage.getByTestId('profile-page')).toBeVisible()
 
-    const cards = page
+    const cards = profilePage
       .getByTestId('profile-posts')
       .locator('[data-testid^="post-card-"]')
     const initialIds = await getVisibleCardIds(cards)
     const initialCount = initialIds.length
 
-    await page.getByTestId('collection-continuation-sentinel').scrollIntoViewIfNeeded()
+    await profilePage.context().setOffline(true)
+    await profilePage.getByTestId('collection-continuation-sentinel').scrollIntoViewIfNeeded()
 
-    await expect(page.getByTestId('collection-continuation-error')).toBeVisible()
+    await expect(profilePage.getByTestId('collection-continuation-error')).toBeVisible()
     expect(await cards.count()).toBe(initialCount)
 
     for (const cardId of initialIds) {
-      await expect(page.getByTestId(cardId)).toBeVisible()
+      await expect(profilePage.getByTestId(cardId)).toBeVisible()
     }
 
-    await page.getByTestId('collection-continuation-retry').click()
+    await profilePage.context().setOffline(false)
+    const retryButton = profilePage.getByTestId('collection-continuation-retry')
+    await expect(retryButton).toBeVisible()
+    await retryButton.dispatchEvent('click')
 
     await expectCountToIncrease(cards, initialCount)
-    await expect(page.getByTestId('collection-end-state')).toBeVisible()
+    await expect(profilePage.getByTestId('collection-end-state')).toBeVisible()
 
     const visibleIds = await getVisibleCardIds(cards)
     expect(new Set(visibleIds).size).toBe(visibleIds.length)
@@ -85,13 +115,15 @@ test.describe('User Story 9: Automatic continuation loading', () => {
     page,
   }) => {
     await signIn(page, { username: 'bob' })
-    await goToConversationPost(page)
+    const postId = await createDedicatedConversationThread(page)
+    await page.goto(`/posts/${postId}`)
+    await expect(page.getByTestId('conversation-page')).toBeVisible()
 
     const replies = page
       .getByTestId('conversation-replies')
       .locator('[data-testid^="post-card-"]')
     const initialCount = await replies.count()
-    expect(initialCount).toBeGreaterThanOrEqual(20)
+    expect(initialCount).toBe(20)
 
     await page.getByTestId('collection-continuation-sentinel').scrollIntoViewIfNeeded()
 

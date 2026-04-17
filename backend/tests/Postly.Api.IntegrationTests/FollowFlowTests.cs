@@ -12,6 +12,8 @@ namespace Postly.Api.IntegrationTests;
 
 public class FollowFlowTests : IDisposable
 {
+    private const int ContinuationPageSize = 20;
+
     private readonly TestWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
@@ -171,9 +173,10 @@ public class FollowFlowTests : IDisposable
         var response1 = await _client.GetAsync("/api/timeline");
         var data1 = await response1.Content.ReadFromJsonAsync<TimelineResponse>();
 
-        // Assert - Only bob's post
+        // Assert - Only Bob's first page of posts is visible before following.
         Assert.NotNull(data1);
-        Assert.Equal(2, data1.Posts.Length);
+        Assert.Equal(ContinuationPageSize, data1.Posts.Length);
+        Assert.NotNull(data1.NextCursor);
         Assert.All(data1.Posts, p => Assert.Equal("bob", p.AuthorUsername));
 
         // Act - Follow alice
@@ -193,9 +196,10 @@ public class FollowFlowTests : IDisposable
         var response3 = await _client.GetAsync("/api/timeline");
         var data3 = await response3.Content.ReadFromJsonAsync<TimelineResponse>();
 
-        // Assert - Only bob's posts again
+        // Assert - Only Bob's first page of posts is visible again after unfollowing.
         Assert.NotNull(data3);
-        Assert.Equal(2, data3.Posts.Length);
+        Assert.Equal(ContinuationPageSize, data3.Posts.Length);
+        Assert.NotNull(data3.NextCursor);
         Assert.All(data3.Posts, p => Assert.Equal("bob", p.AuthorUsername));
     }
 

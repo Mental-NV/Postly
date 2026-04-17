@@ -90,7 +90,12 @@ export function useContinuationCollection<TItem>({
 
   const requestMore = useEffectEvent(async (cursorOverride?: string) => {
     const cursorToLoad = cursorOverride ?? nextCursor
-    if (cursorToLoad == null || status === 'loading-more' || items.length === 0) {
+    if (
+      cursorToLoad == null ||
+      status === 'loading-more' ||
+      (cursorOverride == null && status === 'load-more-error') ||
+      items.length === 0
+    ) {
       return
     }
 
