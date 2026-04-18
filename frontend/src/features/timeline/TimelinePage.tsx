@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Composer } from '../posts/composer/Composer'
 import { PostEditor } from '../posts/editor/PostEditor'
 import { PostCard } from '../posts/post-card/PostCard'
