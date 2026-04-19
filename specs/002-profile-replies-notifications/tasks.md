@@ -202,7 +202,7 @@ responsibilities -> cursor-bearing `TimelineResponse`, `ProfileResponse`,
 - [X] T064 [P] [US4] Add backend contract coverage for continuation response shape and error outcomes on timeline, profile, and conversation reads in `backend/tests/Postly.Api.ContractTests/ContinuationContractsTests.cs`
 - [X] T065 [P] [US4] Add backend integration coverage for timeline/profile/conversation continuation success, retry-after-failure, and explicit exhaustion behavior in `backend/tests/Postly.Api.IntegrationTests/ContinuationFlowTests.cs`
 - [X] T066 [P] [US4] Add frontend component coverage for the shared continuation hook plus timeline, profile, and conversation loading/retry/end states using the one-shot fetch-mock continuation failure helper in `frontend/src/shared/test/use-continuation-collection.test.tsx`, `frontend/src/features/timeline/__tests__/continuation-state-ui.test.tsx`, `frontend/src/features/profiles/__tests__/profile-continuation-ui.test.tsx`, and `frontend/src/features/posts/__tests__/conversation-continuation-ui.test.tsx`
-- [ ] T067 [P] [US4] Add Playwright coverage for `UF-11`, `UF-12`, and `UF-13` in `frontend/tests/e2e/us9-continuation-loading.spec.ts` using route interception to fail the first matching continuation request once for retry scenarios
+- [X] T067 [P] [US4] Add Playwright coverage for `UF-11`, `UF-12`, and `UF-13` in `frontend/tests/e2e/us9-continuation-loading.spec.ts` using route interception to fail the first matching continuation request once for retry scenarios
 
 ### Backend Implementation for User Story 4
 
@@ -216,9 +216,9 @@ responsibilities -> cursor-bearing `TimelineResponse`, `ProfileResponse`,
 
 ### Contracts, Data, Fixtures, and Documentation for User Story 4
 
-- [ ] T072 [US4] Add deterministic continuation and exhaustion fixtures for timeline, profile, and conversation surfaces in `backend/src/Postly.Api/Persistence/DataSeed.cs` and align the retry test helpers in `frontend/tests/e2e/helpers.ts` with route interception rather than backend fault toggles
+- [X] T072 [US4] Add deterministic continuation and exhaustion fixtures for timeline, profile, and conversation surfaces in `backend/src/Postly.Api/Persistence/DataSeed.cs` and align the retry test helpers in `frontend/tests/e2e/helpers.ts` with route interception rather than backend fault toggles
 
-**Checkpoint**: User Story 4 is independently testable.
+**Checkpoint**: User Story 4 is independently testable. ✅ COMPLETE
 
 ---
 
