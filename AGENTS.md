@@ -45,4 +45,12 @@ C# on .NET 10 (backend), TypeScript in strict mode (frontend): Follow standard c
 - Prefer stable accessible roles and names when the element is naturally unique and user-facing.
 - Avoid broad `getByText(...)` selectors for dynamic or repeated values.
 - Avoid CSS class selectors for test behavior unless no stable semantic or test id exists.
+- Backend-hosted Playwright runs should start through the repo e2e web-server script so the frontend build is refreshed before `wwwroot` is served.
+- Helper flows like `signIn()` should wait for route-shell readiness only; specs that need loaded cards, counts, or pagination state should assert those states explicitly.
+
+## React 19 Effect Events
+
+- Treat `useEffectEvent(...)` values as special event-like functions, not ordinary callbacks.
+- Do not add effect-event values to bootstrap `useEffect(...)` dependency arrays.
+- When a bootstrap effect is intentionally one-shot, keep the dependency list narrow and add a short comment explaining why.
 <!-- MANUAL ADDITIONS END -->
