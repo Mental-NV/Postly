@@ -72,6 +72,9 @@ export function useContinuationCollection<TItem>({
   const [failedCursor, setFailedCursor] = useState<string | null>(null)
   const [sentinelNode, setSentinelNode] = useState<HTMLDivElement | null>(null)
 
+  // React 19 effect events are intentionally excluded from bootstrap-effect
+  // dependency chains at call sites. Treat `reset` and `retry` as special
+  // event-like entrypoints, not ordinary callbacks.
   const reset = useEffectEvent(
     ({ items: nextItems, nextCursor: nextCursorValue }: ResetContinuationCollectionOptions<TItem>) => {
       setItems(nextItems)

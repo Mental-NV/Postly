@@ -7,6 +7,13 @@ import { expect, type FilePayload, type Locator, type Page } from '@playwright/t
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+export async function waitForTimelineShell(page: Page): Promise<void> {
+  await expect(page).toHaveURL('/', { timeout: 15000 })
+  await expect(page.getByTestId('timeline-feed')).toBeVisible({
+    timeout: 15000,
+  })
+}
+
 export async function getAssetAvatar001(): Promise<FilePayload> {
   const assetPath = path.resolve(
     __dirname,
@@ -31,10 +38,9 @@ export async function signIn(
   await page.getByTestId('username-input').fill(username)
   await page.getByTestId('password-input').fill(password)
   await page.getByTestId('submit-button').click()
-  await expect(page).toHaveURL('/', { timeout: 15000 })
-  await expect(page.getByTestId('timeline-feed')).toBeVisible({
-    timeout: 15000,
-  })
+  // Only wait for the route shell here. Specs that need seeded cards or
+  // continuation behavior should wait for those states explicitly.
+  await waitForTimelineShell(page)
 }
 
 /** Navigate to the seeded conversation post (Alice's ConversationPostBody post). */

@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import {
+  failNextContinuationRequestOnce,
   signIn,
 } from './helpers'
 
@@ -27,6 +28,14 @@ async function expectCountToIncrease(cards: Locator, initialCount: number): Prom
   await expect
     .poll(async () => cards.count(), { timeout: 15000 })
     .toBeGreaterThan(initialCount)
+}
+
+async function triggerContinuationLoad(page: Page): Promise<void> {
+  await page
+    .getByTestId('collection-continuation-sentinel')
+    .evaluate((element) => {
+      element.scrollIntoView({ block: 'end' })
+    })
 }
 
 async function createDedicatedConversationThread(
@@ -67,7 +76,7 @@ test.describe('User Story 9: Automatic continuation loading', () => {
     const initialCount = await cards.count()
     expect(initialCount).toBeGreaterThanOrEqual(20)
 
-    await page.getByTestId('collection-continuation-sentinel').scrollIntoViewIfNeeded()
+    await triggerContinuationLoad(page)
 
     await expectCountToIncrease(cards, initialCount)
     await expect(page.getByTestId('collection-end-state')).toBeVisible()
@@ -94,8 +103,11 @@ test.describe('User Story 9: Automatic continuation loading', () => {
     const initialIds = await getVisibleCardIds(cards)
     const initialCount = initialIds.length
 
-    await profilePage.context().setOffline(true)
-    await profilePage.getByTestId('collection-continuation-sentinel').scrollIntoViewIfNeeded()
+    await failNextContinuationRequestOnce(
+      profilePage,
+      /\/api\/profiles\/alice/
+    )
+    await triggerContinuationLoad(profilePage)
 
     await expect(profilePage.getByTestId('collection-continuation-error')).toBeVisible()
     expect(await cards.count()).toBe(initialCount)
@@ -104,7 +116,6 @@ test.describe('User Story 9: Automatic continuation loading', () => {
       await expect(profilePage.getByTestId(cardId)).toBeVisible()
     }
 
-    await profilePage.context().setOffline(false)
     const retryButton = profilePage.getByTestId('collection-continuation-retry')
     await expect(retryButton).toBeVisible()
     await retryButton.dispatchEvent('click')
@@ -133,7 +144,7 @@ test.describe('User Story 9: Automatic continuation loading', () => {
     const initialCount = await replies.count()
     expect(initialCount).toBe(20)
 
-    await page.getByTestId('collection-continuation-sentinel').scrollIntoViewIfNeeded()
+    await triggerContinuationLoad(page)
 
     await expectCountToIncrease(replies, initialCount)
     await expect(page.getByTestId('collection-end-state')).toBeVisible()

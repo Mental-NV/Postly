@@ -26,7 +26,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'dotnet run --project ../backend/src/Postly.Api/Postly.Api.csproj',
+    command: 'bash ../scripts/run-e2e-webserver.sh',
     env: {
       ...process.env,
       ASPNETCORE_ENVIRONMENT: 'Development',
@@ -38,7 +38,7 @@ export default defineConfig({
       'Logging__LogLevel__Microsoft.EntityFrameworkCore': 'Warning',
     },
     url: 'http://localhost:5000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120000,
     stdout: 'ignore',
     stderr: 'pipe',
