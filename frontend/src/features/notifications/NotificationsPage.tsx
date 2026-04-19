@@ -1,3 +1,4 @@
+import { Circle, CircleDot } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { apiClient } from '../../shared/api/client'
@@ -120,19 +121,24 @@ export function NotificationsPage(): React.JSX.Element {
                 ? 'transparent'
                 : 'rgba(29, 155, 240, 0.05)',
               opacity: openingNotificationId === notification.id ? 0.5 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
             }}
           >
             {notification.isRead ? (
               <span
                 data-testid={`notification-read-indicator-${notification.id}`}
+                aria-label="Read"
               >
-                ✓
+                <Circle size={14} aria-hidden="true" />
               </span>
             ) : (
               <span
                 data-testid={`notification-unread-indicator-${notification.id}`}
+                aria-label="Unread"
               >
-                •
+                <CircleDot size={14} aria-hidden="true" />
               </span>
             )}
             <span>

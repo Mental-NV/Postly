@@ -1,11 +1,8 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Postly.Api.Features.Shared.Errors;
 using Postly.Api.Features.Profiles.Contracts;
-using Postly.Api.Persistence;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
@@ -21,13 +18,8 @@ public class ProfileEditingContractsTests : IDisposable
     public ProfileEditingContractsTests()
     {
         _factory = new TestWebApplicationFactory();
-        _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false,
-            HandleCookies = true
-        });
-
-        ResetData();
+        _client = _factory.CreateClientWithCookies();
+        _factory.ResetData();
     }
 
     public void Dispose()
@@ -45,8 +37,11 @@ public class ProfileEditingContractsTests : IDisposable
             bio = "Updated bio"
         });
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        await TestWebApplicationFactory.AssertProblemAsync(
+            response,
+            HttpStatusCode.Unauthorized,
+            ErrorCodes.Unauthorized,
+            "Authentication is required.");
     }
 
     [Fact]
@@ -57,28 +52,33 @@ public class ProfileEditingContractsTests : IDisposable
 
         var response = await _factory.CreateClient().PutAsync("/api/profiles/me/avatar", content);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        await TestWebApplicationFactory.AssertProblemAsync(
+            response,
+            HttpStatusCode.Unauthorized,
+            ErrorCodes.Unauthorized,
+            "Authentication is required.");
     }
 
     [Fact]
     public async Task PutProfileAvatar_WithInvalidUpload_Returns400ProblemDetails()
     {
-        await SignInAsBobAsync();
+        await _factory.SignInAsBobAsync(_client);
 
         using var content = new MultipartFormDataContent();
         content.Add(new ByteArrayContent("<svg></svg>"u8.ToArray()), "avatar", "avatar.svg");
 
         var response = await _client.PutAsync("/api/profiles/me/avatar", content);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        await TestWebApplicationFactory.AssertValidationProblemAsync(
+            response,
+            "avatar",
+            "Avatar upload must be a still JPEG or PNG image.");
     }
 
     [Fact]
     public async Task PublicProfileReadsRemainAvailable_AndAvatarEndpointServesJpeg()
     {
-        await SignInAsBobAsync();
+        await _factory.SignInAsBobAsync(_client);
 
         var assetPath = FindAssetPath("001.jpg");
         var avatarBytes = await File.ReadAllBytesAsync(assetPath);
@@ -121,17 +121,6 @@ public class ProfileEditingContractsTests : IDisposable
         throw new FileNotFoundException($"Could not find asset {fileName} at {assetPath}");
     }
 
-    private async Task SignInAsBobAsync()
-    {
-        var response = await _client.PostAsJsonAsync("/api/auth/signin", new
-        {
-            username = "bob",
-            password = "TestPassword123"
-        });
-
-        response.EnsureSuccessStatusCode();
-    }
-
     private async Task<HttpResponseMessage> UploadAvatarAsync(byte[] avatarBytes, string contentType = "image/png", string fileName = "avatar.png")
     {
         using var content = new MultipartFormDataContent();
@@ -140,13 +129,6 @@ public class ProfileEditingContractsTests : IDisposable
         content.Add(fileContent, "avatar", fileName);
 
         return await _client.PutAsync("/api/profiles/me/avatar", content);
-    }
-
-    private void ResetData()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        DataSeed.ResetAsync(dbContext).GetAwaiter().GetResult();
     }
 
     private static async Task<byte[]> CreatePngAsync(int width, int height)
