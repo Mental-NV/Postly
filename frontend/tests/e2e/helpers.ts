@@ -31,7 +31,10 @@ export async function signIn(
   await page.getByTestId('username-input').fill(username)
   await page.getByTestId('password-input').fill(password)
   await page.getByTestId('submit-button').click()
-  await expect(page).toHaveURL('/')
+  await expect(page).toHaveURL('/', { timeout: 15000 })
+  await expect(page.getByTestId('timeline-feed')).toBeVisible({
+    timeout: 15000,
+  })
 }
 
 /** Navigate to the seeded conversation post (Alice's ConversationPostBody post). */
@@ -133,5 +136,42 @@ export async function createNotificationViaReply(
 ): Promise<void> {
   await page.request.post(`/api/posts/${postId}/replies`, {
     data: { body },
+  })
+}
+
+export async function failNextContinuationRequestOnce(
+  page: Page,
+  matcher: string | RegExp,
+  {
+    status = 500,
+    type = 'CONTINUATION_FAILED',
+    title = 'Unable to load more content',
+    detail = 'Please try again.',
+  }: {
+    status?: number
+    type?: string
+    title?: string
+    detail?: string
+  } = {}
+): Promise<void> {
+  let hasFailed = false
+
+  await page.route(matcher, async (route) => {
+    const requestUrl = route.request().url()
+    if (!hasFailed && requestUrl.includes('cursor=')) {
+      hasFailed = true
+      await route.fulfill({
+        status,
+        contentType: 'application/problem+json',
+        body: JSON.stringify({
+          type,
+          title,
+          detail,
+        }),
+      })
+      return
+    }
+
+    await route.continue()
   })
 }

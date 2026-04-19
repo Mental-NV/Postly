@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Postly.Api.Features.Posts.Application;
 using Postly.Api.Features.Profiles.Contracts;
 using Postly.Api.Features.Shared.Errors;
+using Postly.Api.Features.Shared.Pagination;
 using Postly.Api.Features.Timeline.Contracts;
 using Postly.Api.Persistence;
 using Postly.Api.Persistence.Entities;
@@ -90,15 +91,14 @@ public class GetProfileHandler
             isFollowedByViewer
         );
 
-        DateTimeOffset cursorTime = DateTimeOffset.MaxValue;
-        long cursorId = long.MaxValue;
-
-        if (!string.IsNullOrEmpty(cursor))
+        if (!OpaqueCursor.TryParse(cursor, out var parsedCursor))
         {
-            if (!TryParseCursor(cursor, out cursorTime, out cursorId))
-            {
-                return Results.BadRequest(new { error = "Invalid cursor format" });
-            }
+            return Results.Problem(ProblemDetailsFactory.CreateValidationProblem(
+                new Dictionary<string, string[]>
+                {
+                    ["cursor"] = ["Cursor must be a valid continuation token."]
+                },
+                _httpContext.TraceIdentifier));
         }
 
         var allPosts = await _dbContext.Posts
@@ -106,52 +106,18 @@ public class GetProfileHandler
             .Where(p => p.AuthorId == targetUser.Id && p.ReplyToPostId == null && p.DeletedAtUtc == null)
             .ToListAsync();
 
-        // Apply cursor filter and sort in memory
-        var posts = allPosts
-            .Where(p => cursorTime == DateTimeOffset.MaxValue ||
-                       p.CreatedAtUtc < cursorTime ||
-                       (p.CreatedAtUtc == cursorTime && p.Id < cursorId))
-            .OrderByDescending(p => p.CreatedAtUtc)
-            .ThenByDescending(p => p.Id)
-            .Take(PageSize + 1)
-            .ToList();
+        var page = OpaqueCursorPagination.Paginate(
+            allPosts,
+            parsedCursor,
+            PageSize,
+            post => post.CreatedAtUtc,
+            post => post.Id);
 
-        var visiblePosts = posts.Take(PageSize).ToArray();
-        var postSummaries = await PostSummaryFactory.CreateManyAsync(_dbContext, visiblePosts, currentViewerId);
+        var postSummaries = await PostSummaryFactory.CreateManyAsync(
+            _dbContext,
+            page.Items,
+            currentViewerId);
 
-        string? nextCursor = null;
-        if (posts.Count > PageSize)
-        {
-            var lastPost = posts[PageSize - 1];
-            nextCursor = EncodeCursor(lastPost.CreatedAtUtc, lastPost.Id);
-        }
-
-        return Results.Ok(new ProfileResponse(profile, postSummaries, nextCursor));
-    }
-
-    private static bool TryParseCursor(string cursor, out DateTimeOffset time, out long id)
-    {
-        time = DateTimeOffset.MinValue;
-        id = 0;
-
-        try
-        {
-            var parts = cursor.Split('_');
-            if (parts.Length != 2)
-                return false;
-
-            time = DateTimeOffset.Parse(parts[0]);
-            id = long.Parse(parts[1]);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static string EncodeCursor(DateTimeOffset time, long id)
-    {
-        return $"{time:O}_{id}";
+        return Results.Ok(new ProfileResponse(profile, postSummaries, page.NextCursor));
     }
 }
