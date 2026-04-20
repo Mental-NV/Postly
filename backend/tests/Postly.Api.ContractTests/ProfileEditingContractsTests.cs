@@ -99,6 +99,7 @@ public class ProfileEditingContractsTests : IDisposable
         var publicAvatarResponse = await anonymousClient.GetAsync("/api/profiles/bob/avatar");
         Assert.Equal(HttpStatusCode.OK, publicAvatarResponse.StatusCode);
         Assert.Equal("image/jpeg", publicAvatarResponse.Content.Headers.ContentType?.MediaType);
+        Assert.Null(publicAvatarResponse.Content.Headers.ContentDisposition);
     }
 
     private string FindAssetPath(string fileName)

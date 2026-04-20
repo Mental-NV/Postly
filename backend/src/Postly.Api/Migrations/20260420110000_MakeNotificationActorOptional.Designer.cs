@@ -11,8 +11,8 @@ using Postly.Api.Persistence;
 namespace Postly.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260416204840_AddDenormalizedActorFieldsToNotifications")]
-    partial class AddDenormalizedActorFieldsToNotifications
+    [Migration("20260420110000_MakeNotificationActorOptional")]
+    partial class MakeNotificationActorOptional
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -69,7 +69,7 @@ namespace Postly.Api.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
-                    b.Property<long>("ActorUserId")
+                    b.Property<long?>("ActorUserId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ActorUsername")
@@ -281,8 +281,7 @@ namespace Postly.Api.Migrations
                     b.HasOne("Postly.Api.Persistence.Entities.UserAccount", "ActorUser")
                         .WithMany()
                         .HasForeignKey("ActorUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Postly.Api.Persistence.Entities.UserAccount", "RecipientUser")
                         .WithMany()

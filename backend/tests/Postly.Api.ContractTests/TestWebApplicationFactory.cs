@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Postly.Api.Features.Shared.Errors;
 using Postly.Api.Persistence;
@@ -21,6 +23,16 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Development");
         builder.UseContentRoot(AppProjectPath);
         builder.UseWebRoot("wwwroot");
+        builder.ConfigureAppConfiguration((_, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Logging:LogLevel:Default"] = "Warning",
+                ["Logging:LogLevel:Microsoft"] = "Warning",
+                ["Logging:LogLevel:Microsoft.Hosting.Lifetime"] = "Warning",
+                ["Logging:LogLevel:Microsoft.EntityFrameworkCore"] = "Warning",
+            });
+        });
 
         builder.ConfigureServices(services =>
         {
@@ -35,7 +47,13 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 
             services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseSqlite($"Data Source={_dbName}");
+                options
+                    .UseSqlite($"Data Source={_dbName}")
+                    .ConfigureWarnings(warnings =>
+                    {
+                        warnings.Ignore(SqliteEventId.TableRebuildPendingWarning);
+                        warnings.Ignore(RelationalEventId.NonTransactionalMigrationOperationWarning);
+                    });
             });
         });
     }

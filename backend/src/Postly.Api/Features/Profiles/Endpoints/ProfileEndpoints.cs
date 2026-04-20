@@ -47,8 +47,7 @@ public static class ProfileEndpoints
 
             return Results.File(
                 fileContents: user.AvatarBytes!,
-                contentType: ProfileIdentityProjection.AvatarContentType,
-                fileDownloadName: $"{user.Username}-avatar.jpg");
+                contentType: ProfileIdentityProjection.AvatarContentType);
         });
 
         group.MapPost("{username}/follow", async (string username, FollowUserHandler handler) =>
