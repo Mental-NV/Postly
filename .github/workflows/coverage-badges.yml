@@ -1,0 +1,80 @@
+name: Coverage Badges
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: coverage-badges-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  update-coverage-badges:
+    name: Update Coverage Badges
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: Postly.sln
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore solution
+        run: dotnet restore Postly.sln
+
+      - name: Run backend unit tests with coverage
+        run: |
+          dotnet test backend/tests/Postly.Api.UnitTests/Postly.Api.UnitTests.csproj \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./artifacts/coverage/backend
+
+          coverage_file="$(find artifacts/coverage/backend -name coverage.cobertura.xml | head -n 1)"
+          if [[ -z "$coverage_file" ]]; then
+            echo "Backend coverage file was not generated." >&2
+            exit 1
+          fi
+
+          cp "$coverage_file" artifacts/coverage/backend/coverage.cobertura.xml
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run frontend unit tests with coverage
+        working-directory: frontend
+        run: npm run test:ci -- --coverage --coverage.reporter=cobertura --coverage.reportsDirectory=coverage
+
+      - name: Update README coverage badges
+        run: ./scripts/coverage/update-readme-badges.sh
+
+      - name: Commit and push badge update
+        run: |
+          if git diff --quiet README.md; then
+            echo "No badge updates detected."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "ci: update coverage badges"
+          git push
