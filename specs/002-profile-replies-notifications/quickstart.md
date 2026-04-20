@@ -36,18 +36,27 @@ npm ci
 cd ..
 ```
 
-3. Build the frontend for backend-hosted serving.
+3. Start the backend-hosted app with refreshed frontend assets.
 
 ```bash
-cd frontend
-npm run build
-cd ..
+bash scripts/run-e2e-webserver.sh
 ```
 
-4. Start the backend entry point.
+4. If you only need a long-running manual app session after a prior frontend
+build, you can still start the API directly.
 
 ```bash
 dotnet run --project backend/src/Postly.Api/Postly.Api.csproj
+```
+
+5. For Playwright runs, use the frontend e2e entrypoint. It already rebuilds
+the frontend bundle and refreshes backend-hosted assets before starting the
+test server.
+
+```bash
+cd frontend
+npm run test:e2e
+cd ..
 ```
 
 ## Deterministic Seed Expectations
@@ -210,7 +219,8 @@ Focus:
 
 - all primary and recovery flows from `user-flows.md`, with continuation retry
   scenarios driven by one-shot route interception rather than backend seed
-  toggles
+  toggles, and with backend-hosted frontend assets refreshed automatically by
+  the e2e startup script
 
 ## Migration and Rollback Notes
 

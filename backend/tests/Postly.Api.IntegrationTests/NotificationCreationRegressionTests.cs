@@ -191,11 +191,13 @@ public class NotificationCreationRegressionTests : IDisposable
         var notification = await dbContext.Notifications
             .Include(n => n.ActorUser)
             .Include(n => n.RecipientUser)
-            .FirstOrDefaultAsync(n => n.Kind == "follow" && n.ActorUser.Username == "bob");
+            .FirstOrDefaultAsync(n => n.Kind == "follow" && n.ActorUsername == "bob");
 
         Assert.NotNull(notification);
-        Assert.Equal("bob", notification.ActorUser.Username);
-        Assert.Equal("alice", notification.RecipientUser.Username);
+        Assert.NotNull(notification!.ActorUser);
+        Assert.NotNull(notification.RecipientUser);
+        Assert.Equal("bob", notification.ActorUser!.Username);
+        Assert.Equal("alice", notification.RecipientUser!.Username);
         Assert.Equal("follow", notification.Kind);
         Assert.Null(notification.ReadAtUtc);
         Assert.True(notification.CreatedAtUtc <= DateTimeOffset.UtcNow);

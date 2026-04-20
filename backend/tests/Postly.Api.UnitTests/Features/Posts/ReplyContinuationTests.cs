@@ -17,32 +17,11 @@ public class ReplyContinuationTests
     public async Task HandleAsync_WithContinuationCursor_DoesNotOverlapPages_AndExhausts()
     {
         var dbContext = TestDbContextFactory.CreateInMemoryDbContext();
-        var author = TestDataBuilder.CreateUserAccount(id: 1, username: "bob");
+        var (author, _, _) = TestDataBuilder.CreateRound2Users();
+        var scenario = TestDataBuilder.CreateAvailableConversationThread(author);
         dbContext.UserAccounts.Add(author);
-
-        var parentPost = new Post
-        {
-            Id = 100,
-            AuthorId = author.Id,
-            Author = author,
-            Body = "Conversation target",
-            CreatedAtUtc = DateTimeOffset.UtcNow,
-        };
-
-        dbContext.Posts.Add(parentPost);
-
-        var replies = Enumerable.Range(1, 22)
-            .Select(index => new Post
-            {
-                Id = 200 + index,
-                AuthorId = author.Id,
-                Author = author,
-                Body = $"Reply #{index}",
-                ReplyToPostId = parentPost.Id,
-                CreatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-index),
-            });
-
-        dbContext.Posts.AddRange(replies);
+        dbContext.Posts.Add(scenario.ParentPost);
+        dbContext.Posts.AddRange(scenario.Replies);
         await dbContext.SaveChangesAsync();
 
         var viewer = new Mock<ICurrentViewerAccessor>();
@@ -54,10 +33,10 @@ public class ReplyContinuationTests
 
         var handler = new GetRepliesHandler(dbContext, viewer.Object, httpContextAccessor.Object);
 
-        var firstResult = await handler.HandleAsync(parentPost.Id, null);
+        var firstResult = await handler.HandleAsync(scenario.ParentPost.Id, null);
         var firstPage = ((Ok<ReplyPageResponse>)firstResult).Value!;
 
-        var secondResult = await handler.HandleAsync(parentPost.Id, firstPage.NextCursor);
+        var secondResult = await handler.HandleAsync(scenario.ParentPost.Id, firstPage.NextCursor);
         var secondPage = ((Ok<ReplyPageResponse>)secondResult).Value!;
 
         firstPage.Replies.Should().HaveCount(20);
@@ -73,16 +52,10 @@ public class ReplyContinuationTests
     public async Task HandleAsync_WithInvalidCursor_ReturnsProblemDetails()
     {
         var dbContext = TestDbContextFactory.CreateInMemoryDbContext();
-        var author = TestDataBuilder.CreateUserAccount(id: 1, username: "bob");
+        var (author, _, _) = TestDataBuilder.CreateRound2Users();
+        var scenario = TestDataBuilder.CreateAvailableConversationThread(author, replyCount: 0);
         dbContext.UserAccounts.Add(author);
-        dbContext.Posts.Add(new Post
-        {
-            Id = 100,
-            AuthorId = author.Id,
-            Author = author,
-            Body = "Conversation target",
-            CreatedAtUtc = DateTimeOffset.UtcNow,
-        });
+        dbContext.Posts.Add(scenario.ParentPost);
         await dbContext.SaveChangesAsync();
 
         var viewer = new Mock<ICurrentViewerAccessor>();
@@ -94,7 +67,7 @@ public class ReplyContinuationTests
 
         var handler = new GetRepliesHandler(dbContext, viewer.Object, httpContextAccessor.Object);
 
-        var result = await handler.HandleAsync(100, "invalid-cursor");
+        var result = await handler.HandleAsync(scenario.ParentPost.Id, "invalid-cursor");
 
         result.Should().BeOfType<ProblemHttpResult>();
         ((ProblemHttpResult)result).StatusCode.Should().Be(400);

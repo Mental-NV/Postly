@@ -1,12 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Postly.Api.Features.Posts.Contracts;
 using Postly.Api.Features.Profiles.Contracts;
 using Postly.Api.Features.Timeline.Contracts;
-using Postly.Api.Persistence;
 using Xunit;
 
 namespace Postly.Api.ContractTests;
@@ -19,13 +15,8 @@ public class ContinuationContractsTests : IDisposable
     public ContinuationContractsTests()
     {
         _factory = new TestWebApplicationFactory();
-        _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false,
-            HandleCookies = true
-        });
-
-        ResetData();
+        _client = _factory.CreateClientWithCookies();
+        _factory.ResetData();
     }
 
     public void Dispose()
@@ -37,7 +28,7 @@ public class ContinuationContractsTests : IDisposable
     [Fact]
     public async Task GetTimeline_ReturnsContinuationShape()
     {
-        await SignInAsBobAsync();
+        await _factory.SignInAsBobAsync(_client);
 
         var response = await _client.GetAsync("/api/timeline");
 
@@ -63,7 +54,7 @@ public class ContinuationContractsTests : IDisposable
     [Fact]
     public async Task GetConversation_ReturnsContinuationShape()
     {
-        var conversationPostId = await GetConversationPostIdAsync();
+        var conversationPostId = await _factory.GetConversationPostIdAsync();
 
         var response = await _client.GetAsync($"/api/posts/{conversationPostId}");
 
@@ -81,50 +72,27 @@ public class ContinuationContractsTests : IDisposable
     {
         if (requiresAuth)
         {
-            await SignInAsBobAsync();
+            await _factory.SignInAsBobAsync(_client);
         }
 
         var response = await _client.GetAsync(path);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        await TestWebApplicationFactory.AssertValidationProblemAsync(
+            response,
+            "cursor",
+            "Cursor must be a valid continuation token.");
     }
 
     [Fact]
     public async Task GetConversation_WithInvalidCursor_ReturnsProblemDetails()
     {
-        var conversationPostId = await GetConversationPostIdAsync();
+        var conversationPostId = await _factory.GetConversationPostIdAsync();
 
         var response = await _client.GetAsync($"/api/posts/{conversationPostId}?cursor=invalid-cursor");
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
-    }
-
-    private async Task SignInAsBobAsync()
-    {
-        await _client.PostAsJsonAsync("/api/auth/signin", new
-        {
-            username = "bob",
-            password = "TestPassword123"
-        });
-    }
-
-    private async Task<long> GetConversationPostIdAsync()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        return await dbContext.Posts
-            .Where(post => post.Body == DataSeed.ConversationPostBody)
-            .Select(post => post.Id)
-            .SingleAsync();
-    }
-
-    private void ResetData()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        DataSeed.ResetAsync(dbContext).GetAwaiter().GetResult();
+        await TestWebApplicationFactory.AssertValidationProblemAsync(
+            response,
+            "cursor",
+            "Cursor must be a valid continuation token.");
     }
 }

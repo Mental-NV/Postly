@@ -1,3 +1,4 @@
+import { Heart } from 'lucide-react'
 import { Button } from '../../../shared/components/Button'
 
 interface PostLikeButtonProps {
@@ -29,7 +30,7 @@ export function PostLikeButton({
         data-testid={`post-like-button-${postId}`}
         className={`post-action-btn like-btn ${likedByViewer ? 'liked' : ''}`}
       >
-        <span className="action-icon">{likedByViewer ? '❤️' : '🤍'}</span>
+        <Heart className="action-icon" aria-hidden="true" />
         <span
           aria-live="polite"
           data-testid={`post-like-count-${postId}`}

@@ -1,3 +1,4 @@
+import { Heart, Pencil, Trash2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { PostSummary } from '../../../shared/api/contracts'
 import { PostLikeButton } from './PostLikeButton'
@@ -152,7 +153,7 @@ export function PostCard({
           ) : showLikeCount ? (
             <div className="post-action-item like-action">
               <div className="post-action-btn" aria-hidden="true">
-                <span className="action-icon">🤍</span>
+                <Heart className="action-icon" aria-hidden="true" />
                 <span
                   aria-live="polite"
                   data-testid={`post-like-count-${post.id}`}
@@ -175,7 +176,7 @@ export function PostCard({
                 data-testid={`post-edit-button-${post.id}`}
                 className="post-action-btn edit-btn"
               >
-                ✏️
+                <Pencil className="action-icon" aria-hidden="true" />
               </Button>
             </div> : null}
 
@@ -190,7 +191,7 @@ export function PostCard({
                 data-testid={`post-delete-button-${post.id}`}
                 className="post-action-btn delete-btn"
               >
-                🗑️
+                <Trash2 className="action-icon" aria-hidden="true" />
               </Button>
             </div> : null}
         </div>

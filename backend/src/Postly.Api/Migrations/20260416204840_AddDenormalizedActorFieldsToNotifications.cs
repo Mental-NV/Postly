@@ -10,18 +10,6 @@ namespace Postly.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Notifications_UserAccounts_ActorUserId",
-                table: "Notifications");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "ActorUserId",
-                table: "Notifications",
-                type: "INTEGER",
-                nullable: true,
-                oldClrType: typeof(long),
-                oldType: "INTEGER");
-
             migrationBuilder.AddColumn<string>(
                 name: "ActorDisplayName",
                 table: "Notifications",
@@ -46,22 +34,11 @@ namespace Postly.Api.Migrations
                 WHERE ActorUserId IS NOT NULL
             ");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Notifications_UserAccounts_ActorUserId",
-                table: "Notifications",
-                column: "ActorUserId",
-                principalTable: "UserAccounts",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Notifications_UserAccounts_ActorUserId",
-                table: "Notifications");
-
             migrationBuilder.DropColumn(
                 name: "ActorDisplayName",
                 table: "Notifications");
@@ -69,24 +46,6 @@ namespace Postly.Api.Migrations
             migrationBuilder.DropColumn(
                 name: "ActorUsername",
                 table: "Notifications");
-
-            migrationBuilder.AlterColumn<long>(
-                name: "ActorUserId",
-                table: "Notifications",
-                type: "INTEGER",
-                nullable: false,
-                defaultValue: 0L,
-                oldClrType: typeof(long),
-                oldType: "INTEGER",
-                oldNullable: true);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Notifications_UserAccounts_ActorUserId",
-                table: "Notifications",
-                column: "ActorUserId",
-                principalTable: "UserAccounts",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
         }
     }
 }

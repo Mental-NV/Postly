@@ -227,10 +227,10 @@ responsibilities -> cursor-bearing `TimelineResponse`, `ProfileResponse`,
 **Purpose**: Finalize shared regressions, visual consistency, documentation, and
 delivery readiness across all Round 2 stories.
 
-- [ ] T073 [P] Add shared frontend regression coverage for avatar rendering, unavailable-state copy, and reused post-card selectors in `frontend/src/shared/test/accessibility-and-copy.test.tsx`
-- [ ] T074 [P] Add shared backend regression coverage for ProblemDetails codes and seeded-scenario builders in `backend/tests/Postly.Api.UnitTests/TestHelpers/TestDataBuilder.cs` and `backend/tests/Postly.Api.ContractTests/TestWebApplicationFactory.cs`
-- [ ] T075 [P] Verify Round 2-affected shared surfaces use the monochrome minimalistic icon style and remove remaining colorful filled icon treatments in `frontend/src/shared/components/`, `frontend/src/shared/components/MainLayout.tsx`, `frontend/src/features/profiles/ProfilePage.tsx`, and `frontend/src/features/notifications/`
-- [ ] T076 Run the Round 2 quickstart validation paths and capture any implementation-driven updates in `specs/002-profile-replies-notifications/quickstart.md`
+- [X] T073 [P] Add shared frontend regression coverage for avatar rendering, unavailable-state copy, and reused post-card selectors in `frontend/src/shared/test/accessibility-and-copy.test.tsx`
+- [X] T074 [P] Add shared backend regression coverage for ProblemDetails codes and seeded-scenario builders in `backend/tests/Postly.Api.UnitTests/TestHelpers/TestDataBuilder.cs` and `backend/tests/Postly.Api.ContractTests/TestWebApplicationFactory.cs`
+- [X] T075 [P] Verify Round 2-affected shared surfaces use the monochrome minimalistic icon style and remove remaining colorful filled icon treatments in `frontend/src/shared/components/`, `frontend/src/shared/components/MainLayout.tsx`, `frontend/src/features/profiles/ProfilePage.tsx`, and `frontend/src/features/notifications/`
+- [X] T076 Run the Round 2 quickstart validation paths and capture any implementation-driven updates in `specs/002-profile-replies-notifications/quickstart.md`
 
 ---
 
